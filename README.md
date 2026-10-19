@@ -37,7 +37,7 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 | `apartment_green.glb` | 12 m × 10 m · 3 floors | **Vibrant green concrete**; switchback stairs connect all 3 floors **and** the flat roof (exact 3 m × 1.5 m Boolean holes in every slab) | `concrete_green` |
 | `cabin_wood.glb` | 8 m × 6 m · 1 floor | **Warm brown wood** cabin: pitched rust roof, brick chimney, porch, shuttered windows, one OmniLight | `wood_warm` + `rust_orange` + `brick_red` |
 | `warehouse_metal.glb` | 20 m × 12 m · 1 floor | **Split colourway: steel-blue walls + rusty orange roof/doors**; two open 6 m garage doors, side personnel door, dark concrete floor, crate cover | `metal_steelblue` + `rust_orange` |
-| `ruined_building.glb` | 10 m × 8 m · 2 floors | **Darkened grey concrete**; BMesh random face deletion, exposed rebar, rubble piles, no intact roof (stairs still passable) | `concrete_greydark` + `metal_rusted` |
+| `ruined_building.glb` | 10 m × 8 m · 2 floors | **Darkened grey concrete**; BMesh random face deletion, bare doorway/window cutouts (**no door leaf or window shutters**), exposed rebar, rubble piles, no intact roof (stairs still passable) | `concrete_greydark` + `metal_rusted` |
 | `scene_phase1.glb` | 100 m × 100 m world | Hero scene: ground + all six buildings + baked soft shadows | packed tinted PBR set |
 
 ### 🔺 Critical construction rules (enforced in code)

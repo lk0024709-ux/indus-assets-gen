@@ -18,7 +18,9 @@ BUILDINGS (strict rules, see below)
     ``warehouse_metal.glb``  — 1 storey, 20 x 12 m, STEEL-BLUE walls with a
                                RUSTY RED-ORANGE roof/doors, concrete floor
     ``ruined_building.glb``  — 2 storeys, 10 x 8 m, darkened GREY concrete,
-                               BMesh face deletion, exposed rebar, rubble
+                               BMesh face deletion, exposed rebar, rubble,
+                               bare doorway/window cutouts (no door leaf or
+                               window shutters)
 
 HERO SCENE (web preview)
     ``scene_phase1.glb``     — the 100 m ground with all six buildings placed
@@ -62,7 +64,9 @@ CRITICAL RULES ENFORCED FOR EVERY BUILDING
 * Perfect-fit OPEN openings: doors 1.5 m W x 2.2 m H and windows
   1.2 m x 1.2 m (sill 1.0 m) are cut, then hung OPEN with leaves/shutters
   sized EXACTLY to the opening (leaf = 1.5 x 2.2; each shutter = 0.6 x 1.2;
-  full height, top flush with the opening head).  Hinges sit precisely on
+  full height, top flush with the opening head) — except the Ruined Building,
+  whose doorway and window cutouts have NO door leaf or window shutters.
+  Hinges sit precisely on
   the opening's side edges at the outer wall plane — no float, no undersize,
   no gap at the hinge line.  Openings stay passable (no glass, no blockers);
   garage openings hang a roll bundle exactly matching their 6 m width.
@@ -1481,7 +1485,8 @@ def build_warehouse_metal():
 
 def build_ruined_building():
     """2 storeys, 10 x 8 m — darkened GREY concrete, BMesh face deletion,
-    exposed rebar, rubble, no intact roof."""
+    exposed rebar, rubble, bare doorway/window cutouts (no door leaf or
+    window shutters), no intact roof."""
     rng = random.Random(404)
     w, d = 10.0, 8.0
     t = 0.25
@@ -1511,15 +1516,14 @@ def build_ruined_building():
                             (w / 2 - t / 2, 0.0, wall_top / 2)),
     }
 
+    # Bare doorway and window cutouts ONLY — no door leaf or window shutters
+    # in the Ruined Building.
     normals = {"front": (0, -1), "back": (0, 1), "left": (-1, 0), "right": (1, 0)}
-    d0 = cut_door(walls["front"], (-1.5, -d / 2 + t / 2), (0, -1), t,
-                  floor_z, slab_t, "Ruin_Door")
-    parts.append((add_door_leaf(d0, (0, -1), t, DOOR_W, DOOR_H,
-                                "Ruin_Door", floor_z, damaged=True), "wood"))
+    cut_door(walls["front"], (-1.5, -d / 2 + t / 2), (0, -1), t,
+             floor_z, slab_t, "Ruin_Door")
     cut_door(walls["back"], (2.4, d / 2 - t / 2), (0, 1), t,
              floor_z, slab_t, "Ruin_BackDoor")
 
-    shutters_src = []
     specs = [
         ("front", 2.2, 0.0), ("right", -1.5, 0.0), ("right", 1.8, 0.0),
         ("back", -2.6, 0.0), ("left", 0.6, 0.0),
@@ -1531,9 +1535,8 @@ def build_ruined_building():
             centre = (coord, -d / 2 + t / 2 if n[1] < 0 else d / 2 - t / 2)
         else:
             centre = (-w / 2 + t / 2 if n[0] < 0 else w / 2 - t / 2, coord)
-        c = cut_opening(walls[wall], centre, n, t, WIN_W, WIN_H,
-                        fz + WIN_SILL, f"Ruin_Win{i}")
-        shutters_src.append((c, n, i))
+        cut_opening(walls[wall], centre, n, t, WIN_W, WIN_H,
+                    fz + WIN_SILL, f"Ruin_Win{i}")
 
     steps, hole = stair_flight("RuinStair", -3.95, -3.6, +1, floor_z, 3.0)
     cut_stair_hole(parts[1][0], hole, s2_c, s2_t)
@@ -1564,12 +1567,6 @@ def build_ruined_building():
     parts += add_rubble_pile("Ruin_RubbleUp", 3.2, 2.6, 3.0, 5, rng)
     parts += add_crates("Ruin_Crate", 4.0, 0.8, floor_z, n=3, rng=rng)
     parts += add_table("Ruin_Table", -3.6, 2.4, floor_z, rot_z=35)
-
-    for c, n, i in shutters_src:
-        if i in (0, 3, 6):
-            continue
-        parts += [(p, "wood") for p in add_shutters(c, n, t, f"Ruin_Win{i}",
-                                                    damaged=True)]
 
     return finish_building(parts, "RuinedBuilding", "Ruin", [
         ((-1.0, 1.5, 2.3), 120.0),
