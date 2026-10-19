@@ -52,6 +52,10 @@ jobs:
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
+        with:
+          # First run on a fresh repo: create the Pages site (build_type=workflow)
+          # if it does not exist yet. Uses the workflow GITHUB_TOKEN (pages: write).
+          enablement: true
 
       - name: Upload docs/ as Pages artifact
         uses: actions/upload-pages-artifact@v3
