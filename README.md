@@ -10,36 +10,46 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 *(The site is published automatically by the GitHub Actions pipeline below — every push to `main` regenerates and redeploys the assets).*
 
 ## ⚙️ How the Pipeline Works
-1. **Textures:** Four seamless, tileable texture images (`brick_wall`, `wood_plank`, `metal_corrugated`, `concrete_wall`) live in `docs/textures/` and drive the PBR materials.
-2. **Code Generation:** `tools/generate_buildings.py` uses `bpy` (Blender as a Python module) to build the buildings at real-world metre scale — boolean door/window cutouts, `uv.smart_project()` unwrapping, and Principled BSDF materials with an Image Texture node feeding Base Color. Every building's origin sits exactly at its bottom-centre (0, 0, 0).
-3. **Automated Export:** Models are exported as packed `.glb` files (`export_format='GLB'`, `export_image_format='JPEG'` so the textures pack inside the container) into `docs/models/buildings/`.
-4. **CI/CD Deployment:** GitHub Actions (`.github/workflows/deploy.yml`) triggers on every push to `main`, installs `bpy`, runs the generator script, and deploys the `docs/` folder to GitHub Pages.
-5. **Web Viewing:** `docs/index.html` uses Google's `<model-viewer>` (generated dynamically from a JS array) with `environment-image="neutral"` and `shadow-intensity="1"` so the textures read clearly on any device.
+1. **Textures:** Seamless tileable maps (`brick_wall`, `wood_plank`, `metal_corrugated`, `concrete_wall`) plus the procedurally generated Phase 1 maps (`grass`, `grass_hero` with baked building shadows, `metal_rusted`) live in `docs/textures/` and drive the PBR materials.
+2. **Code Generation:** `tools/generate_phase1.py` uses `bpy` (Blender as a Python module) to build terrain and buildings at real-world metre scale — boolean door/window cutouts, `uv.smart_project()` unwrapping, Principled BSDF materials with Image Textures feeding Base Color, and point lights exported as `KHR_lights_punctual`. Every building's origin sits exactly at its bottom-centre (0, 0, 0).
+3. **Automated Export:** Models are exported as packed `.glb` files (`export_format='GLB'`, `export_image_format='JPEG'` so the textures pack inside the container) into `docs/models/`.
+4. **CI/CD Deployment:** GitHub Actions (`.github/workflows/deploy.yml`) triggers on every push to `main`, installs `bpy`, runs the Phase 1 generator, and deploys the `docs/` folder to GitHub Pages.
+5. **Web Viewing:** `docs/index.html` uses Google's `<model-viewer>` (generated dynamically from a JS array) with `environment-image="neutral"` and `shadow-intensity="1"` so the PBR textures and shadows read clearly on any device — a hero card shows the combined `scene_phase1.glb` world preview.
 
 ## 📂 Project Structure
-*   `tools/generate_buildings.py` — `bpy` generator for all four buildings.
-*   `tools/generate_test.py` — original pipeline smoke-test (brown test crate).
+*   `tools/generate_phase1.py` — **Phase 1 `bpy` generator** (base ground + 4 buildings + hero scene).
+*   `tools/generate_buildings.py` — original four-building generator (pre-Phase-1 assets).
+*   `tools/generate_test.py` — pipeline smoke-test (brown test crate).
+*   `tools/make_seamless.py` — makes the AI texture tiles perfectly seamless.
 *   `docs/` — The root folder for GitHub Pages.
-*   `docs/index.html` — The 3D web viewer (dark UI, mobile responsive, 4 building cards).
-*   `docs/textures/` — Seamless AI-generated texture maps (PNG).
-*   `docs/models/buildings/` — The generated building `.glb` files (textures packed inside).
+*   `docs/index.html` — The 3D web viewer (dark UI, mobile responsive, hero + 5 asset cards).
+*   `docs/textures/` — Seamless texture maps (PNG), including procedural grass/rust.
+*   `docs/models/terrain/` — `base_ground.glb`.
+*   `docs/models/buildings/` — Building `.glb` files (textures packed inside).
 *   `.github/workflows/deploy.yml` — CI/CD pipeline: generate assets and deploy to Pages.
 
-## 🏗️ Building Assets
+## 🏗️ Phase 1 Assets
 | File | Size (real-world) | Details | Texture |
 |---|---|---|---|
-| `garage.glb` | 10 m × 8 m × 4 m | Flat roof, 4 m × 3 m boolean door cutout | `concrete_wall.png` |
-| `sniper_tower.glb` | 4 m × 4 m × 10 m | 4 pillars, wooden platform @ 8 m, railings, small roof | `wood_plank.png` |
-| `house_small.glb` | 6 m × 6 m × 3.5 m walls | 1 door (1.2 m × 2.2 m), 2 window cutouts, wooden gable roof | `brick_wall.png` (walls) + `wood_plank.png` (roof) |
-| `warehouse.glb` | 15 m × 10 m × 6 m | 5 m × 4.5 m sliding doors, flat roof | `metal_corrugated.png` |
+| `base_ground.glb` | 100 m × 100 m flat plane | Ground for the preview; origin = surface centre | `grass.png` |
+| `house_tactical.glb` | 10 m × 8 m · 2 floors | Brick walls, wooden porch, balcony, rusty metal gable roof, back fire escape, interior stairs + furniture + OmniLights | `brick_wall` + `wood_plank` + `metal_rusted` |
+| `apartment_multifloor.glb` | 12 m × 10 m · 3 floors | Concrete; switchback stairs connect all 3 floors **and** the flat roof (exact 3 m × 1.5 m Boolean holes in every slab) | `concrete_wall` |
+| `warehouse_metal.glb` | 20 m × 12 m · 1 floor | Corrugated metal, two open 6 m garage doors, side personnel door, concrete floor, crate cover | `metal_corrugated` + `concrete_wall` |
+| `ruined_building.glb` | 10 m × 8 m · 2 floors | BMesh random face deletion, exposed rebar, rubble piles, no intact roof (stairs still passable) | `concrete_wall` + `metal_rusted` |
+| `scene_phase1.glb` | 100 m × 100 m world | Hero scene: ground + all four buildings + baked soft shadows | packed PBR set |
+
+### 🔺 Critical construction rules (enforced in code)
+* **Stairs (trigonometry):** `step_depth = 0.2 / math.tan(math.radians(32))` → every flight climbs at exactly **32°**. Each floor slab above a flight gets an exact **3 m × 1.5 m Boolean Difference hole** (the head-room swept volume over the final 3 m of run), and the stairs are placed exactly there.
+* **Passable openings:** doors 1.5 m W × 2.2 m H, windows 1.2 m × 1.2 m with sills at 1.0 m. Cutters are removed; **no glass, no blockers** — outside windows get open wooden shutters, doors get an open leaf.
+* **Interiors:** internal floors/ceilings, bed · table · crates for cover, warm OmniLights inside every building.
 
 ## 🖥️ Running Locally
 ```bash
-# 1. Install Blender as a Python module (Python 3.11 → bpy 5.0.x)
-pip install bpy
+# 1. Install Blender as a Python module (Python 3.11 → bpy 5.0.x) + texture deps
+pip install bpy pillow numpy
 
-# 2. Generate the buildings into docs/models/buildings/
-python tools/generate_buildings.py
+# 2. Generate Phase 1 assets (terrain + 4 buildings + hero scene)
+python tools/generate_phase1.py
 
 # 3. Serve the viewer locally
 python -m http.server 8000 --directory docs
