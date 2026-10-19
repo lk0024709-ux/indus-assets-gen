@@ -32,7 +32,7 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 | File | Size (real-world) | Details | Texture |
 |---|---|---|---|
 | `base_ground.glb` | 100 m × 100 m flat plane | Ground for the preview; origin = surface centre | `grass.png` |
-| `house_tactical.glb` | 10 m × 8 m · 2 floors | **Red-brown brick**, wooden porch, balcony, rusty metal gable roof, back fire escape, interior stairs + furniture + OmniLights | `brick_red` + `wood_dark` + `rust_orange` |
+| `house_tactical.glb` | 10 m × 8 m · 2 floors | **Red-brown brick**, wooden porch, balcony, rusty metal gable roof, back fire escape — **all 4 doors swing inward** (opposite side); interior stairs + furniture + OmniLights | `brick_red` + `wood_dark` + `rust_orange` |
 | `school_yellow.glb` | 14 m × 10 m · 2 floors | **Bright yellow concrete** school: corridor partition, classrooms with desks on both floors, one 32° stair through an exact 3 m × 1.5 m slab hole, flat roof + parapet | `concrete_yellow` + `wood` |
 | `apartment_green.glb` | 12 m × 10 m · 3 floors | **Vibrant green concrete**; switchback stairs connect all 3 floors **and** the flat roof (exact 3 m × 1.5 m Boolean holes in every slab) | `concrete_green` |
 | `cabin_wood.glb` | 8 m × 6 m · 1 floor | **Warm brown wood** cabin: pitched rust roof, brick chimney, porch, shuttered windows, one OmniLight | `wood_warm` + `rust_orange` + `brick_red` |
