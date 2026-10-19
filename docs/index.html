@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0c1220" />
-  <title>Indus Asset Viewer - Test</title>
+  <title>Indus Asset Viewer — Buildings</title>
 
   <!-- Google's <model-viewer> via CDN (with a fallback CDN for resilience) -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
@@ -30,10 +30,7 @@
 
     * { box-sizing: border-box; }
 
-    html, body {
-      margin: 0;
-      min-height: 100%;
-    }
+    html, body { margin: 0; min-height: 100%; }
 
     body {
       display: flex;
@@ -47,9 +44,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    header {
-      padding: 22px clamp(16px, 4vw, 40px) 6px;
-    }
+    header { padding: 22px clamp(16px, 4vw, 40px) 6px; }
 
     h1 {
       margin: 0;
@@ -61,30 +56,39 @@
       margin: 8px 0 0;
       color: var(--text-dim);
       font-size: clamp(0.92rem, 3vw, 1.05rem);
+      max-width: 68ch;
     }
 
     main {
       flex: 1;
       width: 100%;
-      max-width: 1100px;
+      max-width: 1180px;
       margin: 0 auto;
       padding: 14px clamp(16px, 4vw, 40px) 26px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
       display: flex;
       flex-direction: column;
-      gap: 16px;
     }
 
     .viewer-shell {
       position: relative;
       width: 100%;
-      aspect-ratio: 16 / 10;
-      min-height: 300px;
-      max-height: 72vh;
-      border: 1px solid var(--panel-border);
-      border-radius: 16px;
-      overflow: hidden;
-      background: var(--panel);
-      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+      aspect-ratio: 4 / 3;
+      min-height: 240px;
+      background: #0f1728;
     }
 
     model-viewer {
@@ -92,6 +96,7 @@
       height: 100%;
       background: transparent;
       --poster-color: transparent;
+      --progress-bar-color: var(--accent);
     }
 
     .status {
@@ -103,38 +108,38 @@
       padding: 16px;
       text-align: center;
       color: var(--text-dim);
+      font-size: 0.9rem;
       pointer-events: none;
     }
 
     .status[hidden] { display: none; }
     .status.error { color: var(--error); }
 
-    .meta {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-      gap: 12px;
+    .info { padding: 14px 16px 16px; }
+
+    .info h2 {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+      letter-spacing: 0.2px;
     }
 
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--panel-border);
-      border-radius: 12px;
-      padding: 14px 16px;
-    }
-
-    .card h2 {
-      margin: 0 0 5px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1.3px;
-      color: var(--text-dim);
-    }
-
-    .card p {
+    .facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
       margin: 0;
-      font-size: 0.98rem;
-      word-break: break-word;
+      padding: 0;
+      list-style: none;
+    }
+
+    .facts li {
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: var(--text-dim);
+      border: 1px solid var(--panel-border);
+      border-radius: 999px;
+      padding: 4px 9px;
     }
 
     footer {
@@ -148,76 +153,127 @@
     a { color: var(--accent); }
 
     @media (max-width: 520px) {
-      .viewer-shell {
-        aspect-ratio: 3 / 4;
-        max-height: 68vh;
-      }
+      .grid { grid-template-columns: 1fr; }
+      .viewer-shell { aspect-ratio: 1 / 1; }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Indus Asset Viewer - Test</h1>
+    <h1>Indus Asset Viewer — Buildings</h1>
     <p class="subtitle">
-      Procedural 3D asset pipeline for <strong>Indus : Battle Royale</strong> —
-      drag to rotate, pinch or scroll to zoom.
+      Procedurally generated, textured buildings for <strong>Indus : Battle Royale</strong>.
+      Drag to rotate, pinch or scroll to zoom.
     </p>
   </header>
 
   <main>
-    <div class="viewer-shell">
-      <model-viewer
-        id="viewer"
-        src="models/test_crate.glb"
-        alt="A brown 1x1x1 test crate cube generated with Blender Python"
-        camera-controls
-        auto-rotate
-        environment-image="neutral"
-        shadow-intensity="1"
-        exposure="1"
-        camera-orbit="35deg 68deg 105%"
-        interaction-prompt="auto"
-        loading="eager"
-      ></model-viewer>
-      <div id="status" class="status">Loading 3D model&hellip;</div>
-    </div>
-
-    <section class="meta" aria-label="Asset information">
-      <div class="card">
-        <h2>Asset</h2>
-        <p>test_crate.glb</p>
-      </div>
-      <div class="card">
-        <h2>Format</h2>
-        <p>Binary glTF (.glb)</p>
-      </div>
-      <div class="card">
-        <h2>Generator</h2>
-        <p>tools/generate_test.py (bpy)</p>
-      </div>
-      <div class="card">
-        <h2>Material</h2>
-        <p>Brown Principled BSDF &middot; Roughness 0.8</p>
-      </div>
-    </section>
+    <div class="grid" id="grid" aria-label="Building assets"></div>
   </main>
 
   <footer>
-    Automatically generated &amp; deployed by GitHub Actions &rarr; GitHub Pages.
+    Generated with Blender Python (bpy) &middot; AI-generated seamless textures &middot; deployed by GitHub Actions
   </footer>
 
   <script type="module">
-    const viewer = document.getElementById("viewer");
-    const status = document.getElementById("status");
+    // Single source of truth: add or remove an entry here to change the gallery.
+    const BUILDINGS = [
+      {
+        id: "garage",
+        name: "Garage",
+        file: "models/buildings/garage.glb",
+        size: "10 × 8 × 4 m",
+        texture: "concrete_wall.png",
+        note: "Flat roof · 4 × 3 m door cutout",
+        orbit: "26deg 68deg 108%",
+      },
+      {
+        id: "sniper-tower",
+        name: "Sniper Tower",
+        file: "models/buildings/sniper_tower.glb",
+        size: "4 × 4 × 10 m",
+        texture: "wood_plank.png",
+        note: "4 pillars · platform at 8 m · railings",
+        orbit: "28deg 74deg 108%",
+      },
+      {
+        id: "house-small",
+        name: "Small House",
+        file: "models/buildings/house_small.glb",
+        size: "6 × 6 × 3.5 m",
+        texture: "brick_wall.png + wood_plank.png",
+        note: "Door + 2 windows · slanted roof",
+        orbit: "30deg 70deg 108%",
+      },
+      {
+        id: "warehouse",
+        name: "Warehouse",
+        file: "models/buildings/warehouse.glb",
+        size: "15 × 10 × 6 m",
+        texture: "metal_corrugated.png",
+        note: "Flat roof · 5 × 4.5 m sliding doors",
+        orbit: "26deg 72deg 112%",
+      },
+    ];
 
-    viewer.addEventListener("load", () => {
-      status.hidden = true;
-    });
+    const grid = document.getElementById("grid");
 
-    viewer.addEventListener("error", () => {
-      status.textContent = "Failed to load models/test_crate.glb — is the asset deployed?";
-      status.classList.add("error");
-    });
+    function createCard(building) {
+      const card = document.createElement("article");
+      card.className = "card";
+      card.dataset.building = building.id;
+
+      const shell = document.createElement("div");
+      shell.className = "viewer-shell";
+
+      const viewer = document.createElement("model-viewer");
+      viewer.setAttribute("src", building.file);
+      viewer.setAttribute("alt", `${building.name}: ${building.size} textured building`);
+      viewer.setAttribute("camera-controls", "");
+      viewer.setAttribute("auto-rotate", "");
+      viewer.setAttribute("auto-rotate-delay", "1500");
+      viewer.setAttribute("rotation-per-second", "14deg");
+      viewer.setAttribute("environment-image", "neutral");
+      viewer.setAttribute("shadow-intensity", "1");
+      viewer.setAttribute("shadow-softness", "0.85");
+      viewer.setAttribute("exposure", "1");
+      viewer.setAttribute("tone-mapping", "aces");
+      viewer.setAttribute("camera-orbit", building.orbit);
+      viewer.setAttribute("interaction-prompt", "auto");
+      viewer.setAttribute("touch-action", "pan-y");
+      viewer.setAttribute("loading", "lazy");
+
+      const status = document.createElement("div");
+      status.className = "status";
+      status.textContent = "Loading 3D model…";
+
+      viewer.addEventListener("load", () => { status.hidden = true; });
+      viewer.addEventListener("error", () => {
+        status.textContent = `Failed to load ${building.file}`;
+        status.classList.add("error");
+        status.hidden = false;
+      });
+
+      shell.append(viewer, status);
+
+      const info = document.createElement("div");
+      info.className = "info";
+      const title = document.createElement("h2");
+      title.textContent = building.name;
+      const facts = document.createElement("ul");
+      facts.className = "facts";
+      [building.size, building.texture, building.note].forEach((text) => {
+        const li = document.createElement("li");
+        li.textContent = text;
+        facts.appendChild(li);
+      });
+      info.append(title, facts);
+
+      card.append(shell, info);
+      return card;
+    }
+
+    grid.append(...BUILDINGS.map(createCard));
   </script>
 </body>
 </html>

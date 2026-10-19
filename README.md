@@ -10,21 +10,52 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 *(The site is published automatically by the GitHub Actions pipeline below — every push to `main` regenerates and redeploys the assets).*
 
 ## ⚙️ How the Pipeline Works
-1. **Code Generation:** Python scripts using `bpy` (Blender as a Python module) create models and apply PBR (Physically Based Rendering) materials — starting with the test asset in `tools/generate_test.py`.
+1. **Code Generation:** Python scripts using `bpy` (Blender as a Python module) create models and apply PBR (Physically Based Rendering) materials — the text-asset smoke test in `tools/generate_test.py` and the textured buildings in `tools/generate_buildings.py`.
 2. **Automated Export:** Models are exported as `.glb` files (`export_format='GLB'`) into the `docs/models/` folder.
-3. **CI/CD Deployment:** GitHub Actions (`.github/workflows/deploy.yml`) triggers on every push to `main`, installs `bpy`, runs the generator script, and deploys the `docs/` folder to GitHub Pages.
+3. **CI/CD Deployment:** GitHub Actions (`.github/workflows/deploy.yml`) triggers on every push to `main`, installs `bpy`, runs both generator scripts, and deploys the `docs/` folder to GitHub Pages.
 4. **Web Viewing:** The `docs/index.html` file uses Google's `<model-viewer>` to render the 3D models with neutral HDRI lighting, allowing anyone to view them without downloading heavy software.
+
+## 🏢 Building Assets (current milestone)
+
+Four game-ready buildings are generated with real-world scale, a **bottom-centre
+origin at (0,0,0)**, Smart-UV-Project unwraps and AI-generated seamless textures
+packed inside each `.glb`:
+
+| Asset | Size (W × D × H) | Texture | Notes |
+|-------|------------------|---------|-------|
+| `garage.glb` | 10 × 8 × 4 m | `concrete_wall.png` | Flat roof, 4 × 3 m boolean door cutout |
+| `sniper_tower.glb` | 4 × 4 × 10 m | `wood_plank.png` | 4 pillars, platform at 8 m, railings, small roof |
+| `house_small.glb` | 6 × 6 × 3.5 m | `brick_wall.png` + `wood_plank.png` | 1 door (1.2 × 2.2 m), 2 windows, slanted roof |
+| `warehouse.glb` | 15 × 10 × 6 m | `metal_corrugated.png` | Flat roof, 5 × 4.5 m sliding-door opening |
+
+Textures live in `docs/textures/` as 1024 × 1024 seamless tiles. They were
+AI-generated and then normalised by `tools/make_seamless.py`, which cuts the
+structural period (brick courses, plank gaps, corrugation) and cross-fades the
+stochastic edges so the tiles repeat without visible seams.
+
+```bash
+# Regenerate the textures (needs pillow + numpy) and the buildings
+python tools/make_seamless.py
+python tools/generate_buildings.py     # → docs/models/buildings/*.glb
+```
+
+The generator asserts its own contract on every build: exact dimensions, origin
+at the bottom centre, a UV map present, and an Image Texture node wired into the
+Principled BSDF Base Color.
 
 ## 📂 Project Structure
 *   `tools/` — Contains the Python (`bpy`) scripts used to generate the 3D assets.
 *   `tools/generate_test.py` — Test-asset generator (brown 1×1×1 crate cube).
+*   `tools/generate_buildings.py` — Generates the four textured buildings into `docs/models/buildings/`.
+*   `tools/make_seamless.py` — Turns the raw AI texture renders into seamless 1024² tiles.
 *   `docs/` — The root folder for GitHub Pages.
 *   `docs/index.html` — The 3D web viewer interface (dark UI, mobile responsive).
 *   `docs/models/` — The generated `.glb` files live here.
-*   `docs/models/test_crate.glb` — The current test asset, loaded by the viewer.
+*   `docs/models/buildings/` — The four textured building assets shown by the viewer.
+*   `docs/textures/` — Seamless AI-generated PBR textures (brick, wood, metal, concrete).
 *   `.github/workflows/deploy.yml` — CI/CD pipeline: generate assets and deploy to Pages.
 
-## 🧪 Test Asset
+## 🧪 Test Asset (pipeline smoke test)
 The pipeline is currently exercised with a dummy asset: a **1×1×1 cube** named `TestCrate` with a **brown Principled BSDF material** (Roughness `0.8`), exported as `docs/models/test_crate.glb`. Once the pipeline is proven green, real game assets (weapons, vehicles, buildings, props) will follow the exact same generate → export → deploy loop.
 
 ## 🖥️ Running Locally
