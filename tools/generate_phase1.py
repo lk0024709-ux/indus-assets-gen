@@ -58,12 +58,13 @@ CRITICAL RULES ENFORCED FOR EVERY BUILDING
   Difference hole of exactly 3.0 m x 1.5 m in the slab above it — spanning the
   final 3.0 m of run before the stair top (head-room swept volume at 32°) —
   and the stairs are placed exactly there.
-* Perfect-fit openings (zero gap): doors 1.5 m W x 2.2 m H and windows
-  1.2 m x 1.2 m (sill 1.0 m) are cut, then FILLED flush by a closed leaf /
-  shutter pair sized EXACTLY to the opening (lateral dims identical, thickness
-  wall_t + 2 cm so faces sit 1 cm proud — no gaps, no z-fighting, no glass).
-  The closed panels read as part of the wall; only stair slab holes (and the
-  apartment roof hatch) stay open.
+* Perfect-fit OPEN openings: doors 1.5 m W x 2.2 m H and windows
+  1.2 m x 1.2 m (sill 1.0 m) are cut, then hung OPEN with leaves/shutters
+  sized EXACTLY to the opening (leaf = 1.5 x 2.2; each shutter = 0.6 x 1.2;
+  full height, top flush with the opening head).  Hinges sit precisely on
+  the opening's side edges at the outer wall plane — no float, no undersize,
+  no gap at the hinge line.  Openings stay passable (no glass, no blockers);
+  garage openings hang a roll bundle exactly matching their 6 m width.
 * Interiors: internal floors, ceilings, bed/table/crates cover, OmniLights.
 
 Usage:
@@ -654,23 +655,29 @@ def cut_door(target, center, outward, wall_t: float, floor_top: float,
 
 def add_shutters(opening_center, outward, wall_t: float, tag: str,
                  damaged: bool = False):
-    """Two closed shutter panels that fill the window opening EXACTLY
-    (zero gap): together WIN_W x WIN_H; thickness wall_t + 2 cm so the outer
-    faces sit 1 cm proud of both wall faces (no z-fighting, reads flush).
-    ``damaged`` is kept for call-site compatibility — the fit is always exact."""
+    """Two OPEN shutter panels, each EXACTLY WIN_W/2 x WIN_H (together the
+    pair matches the opening to the millimetre).  Hinges sit precisely on the
+    opening's side edges at the outer wall plane — no float, no undersize,
+    no gap at the hinge line.  Swing: 105 deg (128 deg when damaged)."""
     n = Vector((float(outward[0]), float(outward[1]), 0.0)).normalized()
     t = Vector((-n.y, n.x, 0.0))
     half_w = WIN_W / 2.0
-    depth = wall_t + 0.02
+    swing = math.radians(128.0 if damaged else 105.0)
     panels = []
     for side in (-1.0, 1.0):
-        centre = (Vector((opening_center.x, opening_center.y, opening_center.z))
-                  + t * (side * (WIN_W / 4.0)))
-        size = (half_w, depth, WIN_H) if abs(n.y) > 0.5 else (depth, half_w, WIN_H)
+        # hinge exactly on the opening's side edge, on the outer wall plane
+        hinge = (Vector((opening_center.x, opening_center.y, 0.0))
+                 + t * (side * half_w) + n * (wall_t / 2.0))
+        closed_dir = -t * side
+        v = closed_dir * math.cos(swing) + n * math.sin(swing)
+        centre = hinge + v * (half_w / 2.0)
+        yaw = math.atan2(v.y, v.x)
+        roll = math.radians(6.0) if damaged else 0.0
         panels.append(create_box(
             f"{tag}_Shutter_{'L' if side < 0 else 'R'}",
-            size,
-            (centre.x, centre.y, centre.z),
+            (half_w, 0.045, WIN_H),          # EXACT opening-derived size
+            (centre.x, centre.y, opening_center.z),
+            rotation=(roll, 0.0, yaw),
         ))
     return panels
 
@@ -678,18 +685,25 @@ def add_shutters(opening_center, outward, wall_t: float, tag: str,
 def add_door_leaf(opening_center, outward, wall_t: float, door_w: float,
                   door_h: float, tag: str, bottom_z: float,
                   damaged: bool = False):
-    """Closed door plug that fills the opening EXACTLY (zero gap):
-    door_w x door_h sitting on the floor (bottom_z = floor top, top flush
-    with the opening top), thickness wall_t + 2 cm so the outer faces sit
-    1 cm proud of both wall faces. Reads as part of the wall.
-    ``damaged`` is kept for call-site compatibility — the fit is always exact."""
+    """OPEN door leaf EXACTLY door_w x door_h — full height, bottom on the
+    floor, top flush with the opening top.  The hinge edge sits exactly on
+    the opening's side edge at the outer wall plane (no 5 cm float like the
+    old prop).  Swing: 112 deg (138 deg when damaged)."""
     n = Vector((float(outward[0]), float(outward[1]), 0.0)).normalized()
-    depth = wall_t + 0.02
-    size = (door_w, depth, door_h) if abs(n.y) > 0.5 else (depth, door_w, door_h)
+    t = Vector((-n.y, n.x, 0.0))
+    hinge = (Vector((opening_center.x, opening_center.y, 0.0))
+             + t * (door_w / 2.0) + n * (wall_t / 2.0))
+    swing = math.radians(138.0 if damaged else 112.0)
+    closed_dir = -t
+    v = closed_dir * math.cos(swing) + n * math.sin(swing)
+    centre = hinge + v * (door_w / 2.0)
+    yaw = math.atan2(v.y, v.x)
+    roll = math.radians(10.0) if damaged else 0.0
     return create_box(
         f"{tag}_Leaf",
-        size,
-        (opening_center.x, opening_center.y, bottom_z + door_h / 2.0),
+        (door_w, 0.05, door_h),              # EXACT opening-derived size
+        (centre.x, centre.y, bottom_z + door_h / 2.0),
+        rotation=(roll, 0.0, yaw),
     )
 
 
@@ -904,7 +918,7 @@ def finish_building(parts, name: str, mat_prefix: str, light_specs):
 # ---------------------------------------------------------------------------
 def build_house_tactical():
     """2 storeys, 10 x 8 m — RED/BROWN brick, wooden porch, balcony, rusty
-    metal gable roof, back fire escape; doors/windows closed flush (zero gap)."""
+    metal gable roof, back fire escape; doors/windows open, exact-fit hinges."""
     rng = random.Random(101)
     w, d = 10.0, 8.0
     t = 0.25
@@ -1380,7 +1394,7 @@ def build_cabin_wood():
 
 def build_warehouse_metal():
     """1 storey, 20 x 12 m — STEEL-BLUE corrugated walls, RUSTY RED-ORANGE
-    roof/beams, concrete floor, two flush closed garage-door panels."""
+    roof/beams, concrete floor, two open garage-door roll bundles."""
     rng = random.Random(303)
     w, d = 20.0, 12.0
     t = 0.30
@@ -1411,15 +1425,14 @@ def build_warehouse_metal():
         parts.append((create_box("Wh_Beam", (0.28, d - 2 * t, 0.42),
                                  (bx, 0.0, wall_top - 0.21)), "rust_orange"))
 
-    # two large garage-door openings, each filled flush by a closed rusty
-    # panel that fits the opening exactly (zero gap; reads as part of the wall)
+    # two large OPEN garage-door openings + rolled-up rusty bundles hanging
+    # exactly across each opening (bundle width == opening width, x-aligned)
     for i, gx in enumerate((-4.9, 4.9)):
         cut_opening(walls["front"], (gx, -d / 2 + t / 2), (0, -1), t,
                     6.0, 4.5 + floor_top, 0.0, f"Wh_Garage{i}")
-        parts.append((create_box(
-            f"Wh_GaragePanel{i}",
-            (6.0, t + 0.02, 4.5),
-            (gx, -d / 2 + t / 2, floor_top + 4.5 / 2.0)), "rust_orange"))
+        parts.append((create_box(f"Wh_RollBundle{i}", (6.0, 0.55, 0.5),
+                                 (gx, -d / 2 + t + 0.24,
+                                  floor_top + 4.5 + 0.26)), "rust_orange"))
 
     # side personnel door (rusty leaf) + wooden shutters on windows
     pd = cut_door(walls["left"], (-w / 2 + t / 2, -2.0), (-1, 0), t,
