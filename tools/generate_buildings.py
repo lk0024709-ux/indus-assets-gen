@@ -1,694 +1,502 @@
 #!/usr/bin/env python3
-"""Procedural building generator for the Indus : Battle Royale 3D pipeline.
+"""Building-asset generator for the Indus : Battle Royale 3D pipeline.
 
-Generates the four Building-category assets with AI-generated PBR textures,
-headless through the pip-installable ``bpy`` module (Blender as a Python
-module).
+Runs headless through the pip-installable ``bpy`` module (Blender as a Python
+module) and generates four textured, game-ready buildings:
 
-Every building follows the same rules:
+1. ``garage.glb``       — 10m x 8m x 4m,  flat roof, 4m x 3m door cutout
+2. ``sniper_tower.glb`` — 4m x 4m base,  10m tall, platform @ 8m, railings
+3. ``house_small.glb``  — 6m x 6m x 3.5m walls, door + 2 windows, gable roof
+4. ``warehouse.glb``    — 15m x 10m x 6m, sliding doors (5m x 4.5m), flat roof
 
-* real-world scale in metres, Z-up while building;
-* the object origin sits exactly at the **bottom-centre** (0, 0, 0) of the
-  footprint, with the model resting on z = 0;
-* every mesh is unwrapped with ``bpy.ops.uv.smart_project()`` before the
-  material is assigned, then normalised to a constant texel density so the
-  textures tile at a believable physical size;
-* each material is a Principled BSDF whose Base Color comes from an
-  ``Image Texture`` node loaded from ``docs/textures/*.png``.  Images are
-  packed so they travel inside the exported ``.glb``.
+Pipeline rules enforced for every building:
 
-Run from the repository root:
+* real-world scale, 1 Blender unit = 1 metre (scene unit settings set to metric)
+* the building's origin sits exactly at its bottom-centre -> (0, 0, 0)
+* every mesh is UV-unwrapped with ``bpy.ops.uv.smart_project()`` BEFORE any
+  material is applied
+* materials are Principled BSDF + Image Texture (texture -> Base Color), using
+  the seamless AI-generated textures in ``docs/textures/``
+* boolean cutters (``modifier_apply``) create the door/window openings
+* glTF export with ``export_image_format='JPEG'`` so textures are converted and
+  packed inside the ``.glb`` container
 
+Usage:
     pip install bpy
     python tools/generate_buildings.py
 """
 
 from __future__ import annotations
 
+import json
 import math
 import os
+import struct
 import sys
 
 import bpy
-from mathutils import Vector
+from mathutils import Matrix, Vector
 
 # --- Paths -----------------------------------------------------------------
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEXTURE_DIR = os.path.join(REPO_ROOT, "docs", "textures")
 OUTPUT_DIR = os.path.join(REPO_ROOT, "docs", "models", "buildings")
 
-# --- Texture-driven materials ----------------------------------------------
-# name -> (image file, world size in metres covered by one UV tile, roughness,
-#          metallic)
+# --- Material presets -------------------------------------------------------
 MATERIALS = {
-    "concrete": ("concrete_wall.png", 2.5, 0.90, 0.0),
-    "brick": ("brick_wall.png", 1.6, 0.85, 0.0),
-    "wood": ("wood_plank.png", 2.0, 0.80, 0.0),
-    "metal": ("metal_corrugated.png", 2.4, 0.45, 0.85),
+    "concrete": {"file": "concrete_wall.png", "roughness": 0.90, "metallic": 0.00, "uv_scale": 1.0},
+    "wood": {"file": "wood_plank.png", "roughness": 0.72, "metallic": 0.00, "uv_scale": 1.0},
+    "brick": {"file": "brick_wall.png", "roughness": 0.85, "metallic": 0.00, "uv_scale": 2.5},
+    "metal": {"file": "metal_corrugated.png", "roughness": 0.50, "metallic": 0.70, "uv_scale": 1.5},
 }
 
-# Opening heights are measured from the floor the wall stands on.
-EPS = 1e-3
-
 
 # ---------------------------------------------------------------------------
-# Scene helpers
+# Scene / object helpers
 # ---------------------------------------------------------------------------
-def reset_scene() -> None:
-    """Start from a completely empty scene."""
+def clear_scene() -> None:
+    """Reset Blender to a completely empty scene."""
     bpy.ops.wm.read_factory_settings(use_empty=True)
 
 
-def ensure_dirs() -> None:
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+def set_metric_units() -> None:
+    """Declare real-world metre scale for the scene."""
+    scene = bpy.context.scene
+    scene.unit_settings.system = "METRIC"
+    scene.unit_settings.scale_length = 1.0
 
 
-# ---------------------------------------------------------------------------
-# Primitives
-# ---------------------------------------------------------------------------
-def add_box(
-    name: str,
-    size: tuple[float, float, float],
-    center: tuple[float, float, float],
-) -> bpy.types.Object:
-    """Add an axis-aligned box defined by its full size and centre point."""
-    mesh = bpy.data.meshes.new(f"{name}Mesh")
-    sx, sy, sz = (s / 2.0 for s in size)
-    verts = [
-        (-sx, -sy, -sz), (sx, -sy, -sz), (sx, sy, -sz), (-sx, sy, -sz),
-        (-sx, -sy, sz), (sx, -sy, sz), (sx, sy, sz), (-sx, sy, sz),
-    ]
-    faces = [
-        (0, 3, 2, 1), (4, 5, 6, 7), (0, 1, 5, 4),
-        (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7),
-    ]
-    mesh.from_pydata(verts, [], faces)
-    mesh.update()
-    obj = bpy.data.objects.new(name, mesh)
-    obj.location = center
-    bpy.context.collection.objects.link(obj)
+def create_box(name: str, size, location=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0)):
+    """Create a box of ``size`` (x, y, z metres) and bake all transforms.
+
+    The object's mesh data ends up in world space with the object origin at
+    (0, 0, 0), which keeps joins and boolean cuts simple and predictable.
+    """
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=location)
+    obj = bpy.context.active_object
+    obj.name = name
+    obj.data.name = name + "Mesh"
+    obj.dimensions = tuple(size)
+    obj.rotation_euler = rotation
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
     return obj
 
 
-def add_prism(
-    name: str,
-    footprint: tuple[float, float],
-    eave_z: float,
-    ridge_z: float,
-) -> bpy.types.Object:
-    """Add a solid gable-roof prism: rectangular base with a ridge along X."""
-    hx, hy = footprint[0] / 2.0, footprint[1] / 2.0
+def create_triangular_prism(name, x_min, x_max, tri_yz):
+    """Triangular prism (gable wall): triangle ``tri_yz`` extruded along x.
+
+    ``tri_yz`` is a list of three (y, z) points.
+    """
+    (y0, z0), (y1, z1), (y2, z2) = tri_yz
     verts = [
-        (-hx, -hy, eave_z), (hx, -hy, eave_z), (hx, hy, eave_z), (-hx, hy, eave_z),
-        (-hx, 0.0, ridge_z), (hx, 0.0, ridge_z),
+        (x_min, y0, z0), (x_min, y1, z1), (x_min, y2, z2),
+        (x_max, y0, z0), (x_max, y1, z1), (x_max, y2, z2),
     ]
     faces = [
-        (0, 3, 2, 1),      # underside
-        (0, 1, 5, 4),      # front slope
-        (3, 4, 5, 2),      # back slope
-        (0, 4, 3),         # left gable
-        (1, 2, 5),         # right gable
+        (0, 2, 1), (3, 4, 5),          # end triangles
+        (0, 1, 4, 3), (1, 2, 5, 4), (2, 0, 3, 5),  # slope + base quads
     ]
-    mesh = bpy.data.meshes.new(f"{name}Mesh")
+    mesh = bpy.data.meshes.new(name + "Mesh")
     mesh.from_pydata(verts, [], faces)
+    mesh.validate()
     mesh.update()
     obj = bpy.data.objects.new(name, mesh)
     bpy.context.collection.objects.link(obj)
     return obj
 
 
-def add_strut(
-    name: str,
-    start: tuple[float, float, float],
-    end: tuple[float, float, float],
-    thickness: float,
-) -> bpy.types.Object:
-    """Add a square-section beam running from ``start`` to ``end``."""
-    p1, p2 = Vector(start), Vector(end)
-    direction = p2 - p1
-    length = direction.length
-    obj = add_box(name, (thickness, thickness, length), (0.0, 0.0, 0.0))
-    obj.location = (p1 + p2) / 2.0
-    obj.rotation_mode = "QUATERNION"
-    obj.rotation_quaternion = direction.to_track_quat("Z", "Y")
-    return obj
-
-
-# ---------------------------------------------------------------------------
-# Booleans
-# ---------------------------------------------------------------------------
-def cut_opening(
-    wall: bpy.types.Object,
-    width: float,
-    height: float,
-    center_x: float,
-    base_z: float,
-    depth: float,
-) -> None:
-    """Boolean-subtract a door/window box from a wall object."""
-    cutter = add_box(
-        f"{wall.name}_cutter",
-        (width, depth, height),
-        (center_x, wall.location.y, base_z + height / 2.0),
-    )
-    cutter.location = (center_x, wall.location.y, base_z + height / 2.0)
-
-    mod = wall.modifiers.new(name="Opening", type="BOOLEAN")
+def apply_boolean_cut(target, cutter) -> None:
+    """Cut ``cutter`` out of ``target`` with a boolean difference, then remove
+    the cutter object. Used for door/window openings."""
+    mod = target.modifiers.new(name="Cutout", type="BOOLEAN")
     mod.operation = "DIFFERENCE"
-    mod.solver = "EXACT"
     mod.object = cutter
-
-    with bpy.context.temp_override(
-        object=wall, active_object=wall, selected_objects=[wall], selected_editable_objects=[wall]
-    ):
-        bpy.ops.object.modifier_apply(modifier=mod.name)
-
+    if hasattr(mod, "solver"):
+        try:
+            mod.solver = "EXACT"
+        except (TypeError, ValueError):
+            pass
+    bpy.ops.object.select_all(action="DESELECT")
+    target.select_set(True)
+    bpy.context.view_layer.objects.active = target
+    bpy.ops.object.modifier_apply(modifier=mod.name)
     bpy.data.objects.remove(cutter, do_unlink=True)
 
 
-def cut_side_opening(
-    wall: bpy.types.Object,
-    width: float,
-    height: float,
-    center_y: float,
-    base_z: float,
-    depth: float,
-) -> None:
-    """Same as :func:`cut_opening` but for walls whose thickness runs along X."""
-    cutter = add_box(
-        f"{wall.name}_cutter",
-        (depth, width, height),
-        (wall.location.x, center_y, base_z + height / 2.0),
-    )
-    mod = wall.modifiers.new(name="Opening", type="BOOLEAN")
-    mod.operation = "DIFFERENCE"
-    mod.solver = "EXACT"
-    mod.object = cutter
-    with bpy.context.temp_override(
-        object=wall, active_object=wall, selected_objects=[wall], selected_editable_objects=[wall]
-    ):
-        bpy.ops.object.modifier_apply(modifier=mod.name)
-    bpy.data.objects.remove(cutter, do_unlink=True)
+def smart_unwrap(obj, uv_scale: float = 1.0) -> None:
+    """UV-unwrap ``obj`` with bpy.ops.uv.smart_project()."""
+    if not obj.data.uv_layers:
+        obj.data.uv_layers.new(name="UVMap")
+    bpy.ops.object.select_all(action="DESELECT")
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.mesh.normals_make_consistent(inside=False)
+    try:
+        bpy.ops.uv.smart_project(angle_limit=math.radians(66.0), island_margin=0.02)
+    except TypeError:
+        bpy.ops.uv.smart_project()
+    bpy.ops.object.mode_set(mode="OBJECT")
+    if uv_scale != 1.0:
+        for layer in obj.data.uv_layers:
+            for loop_uv in layer.data:
+                loop_uv.uv = loop_uv.uv * uv_scale
+    # Orient textures upright on vertical faces (e.g. brick courses horizontal,
+    # corrugation ribs vertical). smart_project picks each island's rotation;
+    # for wall-like faces, rotate per-face UVs 90 degrees unless texture V is
+    # already the face's vertical axis.
+    uvl = obj.data.uv_layers.active
+    me = obj.data
+
+    def _cov(a, b):
+        n = len(a)
+        if n < 2:
+            return 0.0
+        ma = sum(a) / n
+        mb = sum(b) / n
+        return sum((a[i] - ma) * (b[i] - mb) for i in range(n)) / n
+
+    for poly in me.polygons:
+        if abs(poly.normal.z) >= 0.55:
+            continue
+        idxs = list(poly.loop_indices)
+        us = [uvl.data[i].uv.x for i in idxs]
+        vs = [uvl.data[i].uv.y for i in idxs]
+        zs = [me.vertices[me.loops[i].vertex_index].co.z for i in idxs]
+        if abs(_cov(us, zs)) > abs(_cov(vs, zs)):
+            # texture U carries the vertical direction -> rotate 90 degrees
+            cx = sum(us) / len(us)
+            cy = sum(vs) / len(vs)
+            for i, u, v in zip(idxs, us, vs):
+                x, y = u - cx, v - cy
+                uvl.data[i].uv = (cx - y, cy + x)
 
 
-# ---------------------------------------------------------------------------
-# Materials
-# ---------------------------------------------------------------------------
-def build_material(key: str) -> bpy.types.Material:
-    """Principled BSDF + Image Texture (Base Color), image packed into the file."""
-    filename, tile_m, roughness, metallic = MATERIALS[key]
-    image_path = os.path.join(TEXTURE_DIR, filename)
-    if not os.path.isfile(image_path):
-        raise FileNotFoundError(
-            f"missing texture {image_path} - run tools/make_seamless.py first"
-        )
-
-    mat = bpy.data.materials.new(name=f"M_{key}")
+def make_material(name: str, preset: str):
+    """Principled BSDF material with an Image Texture driving Base Color."""
+    spec = MATERIALS[preset]
+    mat = bpy.data.materials.new(name)
+    # Node-based materials are mandatory since Blender 5.0 (use_nodes deprecated).
     if bpy.app.version < (5, 0, 0):
         mat.use_nodes = True
-    nodes = mat.node_tree.nodes
-    links = mat.node_tree.links
-    nodes.clear()
+    nt = mat.node_tree
+    bsdf = nt.nodes.get("Principled BSDF")
+    if bsdf is None:
+        raise RuntimeError("Principled BSDF node not found in new material")
 
-    out = nodes.new("ShaderNodeOutputMaterial")
-    out.location = (420, 0)
-    bsdf = nodes.new("ShaderNodeBsdfPrincipled")
-    bsdf.location = (120, 0)
-    tex = nodes.new("ShaderNodeTexImage")
-    tex.location = (-220, 0)
+    tex_path = os.path.join(TEXTURE_DIR, spec["file"])
+    if not os.path.isfile(tex_path):
+        raise FileNotFoundError(f"Texture not found: {tex_path}")
+    image = bpy.data.images.load(tex_path, check_existing=True)
 
-    image = bpy.data.images.load(image_path, check_existing=True)
-    image.colorspace_settings.name = "sRGB"
-    image.pack()  # embed the pixels so export_image_format can inline them
+    tex = nt.nodes.new("ShaderNodeTexImage")
+    tex.name = f"{name}_Texture"
+    tex.label = spec["file"]
     tex.image = image
-    tex.interpolation = "Linear"
     tex.extension = "REPEAT"
+    tex.location = (-350.0, 220.0)
+    nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
 
-    bsdf.inputs["Roughness"].default_value = roughness
-    bsdf.inputs["Metallic"].default_value = metallic
-    bsdf.inputs["Base Color"].default_value = (1.0, 1.0, 1.0, 1.0)
-
-    links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
-    links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
+    bsdf.inputs["Roughness"].default_value = spec["roughness"]
+    bsdf.inputs["Metallic"].default_value = spec["metallic"]
     return mat
 
 
-# ---------------------------------------------------------------------------
-# UV unwrap + texel-density normalisation
-# ---------------------------------------------------------------------------
-def smart_unwrap(obj: bpy.types.Object, tile_m: float) -> None:
-    """Unwrap with Smart UV Project, then scale UVs to a physical tile size.
-
-    ``bpy.ops.uv.smart_project`` packs every island into 0..1, so the number
-    of texture repeats has no relation to the real-world size of the mesh.
-    After unwrapping we measure the surface area per UV unit and rescale all
-    UVs so one texture tile covers ``tile_m`` metres on the model.
-    """
-    bpy.context.view_layer.objects.active = obj
-    obj.select_set(True)
-
-    with bpy.context.temp_override(object=obj, active_object=obj, selected_objects=[obj]):
-        bpy.ops.object.mode_set(mode="EDIT")
-        bpy.ops.mesh.select_all(action="SELECT")
-        bpy.ops.uv.smart_project(
-            angle_limit=math.radians(66.0),
-            island_margin=0.015,
-            area_weight=0.0,
-            correct_aspect=True,
-            scale_to_bounds=False,
-        )
-        bpy.ops.object.mode_set(mode="OBJECT")
-
-    mesh = obj.data
-    uv = mesh.uv_layers.active.data
-    ratios = []
-    for poly in mesh.polygons:
-        world_area = poly.area
-        if world_area <= 1e-9:
-            continue
-        uvs = [uv[li].uv for li in poly.loop_indices]
-        uv_area = 0.0
-        for i in range(1, len(uvs) - 1):
-            uv_area += abs(
-                (uvs[i] - uvs[0]).cross(uvs[i + 1] - uvs[0])
-            ) / 2.0
-        if uv_area > 1e-12:
-            # metres of surface represented by one UV unit
-            ratios.append(math.sqrt(world_area / uv_area))
-
-    if not ratios:
-        raise RuntimeError(f"could not measure UV density on {obj.name}")
-
-    ratios.sort()
-    metres_per_uv = ratios[len(ratios) // 2]
-    # 1 UV unit currently spans ``metres_per_uv`` metres; we want it to span
-    # exactly ``tile_m`` metres, so UVs get longer when the mesh is bigger.
-    factor = metres_per_uv / tile_m
-    for loop in uv:
-        loop.uv = (loop.uv.x * factor, loop.uv.y * factor)
-
-    # Re-measure and fail loudly if the real-world texel density is off.
-    ratios_after = []
-    for poly in mesh.polygons:
-        world_area = poly.area
-        uvs = [uv[li].uv for li in poly.loop_indices]
-        uv_area = 0.0
-        for i in range(1, len(uvs) - 1):
-            uv_area += abs((uvs[i] - uvs[0]).cross(uvs[i + 1] - uvs[0])) / 2.0
-        if world_area > 1e-9 and uv_area > 1e-12:
-            ratios_after.append(math.sqrt(world_area / uv_area))
-    ratios_after.sort()
-    achieved = ratios_after[len(ratios_after) // 2]
-    if not (0.9 * tile_m <= achieved <= 1.1 * tile_m):
-        raise AssertionError(
-            f"{obj.name}: texel density {achieved:.3f} m/UV, expected ~{tile_m:.2f} m/UV"
-        )
+def assign_material(obj, mat) -> None:
+    obj.data.materials.clear()
+    obj.data.materials.append(mat)
 
 
-# ---------------------------------------------------------------------------
-# Assembly helpers
-# ---------------------------------------------------------------------------
-def join(objects: list[bpy.types.Object], name: str) -> bpy.types.Object:
-    """Join parts into one game-ready object, keeping material slots."""
-    for obj in objects:
-        obj.select_set(True)
+def join_objects(objects, name):
+    """Join part meshes into one object and name it."""
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in objects:
+        o.select_set(True)
     bpy.context.view_layer.objects.active = objects[0]
-    with bpy.context.temp_override(
-        active_object=objects[0],
-        selected_objects=objects,
-        selected_editable_objects=objects,
-    ):
-        bpy.ops.object.join()
-    merged = bpy.context.view_layer.objects.active
-    merged.name = name
-    merged.data.name = f"{name}Mesh"
-    # Bake the remaining object transform into the mesh so every later
-    # measurement works in plain world coordinates.
-    with bpy.context.temp_override(
-        active_object=merged, selected_objects=[merged], selected_editable_objects=[merged]
-    ):
-        bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
-    return merged
+    bpy.ops.object.join()
+    joined = bpy.context.active_object
+    joined.name = name
+    joined.data.name = name + "Mesh"
+    return joined
 
 
-def set_origin_bottom_center(obj: bpy.types.Object) -> None:
-    """Move mesh data so the origin is at the bottom-centre of the footprint."""
-    mesh = obj.data
-    coords = [v.co for v in mesh.vertices]
+def set_origin_bottom_center(obj) -> None:
+    """Move mesh data so the world bounding-box bottom-centre sits exactly at
+    the object origin (0, 0, 0)."""
+    coords = [obj.matrix_world @ v.co for v in obj.data.vertices]
     min_x = min(c.x for c in coords)
     max_x = max(c.x for c in coords)
     min_y = min(c.y for c in coords)
     max_y = max(c.y for c in coords)
     min_z = min(c.z for c in coords)
-
     offset = Vector((-(min_x + max_x) / 2.0, -(min_y + max_y) / 2.0, -min_z))
-    for v in mesh.vertices:
-        v.co += offset
+    obj.data.transform(Matrix.Translation(offset))
+    obj.data.validate(clean_customdata=True)  # fix windings / degenerate data
+    obj.data.update()
+    obj.matrix_world = Matrix.Identity(4)
     obj.location = (0.0, 0.0, 0.0)
     obj.rotation_euler = (0.0, 0.0, 0.0)
     obj.scale = (1.0, 1.0, 1.0)
-    mesh.update()
 
 
-def apply_material(obj: bpy.types.Object, mat: bpy.types.Material) -> None:
-    obj.data.materials.clear()
-    obj.data.materials.append(mat)
-    for poly in obj.data.polygons:
-        poly.material_index = 0
-
-
-def assign_material_by_height(
-    obj: bpy.types.Object,
-    mat: bpy.types.Material,
-    threshold: float,
-) -> None:
-    """Assign ``mat`` to every face whose centre sits above ``threshold``."""
-    if mat.name not in [m.name for m in obj.data.materials]:
-        obj.data.materials.append(mat)
-    index = [m.name for m in obj.data.materials].index(mat.name)
-    for poly in obj.data.polygons:
-        if poly.center.z > threshold:
-            poly.material_index = index
-
-
-def check_building(obj: bpy.types.Object, expect: tuple[float, float, float]) -> None:
-    """Assert the hard requirements: scale, bottom-centre origin, UVs, material."""
-    dims = obj.dimensions
-    for got, want, axis in zip(dims, expect, "XYZ"):
-        if abs(got - want) > 1e-3:
-            raise AssertionError(f"{obj.name}: {axis} size {got:.3f} m, expected {want:.3f} m")
-
+def object_bbox(obj):
     coords = [obj.matrix_world @ v.co for v in obj.data.vertices]
-    min_z = min(c.z for c in coords)
-    center_x = (min(c.x for c in coords) + max(c.x for c in coords)) / 2.0
-    center_y = (min(c.y for c in coords) + max(c.y for c in coords)) / 2.0
-    if abs(min_z) > 1e-4 or abs(center_x) > 1e-4 or abs(center_y) > 1e-4:
-        raise AssertionError(
-            f"{obj.name}: origin not bottom-centre "
-            f"(min_z={min_z:.4f}, cx={center_x:.4f}, cy={center_y:.4f})"
-        )
-    if not obj.data.uv_layers.active:
-        raise AssertionError(f"{obj.name}: no UV map")
-    for slot in obj.material_slots:
-        mat = slot.material
-        tex = next((n for n in mat.node_tree.nodes if n.type == "TEX_IMAGE" and n.image), None)
-        bsdf = next((n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED"), None)
-        if tex is None or bsdf is None:
-            raise AssertionError(f"{obj.name}: material {mat.name} missing image/BSDF")
-        linked = any(
-            l.from_node == tex and l.to_socket == bsdf.inputs["Base Color"]
-            for l in mat.node_tree.links
-        )
-        if not linked:
-            raise AssertionError(f"{obj.name}: texture not connected to Base Color")
-    print(
-        f"  check OK: {dims.x:.2f} x {dims.y:.2f} x {dims.z:.2f} m, origin bottom-centre, "
-        f"UVs={obj.data.uv_layers.active.name}, materials={[s.material.name for s in obj.material_slots]}"
+    return (
+        min(c.x for c in coords), max(c.x for c in coords),
+        min(c.y for c in coords), max(c.y for c in coords),
+        min(c.z for c in coords), max(c.z for c in coords),
     )
 
 
-def export_building(obj: bpy.types.Object, name: str) -> str:
-    path = os.path.join(OUTPUT_DIR, f"{name}.glb")
-    bpy.ops.object.select_all(action="DESELECT")
-    obj.select_set(True)
-    bpy.context.view_layer.objects.active = obj
-    bpy.ops.export_scene.gltf(
+def export_glb(filename: str) -> str:
+    """Export the scene as a packed binary glTF (.glb)."""
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    path = os.path.join(OUTPUT_DIR, filename)
+    export_kwargs = dict(
         filepath=path,
         export_format="GLB",
-        use_selection=True,
-        export_apply=True,
-        export_image_format="AUTO",
-        export_jpeg_quality=90,
-        export_texcoords=True,
-        export_normals=True,
-        export_yup=True,
+        export_image_format="JPEG",   # textures converted + packed into the GLB
     )
+    try:
+        bpy.ops.export_scene.gltf(export_image_quality=90, **export_kwargs)
+    except TypeError:
+        bpy.ops.export_scene.gltf(**export_kwargs)
     if not os.path.isfile(path):
-        raise RuntimeError(f"export failed: {path}")
-    print(f"Exported {name}: {path} ({os.path.getsize(path)} bytes)")
+        raise RuntimeError(f"Export failed, file not written: {path}")
     return path
 
 
-def finish(
-    name: str, parts: list[bpy.types.Object], material: bpy.types.Material, tile_m: float
-) -> bpy.types.Object:
-    obj = join(parts, name)
-    obj.data.materials.clear()
-    obj.data.materials.append(material)
-    for poly in obj.data.polygons:
-        poly.material_index = 0
-    set_origin_bottom_center(obj)
-    bpy.ops.object.select_all(action="DESELECT")
-    obj.select_set(True)
-    bpy.context.view_layer.objects.active = obj
-    smart_unwrap(obj, tile_m)
-    return obj
+def verify_glb(path: str) -> None:
+    """Sanity-check the GLB container: textures packed + expected mesh present."""
+    with open(path, "rb") as fh:
+        data = fh.read()
+    if data[:4] != b"glTF":
+        raise RuntimeError(f"Not a GLB file: {path}")
+    json_len = struct.unpack("<I", data[12:16])[0]
+    gltf = json.loads(data[20:20 + json_len])
+    images = gltf.get("images", [])
+    materials = gltf.get("materials", [])
+    textures = gltf.get("textures", [])
+    if not images:
+        raise RuntimeError(f"No packed images found in {path}")
+    for img in images:
+        if "bufferView" not in img and "uri" not in img:
+            raise RuntimeError(f"Image not embedded in {path}: {img}")
+    print(
+        f"  verified {os.path.basename(path)}: {os.path.getsize(path)} bytes, "
+        f"{len(materials)} material(s), {len(textures)} texture(s), "
+        f"{len(images)} packed image(s)"
+    )
 
 
 # ---------------------------------------------------------------------------
-# Building 1 - garage: 10 x 8 x 4 m, flat roof, 4 x 3 m door
+# Building 1: Garage — 10m x 8m x 4m, flat roof, 4m x 3m door cutout
 # ---------------------------------------------------------------------------
-def build_garage(material: bpy.types.Material) -> bpy.types.Object:
+def build_garage():
     w, d, h = 10.0, 8.0, 4.0
-    wall_t, roof_t, floor_t = 0.30, 0.20, 0.15
-    wall_h = h - roof_t
+    t = 0.28                     # wall thickness
+    wall_h = 3.72                # walls stop here; flat roof slab -> h
+    parts = []
+    parts.append(create_box("Garage_Floor", (w, d, 0.20), (0.0, 0.0, 0.10)))
+    # side walls span the full depth; front/back fit between them (no coplanar corners)
+    parts.append(create_box("Garage_Wall_Left", (t, d, wall_h), (-w / 2 + t / 2, 0.0, wall_h / 2)))
+    parts.append(create_box("Garage_Wall_Right", (t, d, wall_h), (w / 2 - t / 2, 0.0, wall_h / 2)))
+    parts.append(create_box("Garage_Wall_Front", (w - 2 * t, t, wall_h), (0.0, -d / 2 + t / 2, wall_h / 2)))
+    parts.append(create_box("Garage_Wall_Back", (w - 2 * t, t, wall_h), (0.0, d / 2 - t / 2, wall_h / 2)))
+    roof = create_box("Garage_Roof", (w, d, h - wall_h), (0.0, 0.0, (h + wall_h) / 2))
+    parts.append(roof)
 
-    front = add_box("wall_front", (w, wall_t, wall_h), (0, -d / 2 + wall_t / 2, wall_h / 2))
-    back = add_box("wall_back", (w, wall_t, wall_h), (0, d / 2 - wall_t / 2, wall_h / 2))
-    left = add_box(
-        "wall_left", (wall_t, d - 2 * wall_t, wall_h), (-w / 2 + wall_t / 2, 0, wall_h / 2)
-    )
-    right = add_box(
-        "wall_right", (wall_t, d - 2 * wall_t, wall_h), (w / 2 - wall_t / 2, 0, wall_h / 2)
-    )
-    floor = add_box(
-        "floor", (w - 2 * wall_t, d - 2 * wall_t, floor_t), (0, 0, floor_t / 2)
-    )
-    roof = add_box("roof", (w, d, roof_t), (0, 0, h - roof_t / 2))
+    # 4m x 3m door opening, boolean-cut through the front wall
+    front = parts[4]
+    cutter = create_box("Garage_DoorCutter", (4.0, t + 0.8, 3.0), (0.0, -d / 2 + t / 2, 1.5))
+    apply_boolean_cut(front, cutter)
 
-    # 4 m wide x 3 m tall garage door, centred on the front (-Y) wall.
-    cut_opening(front, width=4.0, height=3.0, center_x=0.0, base_z=0.0, depth=wall_t + 0.2)
+    # UV-unwrap every mesh BEFORE materials are applied
+    for p in parts:
+        smart_unwrap(p, MATERIALS["concrete"]["uv_scale"])
+    mat = make_material("Garage_Concrete", "concrete")
+    for p in parts:
+        assign_material(p, mat)
 
-    return finish("Garage", [front, back, left, right, floor, roof], material, MATERIALS["concrete"][1])
-
-
-# ---------------------------------------------------------------------------
-# Building 2 - sniper tower: 4 x 4 m base, 10 m tall, wood
-# ---------------------------------------------------------------------------
-def build_sniper_tower(material: bpy.types.Material) -> bpy.types.Object:
-    span = 4.0
-    pillar = 0.30
-    platform_z = 8.0
-    platform_t = 0.25
-    rail_h = 1.05
-    parts: list[bpy.types.Object] = []
-
-    inset = span / 2 - pillar / 2
-    for sx in (-1, 1):
-        for sy in (-1, 1):
-            parts.append(
-                add_box(
-                    f"pillar_{sx}_{sy}",
-                    (pillar, pillar, platform_z),
-                    (sx * inset, sy * inset, platform_z / 2),
-                )
-            )
-            # Knee brace from the pillar up to the underside of the platform.
-            parts.append(
-                add_strut(
-                    f"brace_{sx}_{sy}",
-                    (sx * inset, sy * inset, platform_z - 2.2),
-                    (sx * inset, sy * inset * 0.15, platform_z - 0.35),
-                    0.14,
-                )
-            )
-            parts.append(
-                add_strut(
-                    f"brace_x_{sx}_{sy}",
-                    (sx * inset, sy * inset, platform_z - 2.2),
-                    (sx * inset * 0.15, sy * inset, platform_z - 0.35),
-                    0.14,
-                )
-            )
-
-    # X bracing between neighbouring pillars, halfway up the tower.
-    brace_z = platform_z * 0.45
-    for sign in (-1, 1):
-        parts.append(
-            add_strut(
-                f"xbrace_front_{sign}",
-                (-inset, sign * inset, brace_z - 0.9),
-                (inset, sign * inset, brace_z + 0.9),
-                0.13,
-            )
-        )
-        parts.append(
-            add_strut(
-                f"xbrace_side_{sign}",
-                (sign * inset, -inset, brace_z - 0.9),
-                (sign * inset, inset, brace_z + 0.9),
-                0.13,
-            )
-        )
-
-    # Cross beams under the platform.
-    parts.append(add_box("beam_x", (span, 0.18, 0.25), (0, -inset, platform_z - 0.3)))
-    parts.append(add_box("beam_x2", (span, 0.18, 0.25), (0, inset, platform_z - 0.3)))
-
-    platform = add_box(
-        "platform", (span, span, platform_t), (0, 0, platform_z + platform_t / 2)
-    )
-    parts.append(platform)
-
-    # Railings: top rail + mid rail on all four sides + corner posts.
-    rail_z = platform_z + platform_t
-    for axis, sign in (("x", -1), ("x", 1), ("y", -1), ("y", 1)):
-        if axis == "x":
-            pos = (0, sign * (span / 2 - 0.06), rail_z + rail_h / 2)
-            size = (span, 0.10, 0.10)
-        else:
-            pos = (sign * (span / 2 - 0.06), 0, rail_z + rail_h / 2)
-            size = (0.10, span, 0.10)
-        parts.append(add_box(f"rail_top_{axis}{sign}", size, pos))
-        mid = (pos[0], pos[1], rail_z + rail_h / 2 - 0.45)
-        parts.append(add_box(f"rail_mid_{axis}{sign}", size, mid))
-
-    for sx in (-1, 1):
-        for sy in (-1, 1):
-            parts.append(
-                add_box(
-                    f"rail_post_{sx}_{sy}",
-                    (0.10, 0.10, rail_h),
-                    (sx * (span / 2 - 0.06), sy * (span / 2 - 0.06), rail_z + rail_h / 2),
-                )
-            )
-
-    # Small roof on four corner posts, total height exactly 10 m.
-    roof_t = 0.20
-    roof_bottom = 10.0 - roof_t
-    for sx in (-1, 1):
-        for sy in (-1, 1):
-            parts.append(
-                add_box(
-                    f"roof_post_{sx}_{sy}",
-                    (0.12, 0.12, roof_bottom - rail_z),
-                    (sx * (span / 2 - 0.12), sy * (span / 2 - 0.12), (rail_z + roof_bottom) / 2),
-                )
-            )
-    parts.append(add_box("roof", (span, span, roof_t), (0, 0, roof_bottom + roof_t / 2)))
-
-    return finish("SniperTower", parts, material, MATERIALS["wood"][1])
+    garage = join_objects(parts, "Garage")
+    set_origin_bottom_center(garage)
+    return garage
 
 
 # ---------------------------------------------------------------------------
-# Building 3 - small house: 6 x 6 x 3.5 m, brick walls + wooden gable roof
+# Building 2: Sniper tower — 4m x 4m base, 10m tall, platform @ 8m
 # ---------------------------------------------------------------------------
-def build_house_small(
-    wall_mat: bpy.types.Material, roof_mat: bpy.types.Material
-) -> bpy.types.Object:
-    w, d, h = 6.0, 6.0, 3.5
-    wall_t, floor_t = 0.25, 0.15
-    # Low eave keeps the gable roof steep enough to read as a slanted roof
-    # while still clearing the 2.2 m door.
-    eave_z = 2.45
+def build_sniper_tower():
+    parts = []
+    # 4 pillars (0.5m x 0.5m) at the base corners; tops embed into the platform
+    for sx in (-1.0, 1.0):
+        for sy in (-1.0, 1.0):
+            parts.append(create_box(
+                f"Tower_Pillar_{int(sx > 0)}{int(sy > 0)}",
+                (0.5, 0.5, 7.85), (sx * 1.72, sy * 1.72, 3.925)))
 
-    front = add_box("wall_front", (w, wall_t, eave_z), (0, -d / 2 + wall_t / 2, eave_z / 2))
-    back = add_box("wall_back", (w, wall_t, eave_z), (0, d / 2 - wall_t / 2, eave_z / 2))
-    left = add_box(
-        "wall_left", (wall_t, d - 2 * wall_t, eave_z), (-w / 2 + wall_t / 2, 0, eave_z / 2)
-    )
-    right = add_box(
-        "wall_right", (wall_t, d - 2 * wall_t, eave_z), (w / 2 - wall_t / 2, 0, eave_z / 2)
-    )
-    floor = add_box("floor", (w - 2 * wall_t, d - 2 * wall_t, floor_t), (0, 0, floor_t / 2))
+    # wooden platform at 8m (top surface exactly z = 8.0)
+    parts.append(create_box("Tower_Platform", (4.0, 4.0, 0.22), (0.0, 0.0, 7.89)))
 
-    # Door 1.2 x 2.2 m in the middle of the front wall.
-    cut_opening(front, width=1.2, height=2.2, center_x=0.0, base_z=0.0, depth=wall_t + 0.2)
-    # Exactly two 1.2 x 1.2 m windows, one either side of the door.
-    cut_opening(front, width=1.2, height=1.2, center_x=-1.85, base_z=1.05, depth=wall_t + 0.2)
-    cut_opening(front, width=1.2, height=1.2, center_x=1.85, base_z=1.05, depth=wall_t + 0.2)
+    # railings around the platform: 4 corner posts + top and mid rails
+    for sx in (-1.0, 1.0):
+        for sy in (-1.0, 1.0):
+            parts.append(create_box(
+                f"Tower_RailPost_{int(sx > 0)}{int(sy > 0)}",
+                (0.1, 0.1, 1.14), (sx * 1.9, sy * 1.9, 8.49)))
+    for z, tag in ((8.95, "Top"), (8.52, "Mid")):
+        for s in (-1.0, 1.0):
+            parts.append(create_box(f"Tower_RailX_{tag}_{int(s > 0)}", (0.1, 4.0, 0.1), (s * 1.95, 0.0, z)))
+            parts.append(create_box(f"Tower_RailY_{tag}_{int(s > 0)}", (4.0, 0.1, 0.1), (0.0, s * 1.95, z)))
 
-    roof = add_prism("roof", (w, d), eave_z, h)
+    # roof posts (embed into platform and roof slab) + small roof (top z = 10.0)
+    for sx in (-1.0, 1.0):
+        for sy in (-1.0, 1.0):
+            parts.append(create_box(
+                f"Tower_RoofPost_{int(sx > 0)}{int(sy > 0)}",
+                (0.18, 0.18, 1.96), (sx * 1.75, sy * 1.75, 8.90)))
+    parts.append(create_box("Tower_Roof", (4.0, 4.0, 0.18), (0.0, 0.0, 9.91)))
 
-    parts = [front, back, left, right, floor, roof]
-    obj = join(parts, "HouseSmall")
-    set_origin_bottom_center(obj)
+    for p in parts:
+        smart_unwrap(p, MATERIALS["wood"]["uv_scale"])
+    mat = make_material("Tower_Wood", "wood")
+    for p in parts:
+        assign_material(p, mat)
 
-    obj.data.materials.clear()
-    obj.data.materials.append(wall_mat)
-    obj.data.materials.append(roof_mat)
-    roof_index = 1
-    for poly in obj.data.polygons:
-        # Roof faces are the only ones above the eave line.
-        poly.material_index = roof_index if poly.center.z > eave_z - 0.02 else 0
-
-    bpy.ops.object.select_all(action="DESELECT")
-    obj.select_set(True)
-    bpy.context.view_layer.objects.active = obj
-    smart_unwrap(obj, MATERIALS["brick"][1])
-    return obj
+    tower = join_objects(parts, "SniperTower")
+    set_origin_bottom_center(tower)
+    return tower
 
 
 # ---------------------------------------------------------------------------
-# Building 4 - warehouse: 15 x 10 x 6 m, flat roof, 5 x 4.5 m sliding doors
+# Building 3: Small house — 6m x 6m x 3.5m walls, gable roof
 # ---------------------------------------------------------------------------
-def build_warehouse(material: bpy.types.Material) -> bpy.types.Object:
+def build_house_small():
+    w, d, wall_h = 6.0, 6.0, 3.5
+    t = 0.22
+    angle = math.radians(28.0)   # roof pitch
+    run = 3.4                    # half-span + 0.4m overhang
+    ridge_z = wall_h + run * math.tan(angle)   # ~5.31m at y = 0 (overhang line)
+
+    shell = []
+    shell.append(create_box("House_Floor", (w, d, 0.18), (0.0, 0.0, 0.09)))
+    # side walls span the full depth; front/back fit between them (no coplanar corners)
+    shell.append(create_box("House_Wall_Left", (t, d, wall_h), (-w / 2 + t / 2, 0.0, wall_h / 2)))
+    shell.append(create_box("House_Wall_Right", (t, d, wall_h), (w / 2 - t / 2, 0.0, wall_h / 2)))
+    shell.append(create_box("House_Wall_Front", (w - 2 * t, t, wall_h), (0.0, -d / 2 + t / 2, wall_h / 2)))
+    shell.append(create_box("House_Wall_Back", (w - 2 * t, t, wall_h), (0.0, d / 2 - t / 2, wall_h / 2)))
+    walls = join_objects(shell, "House_Walls")
+
+    # door: 1.2m x 2.2m through the front wall
+    cutter = create_box("House_DoorCutter", (1.2, t + 0.8, 2.2), (0.0, -d / 2 + t / 2, 1.1))
+    apply_boolean_cut(walls, cutter)
+    # two windows: 1.2m x 1.2m through the left and right walls
+    for sx in (-1.0, 1.0):
+        cutter = create_box("House_WindowCutter", (t + 0.8, 1.2, 1.2), (sx * (w / 2 - t / 2), 0.0, 1.8))
+        apply_boolean_cut(walls, cutter)
+
+    # gable prism fills the attic; its sloped faces hide under the roof slabs
+    apex_z = wall_h + (d / 2) * math.tan(angle) - 0.04   # just under the roof line
+    gable = create_triangular_prism(
+        "House_Gable", -w / 2, w / 2,
+        [(-d / 2 + 0.03, wall_h - 0.03), (d / 2 - 0.03, wall_h - 0.03), (0.0, apex_z)])
+
+    # two slanted roof slabs (wood), rotated about X
+    slab_len = run / math.cos(angle)          # slope length
+    mid_y = run / 2.0
+    mid_z = ridge_z - mid_y * math.tan(angle) - 0.16 / (2 * math.cos(angle))
+    roof_slabs = []
+    for sy in (-1.0, 1.0):
+        roof_slabs.append(create_box(
+            f"House_RoofSlab_{int(sy > 0)}",
+            (w + 0.8, slab_len, 0.16),
+            (0.0, sy * mid_y, mid_z),
+            rotation=(-sy * angle, 0.0, 0.0)))
+
+    # UV-unwrap every mesh BEFORE any material is applied
+    for p in [walls, gable]:
+        smart_unwrap(p, MATERIALS["brick"]["uv_scale"])
+    for slab in roof_slabs:
+        smart_unwrap(slab, MATERIALS["wood"]["uv_scale"])
+
+    mat_brick = make_material("House_Brick", "brick")
+    mat_wood = make_material("House_RoofWood", "wood")
+    assign_material(walls, mat_brick)
+    assign_material(gable, mat_brick)
+    for slab in roof_slabs:
+        assign_material(slab, mat_wood)
+
+    house = join_objects([walls, gable] + roof_slabs, "HouseSmall")
+    set_origin_bottom_center(house)
+    return house
+
+
+# ---------------------------------------------------------------------------
+# Building 4: Warehouse — 15m x 10m x 6m, sliding doors 5m x 4.5m, flat roof
+# ---------------------------------------------------------------------------
+def build_warehouse():
     w, d, h = 15.0, 10.0, 6.0
-    wall_t, roof_t, floor_t = 0.35, 0.25, 0.15
-    wall_h = h - roof_t
+    t = 0.30
+    wall_h = 5.72                # walls stop here; flat roof slab -> h
+    parts = []
+    parts.append(create_box("Warehouse_Floor", (w, d, 0.25), (0.0, 0.0, 0.125)))
+    # side walls span the full depth; front/back fit between them (no coplanar corners)
+    parts.append(create_box("Warehouse_Wall_Left", (t, d, wall_h), (-w / 2 + t / 2, 0.0, wall_h / 2)))
+    parts.append(create_box("Warehouse_Wall_Right", (t, d, wall_h), (w / 2 - t / 2, 0.0, wall_h / 2)))
+    parts.append(create_box("Warehouse_Wall_Front", (w - 2 * t, t, wall_h), (0.0, -d / 2 + t / 2, wall_h / 2)))
+    parts.append(create_box("Warehouse_Wall_Back", (w - 2 * t, t, wall_h), (0.0, d / 2 - t / 2, wall_h / 2)))
+    parts.append(create_box("Warehouse_Roof", (w, d, h - wall_h), (0.0, 0.0, (h + wall_h) / 2)))
 
-    front = add_box("wall_front", (w, wall_t, wall_h), (0, -d / 2 + wall_t / 2, wall_h / 2))
-    back = add_box("wall_back", (w, wall_t, wall_h), (0, d / 2 - wall_t / 2, wall_h / 2))
-    left = add_box(
-        "wall_left", (wall_t, d - 2 * wall_t, wall_h), (-w / 2 + wall_t / 2, 0, wall_h / 2)
-    )
-    right = add_box(
-        "wall_right", (wall_t, d - 2 * wall_t, wall_h), (w / 2 - wall_t / 2, 0, wall_h / 2)
-    )
-    floor = add_box("floor", (w - 2 * wall_t, d - 2 * wall_t, floor_t), (0, 0, floor_t / 2))
-    roof = add_box("roof", (w, d, roof_t), (0, 0, h - roof_t / 2))
+    # 5m x 4.5m opening through the front wall
+    front = parts[4]
+    cutter = create_box("Warehouse_DoorCutter", (5.0, t + 0.8, 4.5), (0.0, -d / 2 + t / 2, 2.25))
+    apply_boolean_cut(front, cutter)
 
-    # 5 m wide x 4.5 m tall sliding door opening on the front wall.
-    cut_opening(front, width=5.0, height=4.5, center_x=0.0, base_z=0.0, depth=wall_t + 0.2)
+    # two sliding door panels parked open beside the opening, slightly proud
+    # of the facade (metal tracks would be level with the panel tops)
+    for sx in (-1.0, 1.0):
+        parts.append(create_box(
+            f"Warehouse_SlideDoor_{int(sx > 0)}",
+            (2.7, 0.12, 4.4), (sx * 4.3, -d / 2 - 0.21, 2.3)))
 
-    return finish("Warehouse", [front, back, left, right, floor, roof], material, MATERIALS["metal"][1])
+    for p in parts:
+        smart_unwrap(p, MATERIALS["metal"]["uv_scale"])
+    mat = make_material("Warehouse_Metal", "metal")
+    for p in parts:
+        assign_material(p, mat)
+
+    warehouse = join_objects(parts, "Warehouse")
+    set_origin_bottom_center(warehouse)
+    return warehouse
 
 
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
+BUILD_TASKS = [
+    ("garage.glb", build_garage),
+    ("sniper_tower.glb", build_sniper_tower),
+    ("house_small.glb", build_house_small),
+    ("warehouse.glb", build_warehouse),
+]
+
+
 def main() -> int:
     print(f"Blender (bpy) version: {bpy.app.version_string}")
-    ensure_dirs()
-    reset_scene()
-
-    mats = {key: build_material(key) for key in MATERIALS}
-    print("Materials ready: " + ", ".join(sorted(m.name for m in mats.values())))
-
-    jobs = [
-        ("garage", lambda: build_garage(mats["concrete"])),
-        ("sniper_tower", lambda: build_sniper_tower(mats["wood"])),
-        ("house_small", lambda: build_house_small(mats["brick"], mats["wood"])),
-        ("warehouse", lambda: build_warehouse(mats["metal"])),
-    ]
-    expected = {
-        "garage": (10.0, 8.0, 4.0),
-        "sniper_tower": (4.0, 4.0, 10.0),
-        "house_small": (6.0, 6.0, 3.5),
-        "warehouse": (15.0, 10.0, 6.0),
-    }
-    for name, builder in jobs:
+    for filename, builder in BUILD_TASKS:
+        print(f"Building {filename} ...")
+        clear_scene()
+        set_metric_units()
         obj = builder()
-        check_building(obj, expected[name])
-        size = obj.dimensions
+        x0, x1, y0, y1, z0, z1 = object_bbox(obj)
         print(
-            f"{name}: {size.x:.2f} x {size.y:.2f} x {size.z:.2f} m, "
-            f"origin={tuple(round(v, 3) for v in obj.location)}, "
-            f"verts={len(obj.data.vertices)}, tris~{sum(len(p.vertices) - 2 for p in obj.data.polygons)}"
+            f"  {obj.name}: {x1 - x0:.2f}m x {y1 - y0:.2f}m x {z1 - z0:.2f}m | "
+            f"origin=({obj.location.x:.3f}, {obj.location.y:.3f}, {obj.location.z:.3f}) | "
+            f"bbox bottom-centre=({(x0 + x1) / 2:.3f}, {(y0 + y1) / 2:.3f}, {z0:.3f})"
         )
-        export_building(obj, name)
-        bpy.data.objects.remove(obj, do_unlink=True)
-
+        path = export_glb(filename)
+        verify_glb(path)
     print("Done.")
     return 0
 
