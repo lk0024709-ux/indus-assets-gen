@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0c1220" />
+  <title>Indus Asset Viewer - Test</title>
+
+  <!-- Google's <model-viewer> via CDN (with a fallback CDN for resilience) -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+  <script type="module">
+    if (!customElements.get("model-viewer")) {
+      const fallback = document.createElement("script");
+      fallback.type = "module";
+      fallback.src = "https://cdn.jsdelivr.net/npm/@google/model-viewer@4.4.0/dist/model-viewer.min.js";
+      document.head.appendChild(fallback);
+    }
+  </script>
+
+  <style>
+    :root {
+      --bg: #0c1220;
+      --panel: #121b2c;
+      --panel-border: #24304a;
+      --text: #e8edf6;
+      --text-dim: #93a1b8;
+      --accent: #f5a623;
+      --error: #ff6b6b;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background:
+        radial-gradient(1100px 520px at 75% -12%, #1b2a45 0%, rgba(27, 42, 69, 0) 60%),
+        var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      padding: 22px clamp(16px, 4vw, 40px) 6px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.35rem, 4.5vw, 2.1rem);
+      letter-spacing: 0.2px;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--text-dim);
+      font-size: clamp(0.92rem, 3vw, 1.05rem);
+    }
+
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 14px clamp(16px, 4vw, 40px) 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .viewer-shell {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      min-height: 300px;
+      max-height: 72vh;
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--panel);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+    }
+
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      --poster-color: transparent;
+    }
+
+    .status {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      text-align: center;
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+
+    .status[hidden] { display: none; }
+    .status.error { color: var(--error); }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .card h2 {
+      margin: 0 0 5px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.3px;
+      color: var(--text-dim);
+    }
+
+    .card p {
+      margin: 0;
+      font-size: 0.98rem;
+      word-break: break-word;
+    }
+
+    footer {
+      padding: 14px clamp(16px, 4vw, 40px) 22px;
+      border-top: 1px solid var(--panel-border);
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    a { color: var(--accent); }
+
+    @media (max-width: 520px) {
+      .viewer-shell {
+        aspect-ratio: 3 / 4;
+        max-height: 68vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Indus Asset Viewer - Test</h1>
+    <p class="subtitle">
+      Procedural 3D asset pipeline for <strong>Indus : Battle Royale</strong> —
+      drag to rotate, pinch or scroll to zoom.
+    </p>
+  </header>
+
+  <main>
+    <div class="viewer-shell">
+      <model-viewer
+        id="viewer"
+        src="models/test_crate.glb"
+        alt="A brown 1x1x1 test crate cube generated with Blender Python"
+        camera-controls
+        auto-rotate
+        environment-image="neutral"
+        shadow-intensity="1"
+        exposure="1"
+        camera-orbit="35deg 68deg 105%"
+        interaction-prompt="auto"
+        loading="eager"
+      ></model-viewer>
+      <div id="status" class="status">Loading 3D model&hellip;</div>
+    </div>
+
+    <section class="meta" aria-label="Asset information">
+      <div class="card">
+        <h2>Asset</h2>
+        <p>test_crate.glb</p>
+      </div>
+      <div class="card">
+        <h2>Format</h2>
+        <p>Binary glTF (.glb)</p>
+      </div>
+      <div class="card">
+        <h2>Generator</h2>
+        <p>tools/generate_test.py (bpy)</p>
+      </div>
+      <div class="card">
+        <h2>Material</h2>
+        <p>Brown Principled BSDF &middot; Roughness 0.8</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Automatically generated &amp; deployed by GitHub Actions &rarr; GitHub Pages.
+  </footer>
+
+  <script type="module">
+    const viewer = document.getElementById("viewer");
+    const status = document.getElementById("status");
+
+    viewer.addEventListener("load", () => {
+      status.hidden = true;
+    });
+
+    viewer.addEventListener("error", () => {
+      status.textContent = "Failed to load models/test_crate.glb — is the asset deployed?";
+      status.classList.add("error");
+    });
+  </script>
+</body>
+</html>
