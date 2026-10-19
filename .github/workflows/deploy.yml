@@ -48,7 +48,7 @@ jobs:
           pip install bpy
 
       - name: Generate 3D assets
-        run: python tools/generate_test.py
+        run: python tools/generate_buildings.py
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
