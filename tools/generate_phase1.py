@@ -15,7 +15,7 @@ BUILDINGS (strict rules, see below)
                                stairs connecting all 3 floors AND the flat roof
     ``cabin_wood.glb``       — 1 storey, 8 x 6 m, WARM BROWN wood cabin, gable roof
     ``warehouse_metal.glb``  — 1 storey, 20 x 12 m, STEEL-BLUE walls with a
-                               RUSTY RED-ORANGE roof, concrete floor
+                               RUSTY RED-ORANGE roof/doors, concrete floor
     ``ruined_building.glb``  — 2 storeys, 10 x 8 m, darkened GREY concrete,
                                BMesh face deletion, exposed rebar, rubble
 
@@ -58,9 +58,12 @@ CRITICAL RULES ENFORCED FOR EVERY BUILDING
   Difference hole of exactly 3.0 m x 1.5 m in the slab above it — spanning the
   final 3.0 m of run before the stair top (head-room swept volume at 32°) —
   and the stairs are placed exactly there.
-* Solid shells: NO doors and NO windows — walls are uncut boxes (no door
-  cutouts, no window cutouts, no door leaves, no shutters, no garage-door
-  bundles).  Only the stair slab holes (and the roof hatch) open the shells.
+* Perfect-fit openings (zero gap): doors 1.5 m W x 2.2 m H and windows
+  1.2 m x 1.2 m (sill 1.0 m) are cut, then FILLED flush by a closed leaf /
+  shutter pair sized EXACTLY to the opening (lateral dims identical, thickness
+  wall_t + 2 cm so faces sit 1 cm proud — no gaps, no z-fighting, no glass).
+  The closed panels read as part of the wall; only stair slab holes (and the
+  apartment roof hatch) stay open.
 * Interiors: internal floors, ceilings, bed/table/crates cover, OmniLights.
 
 Usage:
@@ -651,46 +654,42 @@ def cut_door(target, center, outward, wall_t: float, floor_top: float,
 
 def add_shutters(opening_center, outward, wall_t: float, tag: str,
                  damaged: bool = False):
+    """Two closed shutter panels that fill the window opening EXACTLY
+    (zero gap): together WIN_W x WIN_H; thickness wall_t + 2 cm so the outer
+    faces sit 1 cm proud of both wall faces (no z-fighting, reads flush).
+    ``damaged`` is kept for call-site compatibility — the fit is always exact."""
     n = Vector((float(outward[0]), float(outward[1]), 0.0)).normalized()
     t = Vector((-n.y, n.x, 0.0))
-    hinge_base = (Vector((opening_center.x, opening_center.y, opening_center.z))
-                  + n * (wall_t / 2.0 + 0.045))
-    swing = math.radians(105.0 if not damaged else 128.0)
+    half_w = WIN_W / 2.0
+    depth = wall_t + 0.02
     panels = []
     for side in (-1.0, 1.0):
-        hinge = hinge_base + t * (side * (WIN_W / 2.0 + 0.01))
-        closed_dir = -t * side
-        v = closed_dir * math.cos(swing) + n * math.sin(swing)
-        centre = hinge + v * (WIN_W / 2.0 + 0.01)
-        yaw = math.atan2(v.y, v.x)
-        roll = math.radians(6.0) if damaged else 0.0
-        panel = create_box(
+        centre = (Vector((opening_center.x, opening_center.y, opening_center.z))
+                  + t * (side * (WIN_W / 4.0)))
+        size = (half_w, depth, WIN_H) if abs(n.y) > 0.5 else (depth, half_w, WIN_H)
+        panels.append(create_box(
             f"{tag}_Shutter_{'L' if side < 0 else 'R'}",
-            (WIN_W / 2.0 + 0.02, 0.045, WIN_H + 0.04),
-            (centre.x, centre.y, opening_center.z),
-            rotation=(roll, 0.0, yaw),
-        )
-        panels.append(panel)
+            size,
+            (centre.x, centre.y, centre.z),
+        ))
     return panels
 
 
 def add_door_leaf(opening_center, outward, wall_t: float, door_w: float,
                   door_h: float, tag: str, bottom_z: float,
                   damaged: bool = False):
+    """Closed door plug that fills the opening EXACTLY (zero gap):
+    door_w x door_h sitting on the floor (bottom_z = floor top, top flush
+    with the opening top), thickness wall_t + 2 cm so the outer faces sit
+    1 cm proud of both wall faces. Reads as part of the wall.
+    ``damaged`` is kept for call-site compatibility — the fit is always exact."""
     n = Vector((float(outward[0]), float(outward[1]), 0.0)).normalized()
-    t = Vector((-n.y, n.x, 0.0))
-    hinge = (Vector((opening_center.x, opening_center.y, 0.0))
-             + t * (door_w / 2.0) + n * (wall_t / 2.0 + 0.05))
-    swing = math.radians(112.0 if not damaged else 138.0)
-    v = -t * math.cos(swing) + n * math.sin(swing)
-    centre = hinge + v * (door_w / 2.0)
-    yaw = math.atan2(v.y, v.x)
-    roll = math.radians(10.0) if damaged else 0.0
+    depth = wall_t + 0.02
+    size = (door_w, depth, door_h) if abs(n.y) > 0.5 else (depth, door_w, door_h)
     return create_box(
         f"{tag}_Leaf",
-        (door_w, 0.05, door_h - 0.04),
-        (centre.x, centre.y, bottom_z + (door_h - 0.04) / 2.0),
-        rotation=(roll, 0.0, yaw),
+        size,
+        (opening_center.x, opening_center.y, bottom_z + door_h / 2.0),
     )
 
 
@@ -905,7 +904,7 @@ def finish_building(parts, name: str, mat_prefix: str, light_specs):
 # ---------------------------------------------------------------------------
 def build_house_tactical():
     """2 storeys, 10 x 8 m — RED/BROWN brick, wooden porch, balcony, rusty
-    metal gable roof, back fire escape; solid shell (no doors, no windows)."""
+    metal gable roof, back fire escape; doors/windows closed flush (zero gap)."""
     rng = random.Random(101)
     w, d = 10.0, 8.0
     t = 0.25
@@ -940,6 +939,8 @@ def build_house_tactical():
 
     part = create_box("House_Partition", (0.18, 4.3, wall_top - 0.15),
                       (0.6, -1.6, (0.15 + wall_top) / 2))
+    cut_door(part, (0.6, -2.6), (1, 0), 0.18, floor_z, slab_t, "House_IntDoor1")
+    cut_door(part, (0.6, -2.6), (1, 0), 0.18, 3.0, s2_t, "House_IntDoor2")
     parts.append((part, "brick_red"))
 
     # 32-degree flight + exact 3 x 1.5 hole in slab2 (parts[1])
@@ -947,7 +948,40 @@ def build_house_tactical():
     cut_stair_hole(parts[1][0], hole, s2_c, s2_t)
     parts += [(s, "wood") for s in steps]
 
-    # Solid shell — no doors, no windows (openings and props removed)
+    normals = {"front": (0, -1), "back": (0, 1), "left": (-1, 0), "right": (1, 0)}
+    fd = cut_door(walls["front"], (1.0, -d / 2 + t / 2), (0, -1), t,
+                  floor_z, slab_t, "House_FrontDoor")
+    parts.append((add_door_leaf(fd, (0, -1), t, DOOR_W, DOOR_H,
+                                "House_FrontDoor", floor_z), "wood"))
+    bd = cut_door(walls["back"], (2.6, d / 2 - t / 2), (0, 1), t,
+                  floor_z, slab_t, "House_BackDoor")
+    parts.append((add_door_leaf(bd, (0, 1), t, DOOR_W, DOOR_H,
+                                "House_BackDoor", floor_z), "wood"))
+    fe = cut_door(walls["back"], (2.0, d / 2 - t / 2), (0, 1), t,
+                  3.0, s2_t, "House_FireDoor")
+    parts.append((add_door_leaf(fe, (0, 1), t, DOOR_W, DOOR_H,
+                                "House_FireDoor", 3.0), "rust"))
+    bd2 = cut_door(walls["front"], (1.5, -d / 2 + t / 2), (0, -1), t,
+                   3.0, s2_t, "House_BalconyDoor")
+    parts.append((add_door_leaf(bd2, (0, -1), t, DOOR_W, DOOR_H,
+                                "House_BalconyDoor", 3.0), "wood"))
+
+    window_specs = [
+        ("front", -2.6, 0.0), ("back", -2.4, 0.0), ("left", 1.4, 0.0),
+        ("right", -1.6, 0.0), ("right", 1.6, 0.0),
+        ("front", -2.6, 3.0), ("back", -2.6, 3.0),
+        ("left", 0.0, 3.0), ("left", 2.4, 3.0),
+        ("right", 0.0, 3.0), ("right", 2.4, 3.0),
+    ]
+    for i, (wall, coord, fz) in enumerate(window_specs):
+        n = normals[wall]
+        if n[1] != 0:
+            centre = (coord, -d / 2 + t / 2 if n[1] < 0 else d / 2 - t / 2)
+        else:
+            centre = (-w / 2 + t / 2 if n[0] < 0 else w / 2 - t / 2, coord)
+        c = cut_opening(walls[wall], centre, n, t, WIN_W, WIN_H,
+                        fz + WIN_SILL, f"House_Win{i}")
+        parts += [(p, "wood") for p in add_shutters(c, n, t, f"House_Win{i}")]
 
     # wooden porch
     parts.append((create_box("House_PorchDeck", (9.8, 2.05, 0.20),
@@ -1093,9 +1127,12 @@ def build_school_yellow():
     ):
         parts.append((create_box("Sch_Parapet", size, loc), "concrete_yellow"))
 
-    # corridor partition — solid (doorways removed)
+    # corridor partition with a doorway per floor
     part = create_box("Sch_Partition", (0.2, d - 2 * t, wall_top - 0.15),
                       (2.5, 0.0, (0.15 + wall_top) / 2))
+    for fz in (floor_z, 3.0):
+        cut_door(part, (2.5, 1.0), (1, 0), 0.2, fz, 0.20 if fz < 1 else s2_t,
+                 f"Sch_IntDoor{int(fz)}")
     parts.append((part, "concrete_yellow"))
 
     # stair: floor 1 -> floor 2 (lane A, +Y), hole in slab2
@@ -1103,7 +1140,35 @@ def build_school_yellow():
     cut_stair_hole(parts[1][0], hole, s2_c, s2_t)
     parts += [(s, "concrete_yellow") for s in steps]
 
-    # Solid shell — no doors, no windows (openings and props removed)
+    # doors (front & back)
+    normals = {"front": (0, -1), "back": (0, 1), "left": (-1, 0), "right": (1, 0)}
+    fd = cut_door(walls["front"], (0.0, -d / 2 + t / 2), (0, -1), t,
+                  floor_z, slab_t, "Sch_FrontDoor")
+    parts.append((add_door_leaf(fd, (0, -1), t, DOOR_W, DOOR_H,
+                                "Sch_FrontDoor", floor_z), "wood"))
+    bd = cut_door(walls["back"], (0.0, d / 2 - t / 2), (0, 1), t,
+                  floor_z, slab_t, "Sch_BackDoor")
+    parts.append((add_door_leaf(bd, (0, 1), t, DOOR_W, DOOR_H,
+                                "Sch_BackDoor", floor_z), "wood"))
+
+    # windows: 8 per floor, sills 1.0 m above each floor
+    specs = []
+    for fz in (0.0, 3.0):
+        specs += [
+            ("front", -4.0, fz), ("front", 4.0, fz),
+            ("back", -4.0, fz), ("back", 4.0, fz),
+            ("left", -2.5, fz), ("left", 2.5, fz),
+            ("right", -2.5, fz), ("right", 2.5, fz),
+        ]
+    for i, (wall, coord, fz) in enumerate(specs):
+        n = normals[wall]
+        if n[1] != 0:
+            centre = (coord, -d / 2 + t / 2 if n[1] < 0 else d / 2 - t / 2)
+        else:
+            centre = (-w / 2 + t / 2 if n[0] < 0 else w / 2 - t / 2, coord)
+        c = cut_opening(walls[wall], centre, n, t, WIN_W, WIN_H,
+                        fz + WIN_SILL, f"Sch_Win{i}")
+        parts += [(p, "wood") for p in add_shutters(c, n, t, f"Sch_Win{i}")]
 
     # classroom furniture: desks + crate stacks on both floors
     for (x, y) in ((-4.5, 2.5), (-4.5, 0.5), (-1.5, 2.5), (-1.5, 0.5)):
@@ -1169,6 +1234,8 @@ def build_apartment_green():
 
     part = create_box("Apt_Partition", (0.2, d - 2 * t, wall_top - 0.15),
                       (1.6, 0.0, (0.15 + wall_top) / 2))
+    for fz, s_t in ((floor_z, 0.20), (3.0, 0.15), (6.0, 0.15)):
+        cut_door(part, (1.6, 1.0), (1, 0), 0.2, fz, s_t, f"Apt_IntDoor{int(fz)}")
     parts.append((part, "concrete_green"))
 
     # three flights + one exact hole each (slab2, slab3, roof hatch)
@@ -1181,7 +1248,28 @@ def build_apartment_green():
     cut_stair_hole(parts[3][0], hole_c, rf_c, 0.15)
     parts += [(s, "concrete_green") for s in fa + fb + fc]
 
-    # Solid shell — no doors, no windows (openings and props removed)
+    normals = {"front": (0, -1), "back": (0, 1), "left": (-1, 0), "right": (1, 0)}
+    fd = cut_door(walls["front"], (0.0, -d / 2 + t / 2), (0, -1), t,
+                  floor_z, 0.20, "Apt_FrontDoor")
+    parts.append((add_door_leaf(fd, (0, -1), t, DOOR_W, DOOR_H,
+                                "Apt_FrontDoor", floor_z), "wood"))
+
+    specs = []
+    for fz in (0.0, 3.0, 6.0):
+        specs += [
+            ("front", -3.4, fz), ("front", 3.4, fz),
+            ("back", -3.4, fz), ("back", 3.4, fz),
+            ("left", 0.0, fz), ("right", 0.0, fz),
+        ]
+    for i, (wall, coord, fz) in enumerate(specs):
+        n = normals[wall]
+        if n[1] != 0:
+            centre = (coord, -d / 2 + t / 2 if n[1] < 0 else d / 2 - t / 2)
+        else:
+            centre = (-w / 2 + t / 2 if n[0] < 0 else w / 2 - t / 2, coord)
+        c = cut_opening(walls[wall], centre, n, t, WIN_W, WIN_H,
+                        fz + WIN_SILL, f"Apt_Win{i}")
+        parts += [(p, "wood") for p in add_shutters(c, n, t, f"Apt_Win{i}")]
 
     parts += add_bed("Apt_Bed1", -1.5, 3.4, 3.0, rot_z=0)
     parts += add_bed("Apt_Bed2", -1.5, -3.4, 6.0, rot_z=180)
@@ -1222,7 +1310,23 @@ def build_cabin_wood():
     }
     parts += [(wt, "wood_warm") for wt in walls.values()]
 
-    # Solid shell — no doors, no windows (openings and props removed)
+    # door + windows (sills at 1.0 m)
+    normals = {"front": (0, -1), "back": (0, 1), "left": (-1, 0), "right": (1, 0)}
+    fd = cut_door(walls["front"], (0.0, -d / 2 + t / 2), (0, -1), t,
+                  floor_z, slab_t, "Cab_Door")
+    parts.append((add_door_leaf(fd, (0, -1), t, DOOR_W, DOOR_H,
+                                "Cab_Door", floor_z), "wood"))
+    win_specs = [("front", -2.5), ("front", 2.5), ("back", -2.5),
+                 ("back", 2.5), ("left", 0.0), ("right", 0.0)]
+    for i, (wall, coord) in enumerate(win_specs):
+        n = normals[wall]
+        if n[1] != 0:
+            centre = (coord, -d / 2 + t / 2 if n[1] < 0 else d / 2 - t / 2)
+        else:
+            centre = (-w / 2 + t / 2 if n[0] < 0 else w / 2 - t / 2, coord)
+        c = cut_opening(walls[wall], centre, n, t, WIN_W, WIN_H,
+                        WIN_SILL, f"Cab_Win{i}")
+        parts += [(p, "wood") for p in add_shutters(c, n, t, f"Cab_Win{i}")]
 
     # small porch
     parts.append((create_box("Cab_PorchDeck", (7.6, 1.55, 0.20),
@@ -1276,7 +1380,7 @@ def build_cabin_wood():
 
 def build_warehouse_metal():
     """1 storey, 20 x 12 m — STEEL-BLUE corrugated walls, RUSTY RED-ORANGE
-    roof/beams, concrete floor; solid shell (no doors, no windows)."""
+    roof/beams, concrete floor, two flush closed garage-door panels."""
     rng = random.Random(303)
     w, d = 20.0, 12.0
     t = 0.30
@@ -1307,7 +1411,36 @@ def build_warehouse_metal():
         parts.append((create_box("Wh_Beam", (0.28, d - 2 * t, 0.42),
                                  (bx, 0.0, wall_top - 0.21)), "rust_orange"))
 
-    # Solid shell — garage doors, personnel door and windows removed
+    # two large garage-door openings, each filled flush by a closed rusty
+    # panel that fits the opening exactly (zero gap; reads as part of the wall)
+    for i, gx in enumerate((-4.9, 4.9)):
+        cut_opening(walls["front"], (gx, -d / 2 + t / 2), (0, -1), t,
+                    6.0, 4.5 + floor_top, 0.0, f"Wh_Garage{i}")
+        parts.append((create_box(
+            f"Wh_GaragePanel{i}",
+            (6.0, t + 0.02, 4.5),
+            (gx, -d / 2 + t / 2, floor_top + 4.5 / 2.0)), "rust_orange"))
+
+    # side personnel door (rusty leaf) + wooden shutters on windows
+    pd = cut_door(walls["left"], (-w / 2 + t / 2, -2.0), (-1, 0), t,
+                  floor_top, floor_t, "Wh_PersonDoor")
+    parts.append((add_door_leaf(pd, (-1, 0), t, DOOR_W, DOOR_H,
+                                "Wh_PersonDoor", floor_top), "rust_orange"))
+
+    normals = {"front": (0, -1), "back": (0, 1), "left": (-1, 0), "right": (1, 0)}
+    specs = [
+        ("right", -2.6, "Wh_WinR1"), ("right", 2.6, "Wh_WinR2"),
+        ("back", -5.5, "Wh_WinB1"), ("back", 0.0, "Wh_WinB2"),
+        ("back", 5.5, "Wh_WinB3"), ("front", 0.0, "Wh_WinF"),
+    ]
+    for wall, coord, tag in specs:
+        n = normals[wall]
+        if n[1] != 0:
+            centre = (coord, -d / 2 + t / 2 if n[1] < 0 else d / 2 - t / 2)
+        else:
+            centre = (-w / 2 + t / 2 if n[0] < 0 else w / 2 - t / 2, coord)
+        c = cut_opening(walls[wall], centre, n, t, WIN_W, WIN_H, WIN_SILL, tag)
+        parts += [(p, "wood") for p in add_shutters(c, n, t, tag)]
 
     for (cx, cy, n) in ((-7.0, 3.4, 5), (7.2, 3.6, 4), (0.0, -3.6, 4),
                         (-7.5, -3.4, 3)):
@@ -1354,8 +1487,30 @@ def build_ruined_building():
                             (w / 2 - t / 2, 0.0, wall_top / 2)),
     }
 
-    # Solid shell — doors and windows removed (only the BMesh destruction
-    # below makes gaps in the walls)
+    normals = {"front": (0, -1), "back": (0, 1), "left": (-1, 0), "right": (1, 0)}
+    d0 = cut_door(walls["front"], (-1.5, -d / 2 + t / 2), (0, -1), t,
+                  floor_z, slab_t, "Ruin_Door")
+    parts.append((add_door_leaf(d0, (0, -1), t, DOOR_W, DOOR_H,
+                                "Ruin_Door", floor_z, damaged=True), "wood"))
+    cut_door(walls["back"], (2.4, d / 2 - t / 2), (0, 1), t,
+             floor_z, slab_t, "Ruin_BackDoor")
+
+    shutters_src = []
+    specs = [
+        ("front", 2.2, 0.0), ("right", -1.5, 0.0), ("right", 1.8, 0.0),
+        ("back", -2.6, 0.0), ("left", 0.6, 0.0),
+        ("front", -2.4, 3.0), ("back", 1.0, 3.0), ("left", -2.2, 3.0),
+    ]
+    for i, (wall, coord, fz) in enumerate(specs):
+        n = normals[wall]
+        if n[1] != 0:
+            centre = (coord, -d / 2 + t / 2 if n[1] < 0 else d / 2 - t / 2)
+        else:
+            centre = (-w / 2 + t / 2 if n[0] < 0 else w / 2 - t / 2, coord)
+        c = cut_opening(walls[wall], centre, n, t, WIN_W, WIN_H,
+                        fz + WIN_SILL, f"Ruin_Win{i}")
+        shutters_src.append((c, n, i))
+
     steps, hole = stair_flight("RuinStair", -3.95, -3.6, +1, floor_z, 3.0)
     cut_stair_hole(parts[1][0], hole, s2_c, s2_t)
 
@@ -1385,6 +1540,12 @@ def build_ruined_building():
     parts += add_rubble_pile("Ruin_RubbleUp", 3.2, 2.6, 3.0, 5, rng)
     parts += add_crates("Ruin_Crate", 4.0, 0.8, floor_z, n=3, rng=rng)
     parts += add_table("Ruin_Table", -3.6, 2.4, floor_z, rot_z=35)
+
+    for c, n, i in shutters_src:
+        if i in (0, 3, 6):
+            continue
+        parts += [(p, "wood") for p in add_shutters(c, n, t, f"Ruin_Win{i}",
+                                                    damaged=True)]
 
     return finish_building(parts, "RuinedBuilding", "Ruin", [
         ((-1.0, 1.5, 2.3), 120.0),
