@@ -201,8 +201,9 @@
   <header>
     <h1>Indus Asset Viewer <span class="phase">— Phase 1: Terrain &amp; Buildings</span></h1>
     <p class="subtitle">
-      A 100&nbsp;m grass base ground plus four procedural, PBR-textured buildings with
-      passable doors, windows and 32° interior stairs — drag to rotate, pinch or scroll to zoom.
+      A 100&nbsp;m grass base ground plus six vibrant Battle-Royale-style buildings — red brick,
+      bright yellow, warm brown, steel blue &amp; rust — with human-scale tiled textures,
+      passable doors, windows and 32° interior stairs. Drag to rotate, pinch or scroll to zoom.
     </p>
   </header>
 
@@ -224,10 +225,10 @@
       id: "scene_phase1",
       file: "models/scene_phase1.glb",
       name: "Phase 1 World Preview",
-      alt: "100m grass ground with all four Phase 1 buildings placed on it, shadows baked in",
-      desc: "The full Phase 1 scene: base ground with the tactical house, 3-storey apartment, metal warehouse and ruined building standing on it — soft ground shadows baked into the terrain.",
+      alt: "100m grass ground with all six colourful Phase 1 buildings placed on it, shadows baked in",
+      desc: "The full Phase 1 scene: base ground with the red-brick tactical house, green apartment, yellow school, blue-and-rust warehouse, dark ruined building and warm wood cabin standing on it — soft ground shadows baked into the terrain.",
       dims: "100 m x 100 m ground",
-      material: "Grass + 4 PBR buildings",
+      material: "Grass + 6 tinted PBR buildings",
       orbit: "30deg 62deg 105m",
       fov: "40deg",
       eager: true
@@ -248,44 +249,66 @@
       {
         id: "house_tactical",
         file: "models/buildings/house_tactical.glb",
-        name: "Tactical House",
-        alt: "2-storey 10x8m brick house with wooden porch, balcony, rusty gable roof and back fire escape",
-        desc: "2 storeys of brick with a wooden porch, balcony, rusty metal gable roof and a back fire escape. Fully accessible: interior stairs, furniture cover and warm OmniLights inside.",
+        name: "Tactical House — Red Brick",
+        alt: "2-storey 10x8m red brick house with wooden porch, balcony, rusty gable roof and back fire escape",
+        desc: "2 storeys of red-brown brick with a wooden porch, balcony, rusty metal gable roof and a back fire escape. Fully accessible: interior stairs, furniture cover and warm OmniLights inside.",
         dims: "10 m x 8 m · 2 floors",
-        material: "Brick + wood + rust",
+        material: "Tinted brick + wood + rust",
         orbit: "25deg 70deg 118%",
         eager: true
       },
       {
-        id: "apartment_multifloor",
-        file: "models/buildings/apartment_multifloor.glb",
-        name: "Apartment Block",
-        alt: "3-storey 12x10m concrete apartment with internal switchback stairs to the flat roof",
-        desc: "3 storeys of concrete. Switchback interior stairs connect all three floors and the flat roof — every slab has an exact 3 m x 1.5 m stair hole, cut with Boolean Difference.",
+        id: "school_yellow",
+        file: "models/buildings/school_yellow.glb",
+        name: "School — Bright Yellow",
+        alt: "2-storey 14x10m bright yellow concrete school with flat roof, parapet and open windows",
+        desc: "2 storeys of bright yellow concrete with a flat roof and parapet, a corridor split by a partition, classrooms with desks on both floors, and one 32° stair through an exact 3 m × 1.5 m slab hole.",
+        dims: "14 m x 10 m · 2 floors",
+        material: "Yellow concrete + wood",
+        orbit: "28deg 70deg 122%",
+        eager: false
+      },
+      {
+        id: "apartment_green",
+        file: "models/buildings/apartment_green.glb",
+        name: "Apartment Block — Vibrant Green",
+        alt: "3-storey 12x10m vibrant green concrete apartment with internal switchback stairs to the flat roof",
+        desc: "3 storeys of vibrant green concrete. Switchback interior stairs connect all three floors and the roof hatch — every slab has an exact 3 m × 1.5 m stair hole, cut with Boolean Difference.",
         dims: "12 m x 10 m · 3 floors",
-        material: "Concrete (PBR)",
+        material: "Green concrete + wood",
         orbit: "24deg 72deg 116%",
+        eager: false
+      },
+      {
+        id: "cabin_wood",
+        file: "models/buildings/cabin_wood.glb",
+        name: "Wood Cabin — Warm Brown",
+        alt: "1-storey 8x6m warm brown wooden cabin with gable roof, brick chimney and porch",
+        desc: "Single-storey warm brown wood cabin with a pitched rusty roof, brick chimney, covered porch and open shuttered windows — one cosy OmniLight inside.",
+        dims: "8 m x 6 m · 1 floor",
+        material: "Warm wood + rust + brick",
+        orbit: "25deg 70deg 108%",
         eager: false
       },
       {
         id: "warehouse_metal",
         file: "models/buildings/warehouse_metal.glb",
-        name: "Metal Warehouse",
-        alt: "20x12m corrugated-metal warehouse with two large open garage doors and concrete floor",
-        desc: "Corrugated metal shell with two wide-open 6 m garage doors, a side personnel door, concrete floor, roof beams and crate stacks for cover.",
+        name: "Metal Warehouse — Steel Blue + Rust",
+        alt: "20x12m steel-blue corrugated-metal warehouse with rust-coloured roof and two large open garage doors",
+        desc: "Steel-blue corrugated shell under a rusty orange roof and door rolls, with two wide-open 6 m garage doors, a side personnel door, dark concrete floor, roof beams and crate stacks for cover.",
         dims: "20 m x 12 m · 1 floor",
-        material: "Corrugated metal + concrete",
+        material: "Steel-blue metal + rust",
         orbit: "20deg 74deg 114%",
         eager: false
       },
       {
         id: "ruined_building",
         file: "models/buildings/ruined_building.glb",
-        name: "Ruined Building",
-        alt: "Heavily destroyed 2-storey 10x8m building with BMesh-deleted walls, exposed rebar and rubble",
-        desc: "Heavily destroyed shell: walls and roof ripped apart with BMesh random face deletion, exposed rebar on broken edges, rubble piles on both floors — no intact roof, but the stairs still work.",
+        name: "Ruined Building — Dark Grey",
+        alt: "Heavily destroyed 2-storey 10x8m dark grey concrete building with BMesh-deleted walls, exposed rebar and rubble",
+        desc: "Heavily destroyed shell in darkened grey concrete: walls and roof ripped apart with BMesh random face deletion, exposed rebar on broken edges, rubble piles on both floors — no intact roof, but the stairs still work.",
         dims: "10 m x 8 m · 2 floors",
-        material: "Broken concrete + rebar",
+        material: "Dark concrete + rebar",
         orbit: "33deg 68deg 118%",
         eager: false
       }
