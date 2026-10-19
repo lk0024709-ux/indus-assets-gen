@@ -50,6 +50,13 @@ jobs:
       - name: Generate Phase 1 3D assets (terrain + buildings)
         run: python tools/generate_phase1.py
 
+      - name: Generate Phase 2 3D assets (terrain, water, bridges, nature)
+        run: |
+          python tools/generate_terrain.py
+          python tools/generate_water.py
+          python tools/generate_bridges.py
+          python tools/generate_nature.py
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:
