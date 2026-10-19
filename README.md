@@ -17,16 +17,44 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 5. **Web Viewing:** `docs/index.html` uses Google's `<model-viewer>` (generated dynamically from a JS array) with `environment-image="neutral"` and `shadow-intensity="1"` so the PBR textures and shadows read clearly on any device — a hero card shows the combined `scene_phase1.glb` world preview.
 
 ## 📂 Project Structure
+*   `tools/generate_terrain.py` — **Phase 2 Terrain `bpy` generator** (`terrain_ground.glb`, `terrain_hill_large.glb`, `terrain_plateau.glb`, `terrain_valley.glb`).
+*   `tools/generate_water.py` — **Phase 2 Water & Beach `bpy` generator** (`water_ocean.glb`, `water_river.glb`, `beach_sand.glb`, `dam_concrete.glb`).
+*   `tools/generate_bridges.py` — **Phase 2 Bridges `bpy` generator** (`bridge_wood.glb`, `bridge_concrete.glb`).
+*   `tools/generate_nature.py` — **Phase 2 Nature & Plants `bpy` generator** (`tree_pine.glb`, `tree_oak.glb`, `tree_dead.glb`, `rock_large.glb`, `rock_small.glb`, `bush.glb`, `grass_clump.glb`).
 *   `tools/generate_phase1.py` — **Phase 1 `bpy` generator** (base ground + 6 buildings + hero scene).
 *   `tools/generate_buildings.py` — original four-building generator (pre-Phase-1 assets).
 *   `tools/generate_test.py` — pipeline smoke-test (brown test crate).
 *   `tools/make_seamless.py` — makes the AI texture tiles perfectly seamless.
 *   `docs/` — The root folder for GitHub Pages.
-*   `docs/index.html` — The 3D web viewer (dark UI, mobile responsive, hero + 7 asset cards).
-*   `docs/textures/` — Seamless texture maps (PNG), including procedural grass/rust.
-*   `docs/models/terrain/` — `base_ground.glb`.
+*   `docs/index.html` — The 3D web viewer (dark UI, mobile responsive, categorized into Terrain, Water & Bridges, Nature, and Buildings).
+*   `docs/textures/` — Seamless 1K texture maps (PNG), including `grass_1k.png`, `rock_stone_1k.png`, `wood_plank_1k.png`, `concrete_wall_1k.png`, `sand_1k.png`, `water_1k.png`.
+*   `docs/models/terrain/` — Terrain `.glb` models.
+*   `docs/models/water/` — Water, beach, and dam `.glb` models.
+*   `docs/models/bridges/` — Wooden and concrete bridge `.glb` models.
+*   `docs/models/nature/` — Trees, rocks, bushes, and grass `.glb` models.
 *   `docs/models/buildings/` — Building `.glb` files (textures packed inside).
-*   `.github/workflows/deploy.yml` — CI/CD pipeline: generate assets and deploy to Pages.
+*   `.github/workflows/deploy.yml` — CI/CD pipeline: generate Phase 1 + Phase 2 assets and deploy to Pages.
+
+## 🌍 Phase 2 Assets — Complete Map Environment
+| Category | File | Size (real-world) | Details | 1K Texture |
+|---|---|---|---|---|
+| Terrain | `terrain_ground.glb` | 1000 m × 1000 m | Flat base island ground plane | `grass_1k.png` |
+| Terrain | `terrain_hill_large.glb` | 80 m × 80 m × 40 m | Jagged low-poly mountain; rock slopes + grassy top | `rock_stone_1k.png` + `grass_1k.png` |
+| Terrain | `terrain_plateau.glb` | 200 m × 200 m × 15 m | Elevated flat plateau with sloped walk-up ramps on 4 sides | `grass_1k.png` |
+| Terrain | `terrain_valley.glb` | 200 m × 200 m × 15 m | 15 m deep V-shaped valley cutout with steep rocky walls | `grass_1k.png` + `rock_stone_1k.png` |
+| Water & Beach | `water_ocean.glb` | 4000 m × 4000 m | Semi-transparent blue ocean plane (`alpha = 0.6`) | `water_1k.png` |
+| Water & Beach | `water_river.glb` | 400 m × 30 m channel | Curved river mesh with semi-transparent water (`alpha = 0.6`) | `water_1k.png` |
+| Water & Beach | `beach_sand.glb` | 1000 m × 1000 m (50 m band) | 50 m wide shoreline sand ring where grass meets water | `sand_1k.png` |
+| Water & Beach | `dam_concrete.glb` | 50 m × 5 m × 20 m | Concrete hydro dam wall with curved arch front face | `concrete_wall_1k.png` |
+| Bridges | `bridge_wood.glb` | 20 m × 4 m × 4.3 m | Wooden walkway with side railings and support pillars | `wood_plank_1k.png` |
+| Bridges | `bridge_concrete.glb` | 40 m × 8 m × 6.7 m | Concrete highway bridge with high side barriers and thick pillars | `concrete_wall_1k.png` |
+| Nature | `tree_pine.glb` | 3.7 m × 3.7 m × 8.0 m | 8 m tall pine: cylinder trunk + 3 stacked cones | `wood_plank_1k.png` + `grass_1k.png` |
+| Nature | `tree_oak.glb` | 3.8 m × 3.3 m × 6.0 m | 6 m tall oak: thick trunk + low-poly green canopy | `wood_plank_1k.png` + `grass_1k.png` |
+| Nature | `tree_dead.glb` | 3.6 m × 2.6 m × 5.5 m | Gnarled trunk with bare jagged branches | `wood_plank_1k.png` |
+| Nature | `rock_large.glb` | 3.0 m × 3.0 m × 2.0 m | Displaced low-poly icosphere boulder | `rock_stone_1k.png` |
+| Nature | `rock_small.glb` | 1.0 m × 1.0 m × 0.8 m | Displaced low-poly icosphere field stone | `rock_stone_1k.png` |
+| Nature | `bush.glb` | 1.9 m × 1.3 m × 1.25 m | Cluster of 3 low-poly green spheres | `grass_1k.png` |
+| Nature | `grass_clump.glb` | 0.85 m × 0.74 m × 0.90 m | 3 crossed planes with double-sided green material | `grass_1k.png` |
 
 ## 🏗️ Phase 1 Assets
 | File | Size (real-world) | Details | Texture |
