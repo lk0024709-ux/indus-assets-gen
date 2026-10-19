@@ -9,7 +9,8 @@ TERRAIN
 
 BUILDINGS (strict rules, see below)
     ``house_tactical.glb``   — 2 storeys, 10 x 8 m, RED/BROWN brick, wooden porch,
-                               balcony, rusty metal gable roof, back fire escape
+                               balcony, rusty metal gable roof, back fire escape;
+                               all 4 doors swing INWARD (opposite side)
     ``school_yellow.glb``    — 2 storeys, 14 x 10 m, BRIGHT YELLOW concrete school
     ``apartment_green.glb``  — 3 storeys, 12 x 10 m, VIBRANT GREEN concrete,
                                stairs connecting all 3 floors AND the flat roof
@@ -684,18 +685,23 @@ def add_shutters(opening_center, outward, wall_t: float, tag: str,
 
 def add_door_leaf(opening_center, outward, wall_t: float, door_w: float,
                   door_h: float, tag: str, bottom_z: float,
-                  damaged: bool = False):
+                  damaged: bool = False, swing_inward: bool = False):
     """OPEN door leaf EXACTLY door_w x door_h — full height, bottom on the
     floor, top flush with the opening top.  The hinge edge sits exactly on
-    the opening's side edge at the outer wall plane (no 5 cm float like the
-    old prop).  Swing: 112 deg (138 deg when damaged)."""
+    the opening's side edge (no float); sizing is opening-derived.
+    Swing: 112 deg (138 deg when damaged).
+    ``swing_inward=True`` reverses the swing to the OPPOSITE side — the leaf
+    opens INTO the building, with the hinge axis on the interior wall face
+    so the leaf clears the wall corner without slicing it."""
     n = Vector((float(outward[0]), float(outward[1]), 0.0)).normalized()
     t = Vector((-n.y, n.x, 0.0))
     hinge = (Vector((opening_center.x, opening_center.y, 0.0))
-             + t * (door_w / 2.0) + n * (wall_t / 2.0))
+             + t * (door_w / 2.0) + n * ((-1.0 if swing_inward else 1.0)
+                                         * (wall_t / 2.0)))
     swing = math.radians(138.0 if damaged else 112.0)
     closed_dir = -t
-    v = closed_dir * math.cos(swing) + n * math.sin(swing)
+    side_dir = -n if swing_inward else n
+    v = closed_dir * math.cos(swing) + side_dir * math.sin(swing)
     centre = hinge + v * (door_w / 2.0)
     yaw = math.atan2(v.y, v.x)
     roll = math.radians(10.0) if damaged else 0.0
@@ -918,7 +924,7 @@ def finish_building(parts, name: str, mat_prefix: str, light_specs):
 # ---------------------------------------------------------------------------
 def build_house_tactical():
     """2 storeys, 10 x 8 m — RED/BROWN brick, wooden porch, balcony, rusty
-    metal gable roof, back fire escape; doors/windows open, exact-fit hinges."""
+    metal gable roof, back fire escape; doors swing INWARD, exact-fit hinges."""
     rng = random.Random(101)
     w, d = 10.0, 8.0
     t = 0.25
@@ -963,22 +969,27 @@ def build_house_tactical():
     parts += [(s, "wood") for s in steps]
 
     normals = {"front": (0, -1), "back": (0, 1), "left": (-1, 0), "right": (1, 0)}
+    # ALL house doors swing INWARD (opposite side) into the building
     fd = cut_door(walls["front"], (1.0, -d / 2 + t / 2), (0, -1), t,
                   floor_z, slab_t, "House_FrontDoor")
     parts.append((add_door_leaf(fd, (0, -1), t, DOOR_W, DOOR_H,
-                                "House_FrontDoor", floor_z), "wood"))
+                                "House_FrontDoor", floor_z,
+                                swing_inward=True), "wood"))
     bd = cut_door(walls["back"], (2.6, d / 2 - t / 2), (0, 1), t,
                   floor_z, slab_t, "House_BackDoor")
     parts.append((add_door_leaf(bd, (0, 1), t, DOOR_W, DOOR_H,
-                                "House_BackDoor", floor_z), "wood"))
+                                "House_BackDoor", floor_z,
+                                swing_inward=True), "wood"))
     fe = cut_door(walls["back"], (2.0, d / 2 - t / 2), (0, 1), t,
                   3.0, s2_t, "House_FireDoor")
     parts.append((add_door_leaf(fe, (0, 1), t, DOOR_W, DOOR_H,
-                                "House_FireDoor", 3.0), "rust"))
+                                "House_FireDoor", 3.0,
+                                swing_inward=True), "rust"))
     bd2 = cut_door(walls["front"], (1.5, -d / 2 + t / 2), (0, -1), t,
                    3.0, s2_t, "House_BalconyDoor")
     parts.append((add_door_leaf(bd2, (0, -1), t, DOOR_W, DOOR_H,
-                                "House_BalconyDoor", 3.0), "wood"))
+                                "House_BalconyDoor", 3.0,
+                                swing_inward=True), "wood"))
 
     window_specs = [
         ("front", -2.6, 0.0), ("back", -2.4, 0.0), ("left", 1.4, 0.0),
