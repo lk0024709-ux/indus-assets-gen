@@ -1,0 +1,53 @@
+# examples/godot/godot-export.yml.example
+# ───────────────────────────────────────────────
+# Copy into YOUR GODOT GAME REPO as .github/workflows/godot-export.yml
+# Builds Android APK from Godot 4.x project and publishes it.
+# Requires: export_presets.cfg with preset "Android" → builds/indus.apk
+# Docs: https://github.com/barichello/godot-ci
+#
+name: Godot Export — Android APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  export-android:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.3  # match your Godot version
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Setup export templates + keystore (if needed)
+        run: |
+          mkdir -p ~/.android ~/.config/godot
+          # Add your debug.keystore or release keystore setup here if signing
+
+      - name: Import + Export APK
+        run: |
+          mkdir -p builds
+          godot --headless --import
+          godot --headless --export-release "Android" builds/indus.apk
+          ls -lh builds/
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: indus-apk
+          path: builds/indus.apk
+
+      - name: Create Release (latest)
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          files: builds/indus.apk
+          generate_release_notes: true
+
+# After this runs, your live APK links are:
+#   https://github.com/YOUR_ORG/YOUR_GODOT_REPO/releases/download/latest/indus.apk
+#   https://github.com/YOUR_ORG/YOUR_GODOT_REPO/actions/runs/<ID> → Artifacts
