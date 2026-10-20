@@ -259,7 +259,7 @@ def assemble(spec: dict) -> bpy.types.Object:
                 modules_used += 1
     elif roof == "slanted":
         place("roof_slanted", "RoofSlanted", (0.0, 0.0, roof_z),
-              scale=(nx, ny, 1.0), material=roof_mat, parts=parts)
+              scale=(nx, ny, 1.0), material=roof_mat, keep_slots_above=1, parts=parts)
         modules_used += 1
 
     # ---- optional extra details ------------------------------------------
