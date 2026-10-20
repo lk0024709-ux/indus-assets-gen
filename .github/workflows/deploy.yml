@@ -57,6 +57,9 @@ jobs:
           python tools/generate_bridges.py
           python tools/generate_nature.py
 
+      - name: Generate Mahal Palace Hot Drop POI (40×40×15m fortress)
+        run: python tools/generate_mahal.py
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:
