@@ -72,11 +72,17 @@ jobs:
       - name: Generate Rajasthani Mahal Rooms + Mega Assembly (4 walk-in rooms 20×15/20×20/15×10/15×5 → 50×40 m, 2 floors, teal + 4 gold domes)
         run: python tools/generate_mahal_rooms.py
 
-      - name: Generate Modular Building Blocks — mod_wall_solid/window/door/garage, mod_floor, mod_roof_flat/slanted, mod_stairs
+      - name: Generate 15 m Modular Building Blocks + furniture — walls, floor, roofs, stairs, table/bed/crate/shelf/counter/sofa
         run: python tools/generate_building_modules.py
 
-      - name: Assemble 11 Modular Buildings from the Lego modules
+      - name: Assemble 11 Battle Royale Buildings (15 m grid, furnished) into docs/models/buildings_modular/
         run: python tools/assemble_buildings.py
+
+      # The 10 m set in docs/models/buildings/modular/ was superseded by the 15 m
+      # kit in docs/models/buildings_modular/. Drop it so Pages never serves stale
+      # same-named GLBs (e.g. school_yellow.glb) next to the new ones.
+      - name: Remove superseded 10 m modular set
+        run: rm -rf docs/models/buildings/modular
 
       # Keep res://assets/downloaded_models/rajasthani_mahal.glb (the Godot alias) in sync
       - name: Sync rajasthani_mahal.glb alias with the freshly generated master
