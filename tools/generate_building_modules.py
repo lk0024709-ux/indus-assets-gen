@@ -300,9 +300,7 @@ def build_roof_slanted():
              box("EaveS", (FLOOR_W, 0.18, 0.14), (0.0, -hd + 0.09, 0.05), WOOD),
              box("EaveN", (FLOOR_W, 0.18, 0.14), (0.0, hd - 0.09, 0.05), WOOD)]
     obj = join(parts, "Mod_RoofSlanted")
-    obj.data.materials.clear()
-    obj.data.materials.append(BRICK_RED)
-    obj.data.materials.append(WOOD)
+    # join already produced slot 0 = Brick Red (roof), slot 1 = Wood (ridge/eaves)
     return export(obj, "mod_roof_slanted.glb")
 
 
