@@ -119,7 +119,9 @@ def export_block_to_glb(obj: bpy.types.Object, filename: str) -> None:
 # ==============================================================================
 # 3. SHARED MATERIALS
 # ==============================================================================
-mat_salmon_pink = create_solid_material("SalmonPink", (1.0, 0.5, 0.5))
+# Golden sandstone masonry (Amber Fort / Jaisalmer) — #D9C089
+# #D9C089 sRGB -> linear so the GLB displays golden sandstone (not pale cream)
+mat_sandstone_wall = create_solid_material("SandstoneWall", (0.6939, 0.5271, 0.2502))
 mat_gold = create_solid_material("GoldYellow", (1.0, 0.8, 0.2))
 mat_teal = create_solid_material("TealCyan", (0.2, 0.8, 0.8))
 mat_sandstone = create_solid_material("SandstoneBeige", (0.9, 0.8, 0.7))
@@ -139,7 +141,7 @@ def build_wall_block() -> None:
     main_wall.name = "WallBlock"
     main_wall.scale = (10.0, 0.5, 4.0)
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    assign_material(main_wall, mat_salmon_pink)
+    assign_material(main_wall, mat_sandstone_wall)
 
     # Top Border: Width 10m, Depth 0.6m, Height 0.3m sitting on top (Z: 4.0 to 4.3m -> center Z = 4.15)
     bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 0.0, 4.15))
@@ -163,7 +165,7 @@ def build_arch_block() -> None:
     arch_wall.name = "ArchBlock"
     arch_wall.scale = (10.0, 0.5, 6.0)
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    assign_material(arch_wall, mat_salmon_pink)
+    assign_material(arch_wall, mat_sandstone_wall)
 
     # Cutter Box: Width 4m, Depth 1m, Height 4m (bottom at Z=0 -> center at X=0, Y=0, Z=2.0)
     bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 0.0, 2.0))

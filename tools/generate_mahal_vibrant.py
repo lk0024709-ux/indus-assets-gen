@@ -55,12 +55,12 @@ def ensure_palace_wall_tiles_2k():
     # Always regenerate to ensure vibrant look
     size=2048
     tile=256
-    # Base pink salmon
-    pink = np.array([0.98,0.42,0.48]) # salmon pink
+    # Base warm golden sandstone (Amber Fort / Jaisalmer) instead of salmon pink
+    sandstone = np.array([0.85,0.75,0.55]) # #D9C089
     orange = np.array([0.97,0.50,0.18])
     yellow = np.array([0.98,0.85,0.22])
     blue = np.array([0.22,0.38,0.85])
-    magenta = np.array([0.85,0.25,0.55])
+    tan = np.array([0.72,0.59,0.40])      # deep sandstone accent
     # Create coordinate grids
     xs=np.arange(size)
     ys=np.arange(size)
@@ -76,14 +76,14 @@ def ensure_palace_wall_tiles_2k():
     iy=Y//tile
     pat=(ix*2 + iy*3) % 4  # 0-3
 
-    # Initialize with pink base with subtle noise
+    # Initialize with a sandstone base (warm cream -> golden tan) with subtle noise
     base_noise=_fft_noise(size,0.02,101)
     base_t=np.clip(0.5+0.15*base_noise,0,1)
-    col=_lerp((0.95,0.38,0.45),(0.99,0.55,0.60),base_t)
+    col=_lerp(sandstone-0.05, sandstone+0.06, base_t)
 
     # Create diamond colors array
     # For inside diamonds, choose color based on pattern + position
-    # Use pat to select orange/yellow/blue/magenta
+    # Use pat to select orange/yellow/blue/tan
     # We need to create col array size*size*3
     # Vectorized assignment
     mask0=(pat==0)&inside
@@ -93,7 +93,7 @@ def ensure_palace_wall_tiles_2k():
     col[mask0]=orange
     col[mask1]=yellow
     col[mask2]=blue
-    col[mask3]=magenta
+    col[mask3]=tan
 
     # Add inner smaller diamonds (contrast)
     inner_dist=np.abs(tx-cx)+np.abs(ty-cy)
@@ -549,26 +549,26 @@ def build_vibrant():
         flag=create_plane(f"Flag_{cx}_{cy}", 1.0, (cx+0.6,cy, roof_top+CORNER_DOME_R+1.0), rot=(0,0,0))
         flag_objs.extend([pole,flag])
 
-    # Decorative border parapet alternating pink/yellow blocks along flat roof
+    # Decorative border parapet alternating sandstone/yellow blocks along flat roof
     parapet_objs=[]
     # Roof perimeter 30x20, parapet height 1, thickness 0.6
     # Create alternating blocks along edges every 1.5m
-    pink_mat_name="Parapet_Pink"
+    sand_mat_name="Parapet_Sandstone"
     yellow_mat_name="Parapet_Yellow"
     # North edge Y=10, X -15 to 15
     for i, x in enumerate(np.arange(-BUILD_W/2+0.5, BUILD_W/2, 1.8)):
         col = i%2
         block=create_box(f"Parapet_North_{i}", (1.4,0.6,0.9), (x, BUILD_D/2-0.3, roof_top+0.45))
-        parapet_objs.append((block, "pink" if col==0 else "yellow"))
+        parapet_objs.append((block, "sand" if col==0 else "yellow"))
     for i, x in enumerate(np.arange(-BUILD_W/2+0.5, BUILD_W/2, 1.8)):
         block=create_box(f"Parapet_South_{i}", (1.4,0.6,0.9), (x, -BUILD_D/2+0.3, roof_top+0.45))
-        parapet_objs.append((block, "pink" if i%2==0 else "yellow"))
+        parapet_objs.append((block, "sand" if i%2==0 else "yellow"))
     for i, y in enumerate(np.arange(-BUILD_D/2+1.0, BUILD_D/2, 1.8)):
         block=create_box(f"Parapet_East_{i}", (0.6,1.4,0.9), (BUILD_W/2-0.3, y, roof_top+0.45))
-        parapet_objs.append((block, "pink" if i%2==0 else "yellow"))
+        parapet_objs.append((block, "sand" if i%2==0 else "yellow"))
     for i, y in enumerate(np.arange(-BUILD_D/2+1.0, BUILD_D/2, 1.8)):
         block=create_box(f"Parapet_West_{i}", (0.6,1.4,0.9), (-BUILD_W/2+0.3, y, roof_top+0.45))
-        parapet_objs.append((block, "pink" if i%2==0 else "yellow"))
+        parapet_objs.append((block, "sand" if i%2==0 else "yellow"))
 
     # Fountain and palm trees in front courtyard (on sand)
     # Front courtyard sand area: base front strip south of building Y -15 to -10, X -20 to 20, plus sides
@@ -610,8 +610,8 @@ def build_vibrant():
     yellow_mat=make_material("Palace_Dome_Yellow","palace_dome_yellow_2k.png",rough=0.35,metal=0.3,scale=1.0)
     blue_mat=make_material("Palace_Door_Blue","palace_door_blue_2k.png",rough=0.7,metal=0.0,scale=0.8)
     sand_mat=make_material("Palace_Sand","sand_1k.png",rough=0.9,metal=0.0,scale=0.3) if os.path.isfile(os.path.join(TEXTURE_DIR,"sand_1k.png")) else wall_mat
-    # Pink/Yellow parapet solids
-    pink_solid=make_solid("Parapet_Pink_Solid",(0.96,0.45,0.55,1.0),rough=0.8)
+    # Sandstone/Yellow parapet solids
+    sandstone_solid=make_solid("Parapet_Sandstone_Solid",(0.6939,0.5271,0.2502,1.0),rough=0.8)  # #D9C089 linear
     yellow_solid=make_solid("Parapet_Yellow_Solid",(0.98,0.85,0.25,1.0),rough=0.8)
     # Flag solids
     flag_red=make_solid("Flag_Red",(0.95,0.25,0.25,1.0))
@@ -677,8 +677,8 @@ def build_vibrant():
     for block, color in parapet_objs:
         cube_project_unwrap(block,scale=1.0)
         block.data.materials.clear()
-        if color=="pink":
-            block.data.materials.append(pink_solid)
+        if color=="sand":
+            block.data.materials.append(sandstone_solid)
         else:
             block.data.materials.append(yellow_solid)
         all_assigned.append(block)

@@ -7,7 +7,7 @@ whole palace from them.
 
 TASK 1 — ROOM BLOCKS (origin bottom-centre (0,0,0), floor at z=0)
   room_darbar_hall.glb  20 x 15 x 6 m   throne room: raised dais + golden throne,
-                                        8 banded pillars, teal/pink checkered floor,
+                                        8 banded pillars, teal/cream checkered floor,
                                         deep-blue arched windows, jali lattices
   room_courtyard.glb    20 x 20 x 6 m   aangan: open to sky, marble fountain dead
                                         centre, arched jharokha walkways on 4 sides,
@@ -15,7 +15,7 @@ TASK 1 — ROOM BLOCKS (origin bottom-centre (0,0,0), floor at z=0)
   room_ranivas.glb      15 x 10 x 6 m   two rooms + central corridor, protruding
                                         coloured cube patterns, 2 balconies
   room_gateway.glb      15 x  5 x 8.4 m multi-layered scalloped Mehrab arch
-                                        (pink + gold), big open wooden doors
+                                        (sandstone + gold), big open wooden doors
 
 TASK 2 — assemble_mahal()
   courtyard (0,0,0) · darbar N (0,17.5) · ranivas E/W (±17.5,0) · gateway S (0,-12.5)
@@ -75,6 +75,22 @@ bpy.ops.wm.read_factory_settings(use_empty=True)
 _MATS: dict[str, bpy.types.Material] = {}
 
 
+def _srgb_to_linear(c: float) -> float:
+    """sRGB 0-1 -> linear 0-1 (Blender / glTF base colours are linear)."""
+    return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+
+def hex_color(hex_str: str) -> tuple[float, float, float]:
+    """'#D9C089' (what you see in a colour picker) -> linear floats.
+
+    Blender stores base colours in linear space, so typing 0.85/0.75/0.55
+    straight in renders as a washed-out #EDE0C4.  Converting makes the
+    exported GLB actually display the requested sandstone hex.
+    """
+    h = hex_str.lstrip("#")
+    return tuple(_srgb_to_linear(int(h[i:i + 2], 16) / 255.0) for i in (0, 2, 4))
+
+
 def make_material(name: str, rgb: tuple[float, float, float],
                   rough: float = 0.6, metal: float = 0.0) -> bpy.types.Material:
     if name in _MATS:
@@ -92,15 +108,20 @@ def make_material(name: str, rgb: tuple[float, float, float],
     return mat
 
 
-PINK = make_material("Mahal_Pink", (0.96, 0.52, 0.58))
-ROSE = make_material("Mahal_Rose", (0.90, 0.36, 0.44))
+# Amber Fort / Jaisalmer palette — warm golden sandstone instead of salmon pink.
+#   WALL       #D9C089  main exterior masonry  (0.85, 0.75, 0.55 sRGB)
+#   WALL_LIGHT #EDDBB3  cream highlight / light shade
+#   WALL_DARK  #B39466  tan / carved-shadow shade
+WALL = make_material("Mahal_Wall_Sandstone", hex_color("#D9C089"), rough=0.75)
+WALL_LIGHT = make_material("Mahal_Wall_Cream", hex_color("#EDDBB3"), rough=0.72)
+WALL_DARK = make_material("Mahal_Wall_Tan", hex_color("#B39466"), rough=0.78)
 GOLD = make_material("Mahal_Gold", (0.96, 0.76, 0.22), rough=0.30, metal=0.80)
 TEAL = make_material("Mahal_Teal", (0.10, 0.66, 0.66), rough=0.45)
 TEAL_DARK = make_material("Mahal_TealDark", (0.06, 0.46, 0.50), rough=0.5)
 BLUE = make_material("Mahal_DeepBlue", (0.10, 0.26, 0.72), rough=0.45)
 YELLOW = make_material("Mahal_Yellow", (0.99, 0.84, 0.16))
 ORANGE = make_material("Mahal_Orange", (0.96, 0.50, 0.16))
-SAND = make_material("Mahal_Sandstone", (0.88, 0.75, 0.58), rough=0.7)
+SAND = make_material("Mahal_SandstoneFloor", hex_color("#C9AC7C"), rough=0.7)
 MARBLE = make_material("Mahal_Marble", (0.95, 0.94, 0.90), rough=0.35)
 WOOD = make_material("Mahal_Wood", (0.44, 0.26, 0.13), rough=0.8)
 WOOD_DARK = make_material("Mahal_WoodDark", (0.30, 0.16, 0.08), rough=0.85)
@@ -322,7 +343,7 @@ def add_checker_floor(prefix, x0, x1, y0, y1, tile, z_top, mat_a, mat_b,
 
 
 def add_pillar(prefix, x, y, radius, height, parts=None, bands=(RED, BLUE, YELLOW),
-               base_mat=PINK, cap=True):
+               base_mat=WALL, cap=True):
     add_cylinder(f"{prefix}_Shaft", radius, height, (x, y, height / 2.0), base_mat,
                  verts=16, parts=parts)
     for k, z in enumerate((height * 0.17, height * 0.50, height * 0.83)):
@@ -360,27 +381,28 @@ def build_darbar() -> bpy.types.Object:
     W, D, H = DARBAR_W, DARBAR_D, ROOM_H
     parts: list[bpy.types.Object] = []
 
-    # floor: sandstone base + teal/pink checkered inlay
+    # floor: sandstone base + teal/cream checkered inlay
     add_box("Darbar_FloorBase", (W, D, 0.3), (0, 0, 0.15), SAND, parts=parts)
     add_checker_floor("Darbar_Tile", -9.0, 9.0, -6.0, 6.0, 2.0, 0.30,
-                      TEAL, PINK, parts=parts)
+                      TEAL, WALL_LIGHT, parts=parts)
 
     # walls
     back = add_box("Darbar_WallBack", (W, WALL_T, H), (0, D / 2 - WALL_T / 2, H / 2),
-                   PINK, parts=parts)
+                   WALL, parts=parts)
     front = add_box("Darbar_WallFront", (W, WALL_T, H), (0, -D / 2 + WALL_T / 2, H / 2),
-                    PINK, parts=parts)
+                    WALL, parts=parts)
     left = add_box("Darbar_WallLeft", (WALL_T, D, H), (-W / 2 + WALL_T / 2, 0, H / 2),
-                   PINK, parts=parts)
+                   WALL, parts=parts)
     right = add_box("Darbar_WallRight", (WALL_T, D, H), (W / 2 - WALL_T / 2, 0, H / 2),
-                    PINK, parts=parts)
+                    WALL, parts=parts)
 
     # gold string course around the room
     for name, size, loc in [
-        ("Darbar_BandN", (W, 0.62, 0.22), (0, D / 2 - 0.31, 4.35)),
-        ("Darbar_BandS", (W, 0.62, 0.22), (0, -D / 2 + 0.31, 4.35)),
-        ("Darbar_BandE", (0.62, D, 0.22), (W / 2 - 0.31, 0, 4.35)),
-        ("Darbar_BandW", (0.62, D, 0.22), (-W / 2 + 0.31, 0, 4.35)),
+        # 2 cm proud of the wall face — enough relief to avoid coplanar self-shadowing
+        ("Darbar_BandN", (W, 0.66, 0.22), (0, D / 2 - 0.31, 4.35)),
+        ("Darbar_BandS", (W, 0.66, 0.22), (0, -D / 2 + 0.31, 4.35)),
+        ("Darbar_BandE", (0.66, D, 0.22), (W / 2 - 0.31, 0, 4.35)),
+        ("Darbar_BandW", (0.66, D, 0.22), (-W / 2 + 0.31, 0, 4.35)),
     ]:
         add_box(name, size, loc, GOLD, parts=parts)
 
@@ -468,13 +490,13 @@ def build_courtyard() -> bpy.types.Object:
     # raised walkway platform, 2.4 m deep
     for side in "NSEW":
         if side == "N":
-            add_box("Court_WalkN", (20.0, 2.4, 0.35), (0, 8.8, 0.175), MARBLE, parts=parts)
+            add_box("Court_WalkN", (19.9, 2.30, 0.35), (0, 8.83, 0.175), MARBLE, parts=parts)
         elif side == "S":
-            add_box("Court_WalkS", (20.0, 2.4, 0.35), (0, -8.8, 0.175), MARBLE, parts=parts)
+            add_box("Court_WalkS", (19.9, 2.30, 0.35), (0, -8.83, 0.175), MARBLE, parts=parts)
         elif side == "E":
-            add_box("Court_WalkE", (2.4, 20.0, 0.35), (8.8, 0, 0.175), MARBLE, parts=parts)
+            add_box("Court_WalkE", (2.30, 19.9, 0.35), (8.83, 0, 0.175), MARBLE, parts=parts)
         else:
-            add_box("Court_WalkW", (2.4, 20.0, 0.35), (-8.8, 0, 0.175), MARBLE, parts=parts)
+            add_box("Court_WalkW", (2.30, 19.9, 0.35), (-8.83, 0, 0.175), MARBLE, parts=parts)
 
     # columns + arched spandrel panels.  centre bay stays open as passage.
     offsets = (-9.5, -5.5, -1.5, 1.5, 5.5, 9.5)
@@ -498,17 +520,17 @@ def build_courtyard() -> bpy.types.Object:
             if side in "NS":
                 panel = add_box(f"Court_Panel{side}{i}", (bay, 0.34, 1.6),
                                 (mid, 7.75 if side == "N" else -7.75, 5.2),
-                                PINK, parts=parts)
+                                WALL, parts=parts)
                 cut = add_cylinder(f"Court_PanelCut{side}{i}", 1.30, 0.9,
                                    (mid, 7.75 if side == "N" else -7.75, 4.4),
-                                   PINK, verts=20, rot=(math.pi / 2, 0, 0))
+                                   WALL, verts=20, rot=(math.pi / 2, 0, 0))
             else:
                 panel = add_box(f"Court_Panel{side}{i}", (0.34, bay, 1.6),
                                 (7.75 if side == "E" else -7.75, mid, 5.2),
-                                PINK, parts=parts)
+                                WALL, parts=parts)
                 cut = add_cylinder(f"Court_PanelCut{side}{i}", 1.30, 0.9,
                                    (7.75 if side == "E" else -7.75, mid, 4.4),
-                                   PINK, verts=20, rot=(math.pi / 2, 0, 0))
+                                   WALL, verts=20, rot=(math.pi / 2, 0, 0))
             boolean(panel, cut)
             add_box(f"Court_PanelTrim{side}{i}", (bay, 0.42, 0.14),
                     (mid, 7.75 if side == "N" else -7.75, 6.0), GOLD, parts=parts) \
@@ -554,21 +576,21 @@ def build_ranivas() -> bpy.types.Object:
 
     # outer walls
     north = add_box("Rani_WallN", (W, WALL_T, H), (0, D / 2 - WALL_T / 2, H / 2),
-                    PINK, parts=parts)
+                    WALL, parts=parts)
     south = add_box("Rani_WallS", (W, WALL_T, H), (0, -D / 2 + WALL_T / 2, H / 2),
-                    PINK, parts=parts)
+                    WALL, parts=parts)
     east = add_box("Rani_WallE", (WALL_T, D, H), (W / 2 - WALL_T / 2, 0, H / 2),
-                   PINK, parts=parts)
+                   WALL, parts=parts)
     west = add_box("Rani_WallW", (WALL_T, D, H), (-W / 2 + WALL_T / 2, 0, H / 2),
-                   PINK, parts=parts)
+                   WALL, parts=parts)
 
     # inner dividers at x = +/-1.6 with a 2 m door in the middle
     for sx in (-1.6, 1.6):
         for sy in (-2.75, 2.75):
             add_box(f"Rani_Divider{sx}_{sy}", (0.40, 3.5, H), (sx, sy, H / 2),
-                    ROSE, parts=parts)
+                    WALL_DARK, parts=parts)
         add_box(f"Rani_DividerLintel{sx}", (0.40, 2.0, 2.2), (sx, 0, H - 1.1),
-                ROSE, parts=parts)
+                WALL_DARK, parts=parts)
 
     # doors to the courtyard (west) and to the outer garden (east)
     for side, wx, orient in (("W", -W / 2 + WALL_T / 2, "y"),
@@ -586,8 +608,8 @@ def build_ranivas() -> bpy.types.Object:
         add_window(wall, f"Rani_Win{side}", 0.0, wy, 2.2, 2.2, 1.6, 1.1,
                    orient="x", parts=parts)
 
-    # coloured geometric cube pattern on the long outer facades
-    cols = (ORANGE, YELLOW, BLUE, TEAL, ROSE)
+    # coloured geometric cube pattern on the long outer facades (toned to sandstone)
+    cols = (ORANGE, YELLOW, BLUE, TEAL, WALL_DARK)
     for side, wy, facing in (("N", D / 2, 1), ("S", -D / 2, -1)):
         for i in range(15):
             x = -6.6 + i * 0.94
@@ -600,20 +622,20 @@ def build_ranivas() -> bpy.types.Object:
                     continue
                 mat = cols[(i * 2 + j) % len(cols)]
                 add_box(f"Rani_Pattern{side}_{i}_{j}", (0.34, 0.18, 0.34),
-                        (x, wy + facing * 0.09, z), mat, parts=parts)
+                        (x, wy + facing * 0.10, z), mat, parts=parts)
 
     # 2 balconies on the outer (+X) facade
     for sy in (-2.6, 2.6):
         add_box(f"Rani_Balcony{sy}", (1.5, 3.0, 0.25), (W / 2 + 0.70, sy, 3.0),
                 MARBLE, parts=parts)
-        add_box(f"Rani_BalconyRail{sy}", (0.12, 3.0, 0.75), (W / 2 + 1.38, sy, 3.5),
+        add_box(f"Rani_BalconyRail{sy}", (0.14, 3.02, 0.75), (W / 2 + 1.40, sy, 3.5),
                 GOLD, parts=parts)
         for k in range(5):
             add_box(f"Rani_Baluster{sy}_{k}", (0.10, 0.10, 0.65),
                     (W / 2 + 1.38, sy - 1.2 + k * 0.6, 3.45), GOLD, parts=parts)
         for dy in (-1.35, 1.35):
             add_cylinder(f"Rani_BalconyPost{sy}_{dy}", 0.10, 2.0,
-                         (W / 2 + 1.25, sy + dy, 4.05), PINK, verts=8, parts=parts)
+                         (W / 2 + 1.25, sy + dy, 4.05), WALL, verts=8, parts=parts)
         add_cone(f"Rani_BalconyRoof{sy}", 1.15, 0.0, 0.85,
                  (W / 2 + 0.85, sy, 5.45), GOLD, verts=16, parts=parts)
 
@@ -650,34 +672,34 @@ def build_gateway() -> bpy.types.Object:
     add_box("Gate_Runner", (2.6, D, 0.10), (0, 0, 0.35), MARBLE, parts=parts)
 
     # main gate block
-    gate = add_box("Gate_Block", (W, D, H), (0, 0, H / 2), PINK, parts=parts)
+    gate = add_box("Gate_Block", (W, D, H), (0, 0, H / 2), WALL, parts=parts)
 
     # scalloped opening cutter: rectangular shaft + 5 circle foils
     cutter = add_box("Gate_CutRect", (GATE_HALF_W * 2.0 + 0.02, D + 2.0, GATE_RECT_H),
-                     (0, 0, GATE_RECT_H / 2), PINK)
+                     (0, 0, GATE_RECT_H / 2), WALL)
     for idx, (fx, fz) in enumerate(scallop_centres()):
         foil = add_cylinder(f"Gate_Foil{idx}", GATE_FOIL_R, D + 2.0, (fx, 0, fz),
-                            PINK, verts=24, rot=(math.pi / 2, 0, 0))
+                            WALL, verts=24, rot=(math.pi / 2, 0, 0))
         boolean(cutter, foil, operation="UNION")
     boolean(gate, cutter)
 
-    # multi-layered scalloped frame — pink outer ring + gold inner ring
+    # multi-layered scalloped frame — tan outer ring + gold inner ring
     front_y = -D / 2 - 0.02
     for idx, (fx, fz) in enumerate(scallop_centres()):
-        add_torus(f"Gate_MehrabPink{idx}", GATE_FOIL_R + 0.18, 0.17,
-                  (fx, front_y - 0.10, fz), ROSE, seg=20, ring=8,
+        add_torus(f"Gate_MehrabTan{idx}", GATE_FOIL_R + 0.18, 0.17,
+                  (fx, front_y - 0.10, fz), WALL_DARK, seg=20, ring=8,
                   rot=(math.pi / 2, 0, 0), parts=parts)
         add_torus(f"Gate_MehrabGold{idx}", GATE_FOIL_R + 0.01, 0.11,
                   (fx, front_y - 0.24, fz), GOLD, seg=20, ring=8,
                   rot=(math.pi / 2, 0, 0), parts=parts)
-    # gold jamb posts + pink outer jamb
+    # gold jamb posts + tan outer jamb
     for sx in (-1, 1):
         add_box(f"Gate_JambGold{sx}", (0.22, 0.20, GATE_RECT_H + 0.4),
                 (sx * (GATE_HALF_W + 0.11), front_y - 0.24, (GATE_RECT_H + 0.4) / 2),
                 GOLD, parts=parts)
-        add_box(f"Gate_JambPink{sx}", (0.44, 0.28, GATE_RECT_H + 0.9),
+        add_box(f"Gate_JambTan{sx}", (0.44, 0.28, GATE_RECT_H + 0.9),
                 (sx * (GATE_HALF_W + 0.40), front_y - 0.06, (GATE_RECT_H + 0.9) / 2),
-                ROSE, parts=parts)
+                WALL_DARK, parts=parts)
         # green/blue spandrel inlay either side of the arch
         add_box(f"Gate_Spandrel{sx}", (3.2, 0.14, 2.0),
                 (sx * 5.0, front_y - 0.02, 5.4), BLUE, parts=parts)
@@ -728,11 +750,13 @@ def build_gateway() -> bpy.types.Object:
 
     # flanking towers with gold domed chhatris
     for sx in (-6.2, 6.2):
-        add_box(f"Gate_Tower{sx}", (2.2, D, 8.9), (sx, 0, 4.45), PINK, parts=parts)
+        # projecting bastions: 0.25 m proud of the gate block on both faces so the
+        # return faces read as real corners (never coplanar -> no black self-shadow)
+        add_box(f"Gate_Tower{sx}", (2.2, D + 0.5, 8.9), (sx, 0, 4.45), WALL, parts=parts)
         for k, z in enumerate((1.2, 4.4, 7.1)):
-            add_box(f"Gate_TowerBand{sx}_{k}", (2.4, D + 0.10, 0.22), (sx, 0, z),
+            add_box(f"Gate_TowerBand{sx}_{k}", (2.4, D + 0.62, 0.22), (sx, 0, z),
                     GOLD, parts=parts)
-        add_box(f"Gate_TowerCap{sx}", (2.7, D + 0.4, 0.26), (sx, 0, 9.03), MARBLE,
+        add_box(f"Gate_TowerCap{sx}", (2.7, D + 0.8, 0.26), (sx, 0, 9.03), MARBLE,
                 parts=parts)
         for dx, dy in ((-0.72, -0.72), (0.72, -0.72), (-0.72, 0.72), (0.72, 0.72)):
             add_cylinder(f"Gate_TowerCol{sx}_{dx}_{dy}", 0.09, 1.2,
@@ -761,7 +785,7 @@ def _solid_block(prefix, x0, x1, y0, y1, height, parts, facade_axis=None,
     """Service wing filling a corner void: solid body, gold bands, blind arches."""
     cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
     sx, sy = abs(x1 - x0), abs(y1 - y0)
-    add_box(f"{prefix}_Body", (sx, sy, height), (cx, cy, height / 2.0), PINK,
+    add_box(f"{prefix}_Body", (sx, sy, height), (cx, cy, height / 2.0), WALL,
             parts=parts)
     for k, z in enumerate((height - 0.5, height * 0.62)):
         add_box(f"{prefix}_Band{k}", (sx + 0.12, sy + 0.12, 0.22), (cx, cy, z),
@@ -874,7 +898,7 @@ def assemble_mahal(darbar, courtyard, ranivas, gateway) -> bpy.types.Object:
         ("Mega_CourtParapetE", (0.45, COURT_D + 1.2, 0.95), (court_half + 0.25, 0, FLOOR2_Z + 0.87)),
         ("Mega_CourtParapetW", (0.45, COURT_D + 1.2, 0.95), (-court_half - 0.25, 0, FLOOR2_Z + 0.87)),
     ]:
-        add_box(name, size, loc, PINK, parts=parts)
+        add_box(name, size, loc, WALL, parts=parts)
         add_box(name + "Cap", (size[0] + 0.14, size[1] + 0.14, 0.14),
                 (loc[0], loc[1], loc[2] + 0.54), GOLD, parts=parts)
 
@@ -929,9 +953,9 @@ def assemble_mahal(darbar, courtyard, ranivas, gateway) -> bpy.types.Object:
     return mega
 
 
-def add_crenellations(parts, x0, x1, y0, y1, z, spacing=2.4, mat_a=PINK,
-                      mat_b=YELLOW):
-    """Alternating pink / yellow merlons around a rectangular roof edge."""
+def add_crenellations(parts, x0, x1, y0, y1, z, spacing=2.4, mat_a=WALL,
+                      mat_b=WALL_LIGHT):
+    """Alternating sandstone / cream merlons around a rectangular roof edge."""
     nx = int(round((x1 - x0) / spacing))
     ny = int(round((y1 - y0) / spacing))
     k = 0

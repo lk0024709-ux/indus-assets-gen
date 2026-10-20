@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Rajasthani Mahal Master — Exterior + Interior Royal Darbar
-Vibrant procedural textures, cube_project 0.2, bottom-center origin, low-poly optimized 4GB mobile
+Golden-sandstone (Amber Fort #D9C089) procedural textures — colours are linear, converted from sRGB, cube_project 0.2, bottom-center origin, low-poly optimized 4GB mobile
 Phases 1-6 per spec: base 40x30, walls 30x20x12, sawtooth parapet, multi-layered arches, jharokhas,
 central teal dome r6 + 4 yellow r3 + chhatris, interior checkered floor, pillars, ceiling dome, jali, throne etc.
 Math sin/cos for arches & dome rings.
@@ -140,18 +140,18 @@ def make_procedural_wall_mat(name="Rajasthani_Wall_Procedural", scale=0.2):
     brick.inputs["Row Height"].default_value=0.5
     nt.links.new(mapping.outputs["Vector"], brick.inputs["Vector"])
     cr1=nt.nodes.new("ShaderNodeValToRGB"); cr1.location=(-80,150)
-    cr1.color_ramp.elements[0].position=0.0; cr1.color_ramp.elements[0].color=(0.96,0.42,0.48,1)
-    cr1.color_ramp.elements[1].position=1.0; cr1.color_ramp.elements[1].color=(0.96,0.42,0.48,1)
+    cr1.color_ramp.elements[0].position=0.0; cr1.color_ramp.elements[0].color=(0.6939,0.5271,0.2502,1)  # #D9C089
+    cr1.color_ramp.elements[1].position=1.0; cr1.color_ramp.elements[1].color=(0.6939,0.5271,0.2502,1)  # #D9C089
     e=cr1.color_ramp.elements.new(0.22); e.color=(0.97,0.50,0.18,1)
     e=cr1.color_ramp.elements.new(0.45); e.color=(0.98,0.85,0.22,1)
     e=cr1.color_ramp.elements.new(0.68); e.color=(0.22,0.38,0.85,1)
-    e=cr1.color_ramp.elements.new(0.85); e.color=(0.85,0.25,0.55,1)
+    e=cr1.color_ramp.elements.new(0.85); e.color=(0.4508,0.2961,0.1329,1)  # #B39466
     nt.links.new(brick.outputs["Color"], cr1.inputs["Fac"])
     checker=nt.nodes.new("ShaderNodeTexChecker"); checker.location=(-350,-150)
     checker.inputs["Scale"].default_value=12.0
     nt.links.new(mapping.outputs["Vector"], checker.inputs["Vector"])
     cr2=nt.nodes.new("ShaderNodeValToRGB"); cr2.location=(-80,-50)
-    cr2.color_ramp.elements[0].color=(0.98,0.44,0.50,1)
+    cr2.color_ramp.elements[0].color=(0.8469,0.7084,0.4508,1)  # #EDDBB3
     cr2.color_ramp.elements[1].color=(0.98,0.85,0.25,1)
     nt.links.new(checker.outputs["Color"], cr2.inputs["Fac"])
     mix=nt.nodes.new("ShaderNodeMixRGB"); mix.location=(200,100); mix.blend_type="MIX"; mix.inputs[0].default_value=0.35
@@ -182,11 +182,11 @@ def make_checker_floor_mat(name="Darbar_Floor_Checker", scale=0.2):
     checker.inputs["Scale"].default_value=6.0
     nt.links.new(mapping.outputs["Vector"], checker.inputs["Vector"])
     cr=nt.nodes.new("ShaderNodeValToRGB"); cr.location=(0,100)
-    cr.color_ramp.elements[0].position=0.0; cr.color_ramp.elements[0].color=(0.96,0.35,0.55,1)
+    cr.color_ramp.elements[0].position=0.0; cr.color_ramp.elements[0].color=(0.7874,0.6038,0.3419,1)  # #E6CC9E
     e=cr.color_ramp.elements.new(0.25); e.color=(0.25,0.45,0.95,1)
     e=cr.color_ramp.elements.new(0.5); e.color=(0.98,0.85,0.18,1)
     e=cr.color_ramp.elements.new(0.75); e.color=(0.15,0.75,0.78,1)
-    cr.color_ramp.elements[1].position=1.0; cr.color_ramp.elements[1].color=(0.96,0.35,0.55,1)
+    cr.color_ramp.elements[1].position=1.0; cr.color_ramp.elements[1].color=(0.7874,0.6038,0.3419,1)  # #E6CC9E
     nt.links.new(checker.outputs["Color"], cr.inputs["Fac"])
     nt.links.new(cr.outputs["Color"], bsdf.inputs["Base Color"])
     _MAT_CACHE[key]=mat
@@ -312,26 +312,26 @@ def build_master():
         if x>BUILD_W/2-1.0: continue
         loc=(x, BUILD_D/2-0.2, building_top+0.5+0.4)
         prism=create_tri_prism(f"Parapet_N_{i}",0.9,loc)
-        parapet_objs.append((prism,"pink" if i%2==0 else "yellow"))
+        parapet_objs.append((prism,"sand" if i%2==0 else "yellow"))
     for i,x in enumerate([ -BUILD_W/2+1.0 + k*step for k in range(int(BUILD_W/step)) ]):
         if x>BUILD_W/2-1.0: continue
         loc=(x, -BUILD_D/2+0.2, building_top+0.5+0.4)
         prism=create_tri_prism(f"Parapet_S_{i}",0.9,loc)
-        parapet_objs.append((prism,"pink" if i%2==0 else "yellow"))
+        parapet_objs.append((prism,"sand" if i%2==0 else "yellow"))
     for i,y in enumerate([ -BUILD_D/2+1.5 + k*step for k in range(int(BUILD_D/step)) ]):
         if y>BUILD_D/2-1.5: continue
         loc=(BUILD_W/2-0.2, y, building_top+0.5+0.4)
         prism=create_tri_prism(f"Parapet_E_{i}",0.9,loc)
         prism.rotation_euler=(0,0,math.radians(90))
         bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
-        parapet_objs.append((prism,"pink" if i%2==0 else "yellow"))
+        parapet_objs.append((prism,"sand" if i%2==0 else "yellow"))
     for i,y in enumerate([ -BUILD_D/2+1.5 + k*step for k in range(int(BUILD_D/step)) ]):
         if y>BUILD_D/2-1.5: continue
         loc=(-BUILD_W/2+0.2, y, building_top+0.5+0.4)
         prism=create_tri_prism(f"Parapet_W_{i}",0.9,loc)
         prism.rotation_euler=(0,0,math.radians(90))
         bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
-        parapet_objs.append((prism,"pink" if i%2==0 else "yellow"))
+        parapet_objs.append((prism,"sand" if i%2==0 else "yellow"))
     # PHASE 2 arches
     front_arches=[(-8,2.8,2.2),(0,3.6,2.8),(8,2.8,2.2)]
     for idx,(x,w_outer,r_outer) in enumerate(front_arches):
@@ -514,7 +514,7 @@ def build_master():
     yellow_img=make_image_mat("Dome_Yellow_Img","palace_dome_yellow_2k.png",rough=0.35,metal=0.2,scale=1.0)
     blue_img=make_image_mat("Door_Blue_Img","palace_door_blue_2k.png",rough=0.6,metal=0.0,scale=0.8)
     gold_solid=make_solid("Gold_Trim",(0.85,0.65,0.13,1),rough=0.25,metal=0.85)
-    pink_solid=make_solid("Parapet_Pink",(0.96,0.42,0.55,1),rough=0.8)
+    sandstone_solid=make_solid("Parapet_Sandstone",(0.6939,0.5271,0.2502,1),rough=0.8)  # #D9C089
     yellow_solid=make_solid("Parapet_Yellow",(0.98,0.85,0.18,1),rough=0.8)
     teal_solid=make_solid("Teal_Jharokha",(0.15,0.65,0.70,1),rough=0.4,metal=0.1)
     red_band=make_solid("Band_Red",(0.95,0.22,0.25,1),rough=0.6)
@@ -560,7 +560,7 @@ def build_master():
     for block,col in parapet_objs:
         cube_project_unwrap(block,scale=0.2)
         block.data.materials.clear()
-        block.data.materials.append(pink_solid if col=="pink" else yellow_solid)
+        block.data.materials.append(sandstone_solid if col=="sand" else yellow_solid)
         all_objs.append(block)
     for o in exterior:
         cube_project_unwrap(o,scale=0.2)
