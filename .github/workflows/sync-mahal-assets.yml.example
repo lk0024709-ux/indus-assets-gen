@@ -1,0 +1,44 @@
+# .github/workflows/sync-mahal-assets.yml.example
+# ─────────────────────────────────────────────────
+# Copy this file INTO YOUR GODOT GAME REPO as .github/workflows/sync-mahal-assets.yml
+# It auto-downloads the latest rajasthani_mahal.glb + modular blocks from indus-assets-gen GitHub Pages
+# and commits them to res://assets/downloaded_models/ so your Godot export always uses fresh assets.
+#
+name: Sync Mahal Assets from indus-assets-gen
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * *"  # daily 06:00 UTC
+  repository_dispatch:
+    types: [mahal-assets-updated]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download latest Mahal + modular blocks
+        run: |
+          mkdir -p assets/downloaded_models/modular
+          BASE="https://lk0024709-ux.github.io/indus-assets-gen/models"
+          curl -L --fail -o assets/downloaded_models/rajasthani_mahal.glb "$BASE/buildings/rajasthani_mahal.glb"
+          cp assets/downloaded_models/rajasthani_mahal.glb assets/downloaded_models/mahal_palace_master.glb || true
+          for f in wall_block arch_block dome pillar; do
+            curl -L --fail -o assets/downloaded_models/modular/${f}.glb "$BASE/modular/${f}.glb"
+          done
+          cp assets/downloaded_models/modular/wall_block.glb assets/downloaded_models/modular/wall_module.glb || true
+          cp assets/downloaded_models/modular/arch_block.glb assets/downloaded_models/modular/arch_module.glb || true
+          cp assets/downloaded_models/modular/dome.glb assets/downloaded_models/modular/dome_module.glb || true
+          cp assets/downloaded_models/modular/pillar.glb assets/downloaded_models/modular/pillar_module.glb || true
+          ls -lh assets/downloaded_models/ assets/downloaded_models/modular/
+
+      - name: Commit if changed
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: sync rajasthani_mahal.glb + modular blocks from indus-assets-gen"
+          file_pattern: "assets/downloaded_models/**"
