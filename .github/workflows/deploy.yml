@@ -69,6 +69,9 @@ jobs:
       - name: Generate Modular Palace Blocks — wall/arch/dome/pillar (10×0.5×4, 10×0.5×6 arch, r5 dome, r0.5 h6 pillar)
         run: python tools/generate_modular.py
 
+      - name: Generate Rajasthani Mahal Rooms + Mega Assembly (4 walk-in rooms 20×15/20×20/15×10/15×5 → 50×40 m, 2 floors, teal + 4 gold domes)
+        run: python tools/generate_mahal_rooms.py
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:

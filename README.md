@@ -23,6 +23,7 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 *   `tools/generate_nature.py` — **Phase 2 Nature & Plants `bpy` generator** (`tree_pine.glb`, `tree_oak.glb`, `tree_dead.glb`, `rock_large.glb`, `rock_small.glb`, `bush.glb`, `grass_clump.glb`).
 *   `tools/generate_phase1.py` — **Phase 1 `bpy` generator** (base ground + 6 buildings + hero scene).
 *   `tools/generate_buildings.py` — original four-building generator (pre-Phase-1 assets).
+*   `tools/generate_mahal_rooms.py` — **Phase 4 Room-by-Room Mahal `bpy` generator** (4 walk-in rooms → `assemble_mahal()` → one 50×40 m mega palace).
 *   `tools/generate_test.py` — pipeline smoke-test (brown test crate).
 *   `tools/make_seamless.py` — makes the AI texture tiles perfectly seamless.
 *   `docs/` — The root folder for GitHub Pages.
@@ -33,6 +34,8 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 *   `docs/models/bridges/` — Wooden and concrete bridge `.glb` models.
 *   `docs/models/nature/` — Trees, rocks, bushes, and grass `.glb` models.
 *   `docs/models/buildings/` — Building `.glb` files (textures packed inside).
+*   `docs/models/mahal/rooms/` — 4 walk-in room blocks (`room_darbar_hall`, `room_courtyard`, `room_ranivas`, `room_gateway`).
+*   `docs/models/mahal/rajasthani_mahal_mega.glb` — the assembled palace (one joined mesh).
 *   `.github/workflows/deploy.yml` — CI/CD pipeline: generate Phase 1 + Phase 2 assets and deploy to Pages.
 
 ## 🌍 Phase 2 Assets — Complete Map Environment
@@ -55,6 +58,33 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 | Nature | `rock_small.glb` | 1.0 m × 1.0 m × 0.8 m | Displaced low-poly icosphere field stone | `rock_stone_1k.png` |
 | Nature | `bush.glb` | 1.9 m × 1.3 m × 1.25 m | Cluster of 3 low-poly green spheres | `grass_1k.png` |
 | Nature | `grass_clump.glb` | 0.85 m × 0.74 m × 0.90 m | 3 crossed planes with double-sided green material | `grass_1k.png` |
+
+## 🏯 Phase 4 — Rajasthani Mahal: Room-by-Room Modular Assembly
+`tools/generate_mahal_rooms.py` builds four **walk-in** rooms from solid vibrant materials (no textures), each with its origin at
+**bottom-centre (0, 0, 0)** and its floor exactly at `z = 0`, then welds them into one palace with `assemble_mahal()`.
+
+| Room | File | Size | Highlights |
+|---|---|---|---|
+| Darbar Hall (throne room) | `models/mahal/rooms/room_darbar_hall.glb` | 20 m × 15 m × 6.07 m | 54 teal/pink checkered tiles, raised 1 m dais, golden throne + red cushion + canopy, 8 pillars with red/blue/yellow bands, 4 deep-blue arched windows, 2 jali lattices (bar lengths solved from the arch equation) |
+| Courtyard Aangan | `models/mahal/rooms/room_courtyard.glb` | 20 m × 20 m (open sky) | Marble fountain dead centre (0,0), sandstone/marble checker floor, arched jharokha walkways on all 4 sides — 24 columns, 16 Boolean arches, central 3 m bay left open as passage, 4 teal chhatris on the rim |
+| Ranivas (residential) | `models/mahal/rooms/room_ranivas.glb` | 15 m × 10 m × 6 m | Two rooms + marble corridor, 90 protruding coloured cubes in a chevron pattern, 2 protruding balconies with gold railings and pyramid roofs |
+| Gateway | `models/mahal/rooms/room_gateway.glb` | 15 m × 5 m (8.4 m block) | 5-lobed scalloped **Mehrab** built from semicircular foils on a semi-ellipse, pink + gold two-layer frame, double wooden doors swung 65° open, flanking chhatri turrets |
+
+### Assembly (`assemble_mahal()`) — exact layout
+| Piece | Position (x, y, z) | Notes |
+|---|---|---|
+| `room_courtyard` | **0, 0, 0** | anchor of the whole palace |
+| `room_darbar_hall` | **0, 17.5, 0** | north |
+| `room_ranivas` | **17.5, 0, 0** and **−17.5, 0, 0** | east / west (west rotated 180° so balconies face out) |
+| `room_gateway` | **0, −12.5, 0** | south |
+| Second floor | z = 6.4 | same darbar + ranivas rooms scaled **0.85**, gateway scaled 0.60 on the gate roof |
+| Roof | z = 6.0 → 6.4 | covers the full 50 × 40 m plan **except** the 20 × 20 m courtyard |
+| Central teal dome | 0, 17.5, 11.9 | r4.6 on a r4.7 marble drum, gold spire, apex 23.8 m |
+| 4 golden domes | (±21, 21) and (±21, −11.5) | r2.1 chhatri domes on the roof corners |
+
+Everything is joined into **one mesh** (`rajasthani_mahal_mega`) — 54 m × 40.5 m × 23.8 m, 62,542 tris, 11 materials, min Z = 0.000.
+Corner service wings fill the cross-plan voids so the ground plane is continuous (no gaps to fall through).
+Origin of the mega file = courtyard centre at ground level `(0, 0, 0)`; North is Blender **+Y** (glTF **−Z** after the Y-up conversion).
 
 ## 🏗️ Phase 1 Assets
 | File | Size (real-world) | Details | Texture |
