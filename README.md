@@ -65,10 +65,27 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 
 | Room | File | Size | Highlights |
 |---|---|---|---|
-| Darbar Hall (throne room) | `models/mahal/rooms/room_darbar_hall.glb` | 20 m × 15 m × 6.07 m | 54 teal/pink checkered tiles, raised 1 m dais, golden throne + red cushion + canopy, 8 pillars with red/blue/yellow bands, 4 deep-blue arched windows, 2 jali lattices (bar lengths solved from the arch equation) |
+| Darbar Hall (throne room) | `models/mahal/rooms/room_darbar_hall.glb` | 20 m × 15 m × 6.07 m | 54 teal/cream checkered tiles, raised 1 m dais, golden throne + red cushion + canopy, 8 pillars with red/blue/yellow bands, 4 deep-blue arched windows, 2 jali lattices (bar lengths solved from the arch equation) |
 | Courtyard Aangan | `models/mahal/rooms/room_courtyard.glb` | 20 m × 20 m (open sky) | Marble fountain dead centre (0,0), sandstone/marble checker floor, arched jharokha walkways on all 4 sides — 24 columns, 16 Boolean arches, central 3 m bay left open as passage, 4 teal chhatris on the rim |
 | Ranivas (residential) | `models/mahal/rooms/room_ranivas.glb` | 15 m × 10 m × 6 m | Two rooms + marble corridor, 90 protruding coloured cubes in a chevron pattern, 2 protruding balconies with gold railings and pyramid roofs |
 | Gateway | `models/mahal/rooms/room_gateway.glb` | 15 m × 5 m (8.4 m block) | 5-lobed scalloped **Mehrab** built from semicircular foils on a semi-ellipse, pink + gold two-layer frame, double wooden doors swung 65° open, flanking chhatri turrets |
+
+### Palette — Golden Sandstone (Amber Fort / Jaisalmer)
+The Mahal exterior is no longer salmon pink. Every wall material is **golden sandstone `#D9C089`**, with **cream `#EDDBB3`**
+highlights and **tan `#B39466`** carving shadows. Because Blender/glTF base colours are stored **linear**, the script converts
+the sRGB hex through a `hex_color()` helper (`0.85/0.75/0.55` typed straight in would render as a washed-out `#EDE0C4`).
+
+| Material | sRGB hex | Notes |
+|---|---|---|
+| `Mahal_Wall_Sandstone` | **#D9C089** | main exterior masonry |
+| `Mahal_Wall_Cream` | #EDDBB3 | light shade / parapet merlons / darbar tiles |
+| `Mahal_Wall_Tan` | #B39466 | dark shade / Mehrab outer frame / ranivas dividers |
+| `Mahal_SandstoneFloor` | #C9AC7C | floor slabs |
+| Gold / Teal / DeepBlue / Yellow | unchanged | gold trim, teal domes, deep-blue doors & windows |
+
+The same palette is applied in `generate_mahal_rooms.py`, `generate_mahal_master.py` (procedural brick + checker ramps),
+`generate_mahal_vibrant.py` (2K `palace_wall_tiles_2k.png` diamonds + parapet solids) and `generate_modular.py`
+(`SandstoneWall`).
 
 ### Assembly (`assemble_mahal()`) — exact layout
 | Piece | Position (x, y, z) | Notes |
@@ -82,7 +99,7 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 | Central teal dome | 0, 17.5, 11.9 | r4.6 on a r4.7 marble drum, gold spire, apex 23.8 m |
 | 4 golden domes | (±21, 21) and (±21, −11.5) | r2.1 chhatri domes on the roof corners |
 
-Everything is joined into **one mesh** (`rajasthani_mahal_mega`) — 54 m × 40.5 m × 23.8 m, 62,542 tris, 11 materials, min Z = 0.000.
+Everything is joined into **one mesh** (`rajasthani_mahal_mega`) — 54 m × 40.5 m × 23.8 m, 62,542 tris, 12 materials, min Z = 0.000.
 Corner service wings fill the cross-plan voids so the ground plane is continuous (no gaps to fall through).
 Origin of the mega file = courtyard centre at ground level `(0, 0, 0)`; North is Blender **+Y** (glTF **−Z** after the Y-up conversion).
 
