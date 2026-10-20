@@ -35,6 +35,9 @@ OUT_DIR = os.path.join(REPO_ROOT, "docs", "models", "buildings_modular")
 os.makedirs(OUT_DIR, exist_ok=True)
 
 GRID = 15.0          # module footprint
+PART_T = 0.1         # partition thickness (mod_wall_partition)
+STAIR_LOCAL = (-4.6, -2.6)   # stair centre offset inside its cell
+STAIR_SIZE = (2.4, 3.4)      # stair module footprint
 STOREY = 3.0         # wall module height
 SLAB = 0.2           # floor slab thickness
 WALL_T = 0.2
@@ -122,6 +125,8 @@ MODULE_FILES = {
     "wall_window": "mod_wall_window.glb",
     "wall_door": "mod_wall_door.glb",
     "wall_garage": "mod_wall_garage.glb",
+    "wall_partition": "mod_wall_partition.glb",
+    "wall_partition_door": "mod_wall_partition_door.glb",
     "floor": "mod_floor.glb",
     "roof_flat": "mod_roof_flat.glb",
     "roof_slanted": "mod_roof_slanted.glb",
@@ -240,6 +245,206 @@ def floor_top(level):
     return 0.2 if level == 0 else level * STOREY
 
 
+# ---------------------------------------------------------------------------
+# interior partition plan — walls, doorways, rooms
+# ---------------------------------------------------------------------------
+class WallSpec:
+    """One straight interior wall, axis aligned, with doorways in named slots.
+
+    ``axis='x'``  wall runs along X at ``y = pos``
+    ``axis='y'``  wall runs along Y at ``x = pos``
+    ``lo``/``hi`` are the *design* span (inner faces of the walls it meets); the
+    placed module is grown by ``expand`` at both ends so it buries its end caps
+    inside the neighbouring solid instead of leaving a coplanar face.
+    ``doors`` is a tuple of slot indices, or the string "all".
+    """
+
+    def __init__(self, axis, pos, lo, hi, doors=(), expand=0.05, label=""):
+        self.axis = axis
+        self.pos = float(pos)
+        self.lo = float(lo)
+        self.hi = float(hi)
+        self.doors = doors
+        self.expand = expand
+        self.label = label or f"{axis}{pos:+.2f}"
+
+    # -- geometry -----------------------------------------------------------
+    @property
+    def length(self):
+        return self.hi - self.lo
+
+    def slots(self):
+        n = max(1, int(math.ceil(self.length / GRID - 1e-9)))
+        return n, self.length / n
+
+    def slot_centers(self):
+        n, step = self.slots()
+        return [self.lo + (k + 0.5) * step for k in range(n)]
+
+    def door_slots(self):
+        n, _ = self.slots()
+        if self.doors == "all":
+            return tuple(range(n))
+        return tuple(d for d in self.doors if 0 <= d < n)
+
+    def door_points(self):
+        """World (x, y) of every doorway centre on this wall."""
+        pts = []
+        for k, c in enumerate(self.slot_centers()):
+            if k in self.door_slots():
+                pts.append((c, self.pos) if self.axis == "x" else (self.pos, c))
+        return pts
+
+    def segment(self):
+        if self.axis == "x":
+            return (self.lo, self.pos), (self.hi, self.pos)
+        return (self.pos, self.lo), (self.pos, self.hi)
+
+    def __repr__(self):
+        return (f"WallSpec({self.axis} {self.pos:+.2f} "
+                f"{self.lo:+.2f}..{self.hi:+.2f} doors={self.door_slots()})")
+
+
+def footprint_rects(spec):
+    """Outline rectangles (world coords) of the cell footprint.
+
+    Rows of contiguous cells are merged, so a 2x2 becomes ONE 30x30 rectangle
+    and the L-shaped villa becomes two rectangles.  Room splitting needs the
+    outline (not the cells), otherwise a wall on a cell boundary would be
+    invisible to the splitter.
+    """
+    nx, ny = spec["nx"], spec["ny"]
+    rows = {}
+    for (i, j) in footprint_cells(spec):
+        rows.setdefault(j, []).append(i)
+
+    def row_rect(run, j):
+        x0 = -nx * GRID / 2.0 + min(run) * GRID
+        y0 = -ny * GRID / 2.0 + j * GRID
+        return (x0, y0, x0 + len(run) * GRID, y0 + GRID)
+
+    rects = []
+    for j in sorted(rows):
+        xs = sorted(rows[j])
+        run = [xs[0]]
+        for a, b in zip(xs, xs[1:]):
+            if b == a + 1:
+                run.append(b)
+            else:
+                rects.append(row_rect(run, j))
+                run = [b]
+        rects.append(row_rect(run, j))
+
+    merged = []
+    for r in rects:
+        if merged and abs(merged[-1][0] - r[0]) < 1e-9 and abs(merged[-1][2] - r[2]) < 1e-9 \
+                and abs(merged[-1][3] - r[1]) < 1e-9:
+            merged[-1] = (r[0], merged[-1][1], r[2], r[3])
+        else:
+            merged.append(r)
+    return merged
+
+
+def split_rects(rects, wall):
+    """Cut every rectangle the wall fully crosses into two."""
+    out = []
+    eps = 0.25
+    for (x0, y0, x1, y1) in rects:
+        if wall.axis == "x":
+            if y0 < wall.pos < y1 and x0 >= wall.lo - eps and x1 <= wall.hi + eps:
+                out += [(x0, y0, x1, wall.pos), (x0, wall.pos, x1, y1)]
+            else:
+                out.append((x0, y0, x1, y1))
+        else:
+            if x0 < wall.pos < x1 and y0 >= wall.lo - eps and y1 <= wall.hi + eps:
+                out += [(x0, y0, wall.pos, y1), (wall.pos, y0, x1, y1)]
+            else:
+                out.append((x0, y0, x1, y1))
+    return out
+
+
+def build_plan(spec):
+    """Turn the recipe's ``plan`` shorthand into walls + room rectangles."""
+    rects = footprint_rects(spec)
+    x_lo = min(r[0] for r in rects); x_hi = max(r[2] for r in rects)
+    y_lo = min(r[1] for r in rects); y_hi = max(r[3] for r in rects)
+    plan = spec.get("plan") or {}
+    kind = plan.get("type", "none")
+    walls = []
+
+    if kind == "middle":
+        # one wall splitting the building in half, doorway(s) in chosen slots
+        walls.append(WallSpec("y", 0.0, y_lo + WALL_T, y_hi - WALL_T,
+                              doors=plan.get("doors", (0,)), label="mid"))
+        nook = plan.get("nook")
+        if nook:
+            # keep the small room on the opposite side of the building from the
+            # staircase, so a flight never lands inside the bedroom
+            sc = spec.get("stair_cell")
+            if nook.get("side") in ("auto", None):
+                side = "W" if (sc and sc[0] >= nx / 2.0) else "E"
+            else:
+                side = nook["side"]
+            if side == "E":
+                lo, hi = 0.05, x_hi - WALL_T
+            else:
+                lo, hi = x_lo + WALL_T, -0.05
+            walls.append(WallSpec("x", nook["y"], lo, hi, doors=(0,),
+                                  label="nook"))
+    elif kind == "cross":
+        # horizontal wall dividing a 1x1 hut into a front room and a back room
+        walls.append(WallSpec("x", plan.get("pos", 0.0), x_lo + WALL_T,
+                              x_hi - WALL_T, doors=plan.get("doors", (0,)),
+                              label="cross"))
+    elif kind == "hallway":
+        hw = plan.get("half_width", 2.5)
+        walls.append(WallSpec("x", +hw, x_lo + WALL_T, x_hi - WALL_T,
+                              doors="all", label="hallN"))
+        walls.append(WallSpec("x", -hw, x_lo + WALL_T, x_hi - WALL_T,
+                              doors="all", label="hallS"))
+        bays = int(round((x_hi - x_lo) / GRID))
+        for b in range(1, bays):
+            xb = x_lo + b * GRID
+            walls.append(WallSpec("y", xb, hw + 0.05, y_hi - WALL_T,
+                                  doors=(), label=f"divN{b}"))
+            walls.append(WallSpec("y", xb, y_lo + WALL_T, -hw - 0.05,
+                                  doors=(), label=f"divS{b}"))
+    elif kind == "custom":
+        for w in plan.get("walls", []):
+            walls.append(WallSpec(**w))
+
+    room_rects = list(rects)
+    for w in walls:
+        room_rects = split_rects(room_rects, w)
+    return walls, room_rects
+
+
+def add_partition_walls(walls, floors, material, parts):
+    """Instance the partition modules on every storey. Returns modules placed."""
+    count = 0
+    for wall in walls:
+        n, step = wall.slots()
+        centers = wall.slot_centers()
+        doors = set(wall.door_slots())
+        for level in range(floors):
+            z = floor_top(level)
+            for k, c in enumerate(centers):
+                key = "wall_partition_door" if k in doors else "wall_partition"
+                # grow by 10 cm so the two halves overlap at the joint and both
+                # end caps are buried inside the walls they meet
+                length = step + 0.10
+                if wall.axis == "x":
+                    loc, rot = (c, wall.pos, z), 0.0
+                else:
+                    loc, rot = (wall.pos, c, z), math.pi / 2.0
+                place(key, f"Part{level}_{wall.label}_{k}", loc, rot_z=rot,
+                      scale=(length / GRID, 1.0, 1.0), material=material,
+                      parts=parts)
+                count += 1
+    return count
+
+
+
 # ----------------------------------------------------------------------------
 # boolean helpers
 # ----------------------------------------------------------------------------
@@ -261,112 +466,551 @@ def boolean_box(target, name, center, size):
     bpy.data.objects.remove(cutter, do_unlink=True)
 
 
-# ----------------------------------------------------------------------------
-# furniture
-# ----------------------------------------------------------------------------
-# anchors inside a 15 m cell: a 3 x 5 lattice, 2.5 m apart (>= furniture half-sizes)
-ANCHOR_X = (-5.0, 0.0, 5.0)
-ANCHOR_Y = (-5.0, -2.5, 0.0, 2.5, 5.0)
-ANCHORS = [(x, y) for y in ANCHOR_Y for x in ANCHOR_X]
+# ---------------------------------------------------------------------------
+# furniture — placed inside the rooms the partitions created
+# ---------------------------------------------------------------------------
+FURNITURE_PITCH = 2.6      # anchor spacing inside a room
+FURNITURE_MARGIN = 1.0     # keep clear of the walls
+DOOR_CLEAR = 2.8           # no furniture within this radius of any doorway
+STAIR_CLEAR = 1.2          # extra margin around the stair footprint
 
-# stair occupies this box (cell-local metres) -> furniture must not overlap it
-STAIR_LOCAL = (-4.6, -2.6, 2.6, 3.6)   # cx, cy, half_x, half_y
+# how much floor space a piece needs, used to stop pieces overlapping
+BLOCK_RADIUS = {"bed": 2.3, "sofa": 2.0, "table": 1.9, "counter": 1.9,
+                "shelf": 1.6, "crate": 0.9}
+
+# pieces that should be pushed against a wall
+WALL_HUG = {"bed", "shelf", "counter"}
+
+# half extents of each module in its own local space (x, y)
+FURNITURE_SIZE = {"bed": (1.06, 0.68), "table": (1.10, 0.55), "crate": (0.57, 0.57),
+                  "shelf": (0.90, 0.23), "counter": (1.38, 0.46), "sofa": (1.15, 0.48)}
 
 
-def free_anchors(level, cell, nx, ny, door_points, is_stair_cell):
-    """Anchor spots that are clear of every doorway and of the staircase."""
-    cx, cy = cell_center(cell[0], cell[1], nx, ny)
-    stair_world = None
-    if is_stair_cell:
-        stair_world = (cx + STAIR_LOCAL[0], cy + STAIR_LOCAL[1])
+def rect_area(r):
+    return (r[2] - r[0]) * (r[3] - r[1])
+
+
+def rect_contains(r, p, eps=1e-6):
+    return r[0] - eps <= p[0] <= r[2] + eps and r[1] - eps <= p[1] <= r[3] + eps
+
+
+def rect_center(r):
+    return ((r[0] + r[2]) / 2.0, (r[1] + r[3]) / 2.0)
+
+
+def point_rect_dist(r, p):
+    dx = max(r[0] - p[0], 0.0, p[0] - r[2])
+    dy = max(r[1] - p[1], 0.0, p[1] - r[3])
+    return math.hypot(dx, dy)
+
+
+def assign_room_kinds(rects, entrance_pt):
+    """Corridors become 'hall'; the room nearest the front door is the
+    living/kitchen; the smallest (and, on a tie, the farthest) room becomes
+    the bedroom; everything else is a generic room."""
+    kinds = [None] * len(rects)
+    for idx, r in enumerate(rects):
+        w, h = r[2] - r[0], r[3] - r[1]
+        short, long_ = min(w, h), max(w, h)
+        if short <= 6.5 and long_ / short >= 3.2:
+            kinds[idx] = "hall"
+
+    free = [i for i, k in enumerate(kinds) if k is None]
+    if free:
+        ordered = sorted(free, key=lambda i: (-rect_area(rects[i]),
+                                              point_rect_dist(rects[i], entrance_pt),
+                                              i))
+        kinds[ordered[0]] = "living"
+        if len(ordered) > 1:
+            kinds[ordered[-1]] = "bedroom"
+        for i in ordered[1:-1]:
+            kinds[i] = "room"
+    return [k or "room" for k in kinds]
+
+
+def room_anchors(rect, door_pts, stair_box):
+    """Lattice of candidate furniture spots inside one room."""
+    x0, y0, x1, y1 = rect
+    ax0, ax1 = x0 + FURNITURE_MARGIN, x1 - FURNITURE_MARGIN
+    ay0, ay1 = y0 + FURNITURE_MARGIN, y1 - FURNITURE_MARGIN
+    if ax1 - ax0 < 1.2 or ay1 - ay0 < 1.2:
+        return []
+
+    def line(a, b):
+        span = b - a
+        n = max(1, int(round(span / FURNITURE_PITCH)) + 1)
+        if n == 1:
+            return [(a + b) / 2.0]
+        return [a + span * k / (n - 1) for k in range(n)]
+
     out = []
-    for (dx, dy) in ANCHORS:
-        px, py = cx + dx, cy + dy
-        if any((px - qx) ** 2 + (py - qy) ** 2 < 2.4 ** 2 for (qx, qy) in door_points):
-            continue
-        if stair_world and (px - stair_world[0]) ** 2 + (py - stair_world[1]) ** 2 < 3.0 ** 2:
-            continue
-        out.append((px, py))
-    # deterministic shuffle so furniture spreads over the room instead of
-    # stacking up in the first (south-west) corner
-    rng = random.Random(1000 + level * 31 + cell[0] * 7 + cell[1] * 13)
-    rng.shuffle(out)
+    for px in line(ax0, ax1):
+        for py in line(ay0, ay1):
+            if any(math.hypot(px - qx, py - qy) < DOOR_CLEAR for (qx, qy) in door_pts):
+                continue
+            if stair_box is not None and (
+                    stair_box[0] - STAIR_CLEAR <= px <= stair_box[2] + STAIR_CLEAR and
+                    stair_box[1] - STAIR_CLEAR <= py <= stair_box[3] + STAIR_CLEAR):
+                continue
+            out.append(dict(p=(px, py),
+                            walls={"W": px - x0, "E": x1 - px,
+                                   "S": py - y0, "N": y1 - py}))
     return out
 
 
-def furnish(spec, cells, nx, ny, floors, stair_cell, door_edges, parts):
-    """Scatter the recipe's furniture across rooms; never in a doorway or stairwell."""
+def nearest_wall(anchor):
+    return min(anchor["walls"].items(), key=lambda kv: kv[1])
+
+
+def rotated_half(kind, rot):
+    """Axis-aligned half extents of a piece after a z rotation."""
+    hx, hy = FURNITURE_SIZE.get(kind, (0.6, 0.6))
+    c, s = abs(math.cos(rot)), abs(math.sin(rot))
+    return hx * c + hy * s, hx * s + hy * c
+
+
+def fits_in_room(rect, px, py, ex, ey, pad=0.06):
+    return (px - ex >= rect[0] + pad and px + ex <= rect[2] - pad and
+            py - ey >= rect[1] + pad and py + ey <= rect[3] - pad)
+
+
+def snap_to_wall(px, py, kind, rot, side, rect, gap=0.06):
+    """Slide a wall-hugging piece until its back is `gap` off the wall."""
+    ex, ey = rotated_half(kind, rot)
+    if side == "W":
+        return rect[0] + gap + ex, py
+    if side == "E":
+        return rect[2] - gap - ex, py
+    if side == "S":
+        return px, rect[1] + gap + ey
+    return px, rect[3] - gap - ey
+
+
+def furniture_rotation(kind, anchor, room_center, rng):
+    """Rotate a piece so it sits sensibly against its closest wall."""
+    side, dist = nearest_wall(anchor)
+    px, py = anchor["p"]
+    if kind == "bed":
+        # headboard is at local -X -> point it at the wall
+        return {"W": 0.0, "E": math.pi, "S": math.pi / 2.0,
+                "N": -math.pi / 2.0}[side]
+    if kind in ("shelf", "counter", "sofa"):
+        # back panel is at local +Y -> point it at the wall
+        turn = {"N": 0.0, "S": math.pi, "W": math.pi / 2.0, "E": -math.pi / 2.0}[side]
+        if kind == "sofa" and dist > 2.2:
+            turn = 0.0
+        return turn
+    if kind == "table":
+        return 0.0 if side in ("N", "S") else math.pi / 2.0
+    return rng.choice([0.0, math.pi / 2.0, math.pi, -math.pi / 2.0])
+
+
+def choose_room(kind, rooms, anchors, kinds_used, placed_per_room, skip=()):
+    """Pick the room that best fits the piece (loot is spread round-robin)."""
+    avail = [i for i, a in enumerate(anchors) if a and i not in skip]
+    if not avail:
+        return None
+    if kind == "crate":
+        # fewest pieces first -> crates end up in every corner of the house
+        avail.sort(key=lambda i: (placed_per_room[i], rooms[i]["level"], i))
+        return avail[0]
+
+    def pref(i):
+        k = rooms[i]["kind"]
+        level = rooms[i]["level"]
+        if kind == "bed":
+            weight = {"bedroom": 0.0, "room": 2.0, "living": 3.0, "hall": 5.0}.get(k, 4.0)
+            return weight - 0.6 * level          # beds prefer the upper floors
+        weight = {"living": 0.0, "room": 1.0, "bedroom": 2.0, "hall": 3.0}.get(k, 4.0)
+        return weight - 0.15 * level
+
+    avail.sort(key=lambda i: (kind in kinds_used[i], pref(i),
+                              placed_per_room[i], i))
+    return avail[0]
+
+
+# ---------------------------------------------------------------------------
+# plan + geometry checks  (the CRITICAL RULES of the room pass)
+# ---------------------------------------------------------------------------
+def point_segment_dist(p, seg):
+    (x1, y1), (x2, y2) = seg
+    px, py = p
+    dx, dy = x2 - x1, y2 - y1
+    l2 = dx * dx + dy * dy
+    if l2 == 0.0:
+        return math.hypot(px - x1, py - y1)
+    t = max(0.0, min(1.0, ((px - x1) * dx + (py - y1) * dy) / l2))
+    return math.hypot(px - (x1 + t * dx), py - (y1 + t * dy))
+
+
+def segment_hits_box(wall, box, pad=0.0):
+    """Does an axis-aligned wall segment cut through an axis-aligned box?"""
+    bx0, by0, bx1, by1 = (box[0] - pad, box[1] - pad, box[2] + pad, box[3] + pad)
+    if wall.axis == "x":
+        return by0 < wall.pos < by1 and wall.lo < bx1 and wall.hi > bx0
+    return bx0 < wall.pos < bx1 and wall.lo < by1 and wall.hi > by0
+
+
+def check_plan(name, walls, rooms, stair_box, entrance_pts):
+    """Fail the build if a partition blocks a door, a stair or a room."""
+    problems = []
+
+    for wall in walls:
+        if stair_box is not None and segment_hits_box(wall, stair_box, pad=0.15):
+            problems.append(f"{wall.label} cuts through the staircase")
+        for pt in wall.door_points():
+            if stair_box is not None and (
+                    stair_box[0] - 1.2 <= pt[0] <= stair_box[2] + 1.2 and
+                    stair_box[1] - 1.2 <= pt[1] <= stair_box[3] + 1.2):
+                problems.append(f"{wall.label}: doorway at {pt} is in the stairwell")
+            for other in walls:
+                if other is wall:
+                    continue
+                d = point_segment_dist(pt, other.segment())
+                if d < 1.1:
+                    problems.append(f"{wall.label}: doorway at {pt} blocked by "
+                                    f"{other.label} ({d:.2f} m)")
+            for (ex, ey), _inner in entrance_pts:
+                if math.hypot(pt[0] - ex, pt[1] - ey) < 2.4:
+                    problems.append(f"{wall.label}: doorway at {pt} sits in front "
+                                    f"of the main entrance")
+
+    # ---- every room must be reachable through a doorway -------------------
+    def room_index(pt):
+        for k, r in enumerate(rooms):
+            if rect_contains(r, pt):
+                return k
+        return None
+
+    graph = {k: set() for k in range(len(rooms))}
+    for wall in walls:
+        nxv, nyv = (0.0, 1.0) if wall.axis == "x" else (1.0, 0.0)
+        for (px, py) in wall.door_points():
+            a = room_index((px + nxv * 0.35, py + nyv * 0.35))
+            b = room_index((px - nxv * 0.35, py - nyv * 0.35))
+            if a is None or b is None or a == b:
+                problems.append(f"{wall.label}: doorway at ({px:.1f}, {py:.1f}) "
+                                f"does not join two rooms")
+                continue
+            graph[a].add(b)
+            graph[b].add(a)
+
+    if entrance_pts:
+        start = room_index(entrance_pts[0][1])
+        seen = {start}
+        stack = [start]
+        while stack:
+            cur = stack.pop()
+            for nxt in graph.get(cur, ()):
+                if nxt not in seen:
+                    seen.add(nxt)
+                    stack.append(nxt)
+        unreachable = [k for k in range(len(rooms)) if k not in seen]
+        if unreachable:
+            problems.append(f"rooms {unreachable} cannot be reached from the entrance")
+
+    if problems:
+        raise RuntimeError(f"{name}: interior plan failed — " + "; ".join(problems))
+
+
+def check_geometry(obj, name, walls, door_specs, shift, avoid=()):
+    """Ray-cast the finished mesh: partitions must be solid, doorways open."""
+    ox, oy, oz = shift
+    failures = []
+
+    def cast(origin, direction, distance):
+        return obj.ray_cast(Vector(origin), Vector(direction), distance=distance)
+
+    def clear_of_furniture(p):
+        return all(math.hypot(p[0] - q[0], p[1] - q[1]) > 1.7 for q in avoid)
+
+    tested = 0
+    for wall in walls:
+        if wall.axis == "y":
+            nrm = (1.0, 0.0)
+        else:
+            nrm = (0.0, 1.0)
+        doors = set(wall.door_slots())
+        candidates = []
+        for k, c in enumerate(wall.slot_centers()):
+            if k in doors:                       # solid part beside the doorway
+                candidates += [c - 2.6, c - 3.9, c + 2.6, c + 3.9, c - 5.2, c + 5.2]
+            else:
+                candidates += [c, c - 2.5, c + 2.5]
+        for t in candidates:
+            if not (wall.lo + 0.6 < t < wall.hi - 0.6):
+                continue
+            p = (t, wall.pos) if wall.axis == "x" else (wall.pos, t)
+            # probe above every furniture piece (the tallest is the 2.0 m
+            # shelf) but well below the 3.0 m wall top
+            origin = (p[0] + ox - nrm[0] * 1.4, p[1] + oy - nrm[1] * 1.4, 2.65 + oz)
+            hit, loc, _n, _i = cast(origin, (nrm[0], nrm[1], 0.0), 2.8)
+            tested += 1
+            if not hit:
+                failures.append(f"{wall.label}: no collision at "
+                                f"({p[0]:.1f}, {p[1]:.1f})")
+
+    for (p, nrm) in door_specs:
+        origin = (p[0] + ox - nrm[0] * 1.3, p[1] + oy - nrm[1] * 1.3, 1.4 + oz)
+        hit, loc, _n, _i = cast(origin, (nrm[0], nrm[1], 0.0), 2.6)
+        if hit:
+            failures.append(f"doorway at ({p[0]:.1f}, {p[1]:.1f}) is blocked "
+                            f"at {loc[0] + 0.0:.1f}")
+
+    if failures:
+        raise RuntimeError(f"{name}: geometry check failed — " + "; ".join(failures))
+    print(f"      {tested} wall probes + {len(door_specs)} doorways verified")
+
+
+def piece_clear(kind, rot, px, py, rect, walls, pad=0.06):
+    """True if the piece's footprint stays inside its room and off every wall."""
+    ex, ey = rotated_half(kind, rot)
+    if not fits_in_room(rect, px, py, ex, ey, pad):
+        return False
+    x0, x1 = px - ex, px + ex
+    y0, y1 = py - ey, py + ey
+    half = PART_T / 2.0 + pad
+    for w in walls:
+        if w.axis == "x":       # wall runs along X at y = w.pos
+            if x1 <= w.lo - half or x0 >= w.hi + half:
+                continue        # beside the end of the wall
+            if y1 <= w.pos - half or y0 >= w.pos + half:
+                continue        # entirely on one side
+            return False
+        else:                   # wall runs along Y at x = w.pos
+            if y1 <= w.lo - half or y0 >= w.hi + half:
+                continue
+            if x1 <= w.pos - half or x0 >= w.pos + half:
+                continue
+            return False
+    return True
+
+
+def furnish(spec, rooms, walls, door_pts, stair_box, parts):
+    """Distribute the recipe's furniture across the rooms, logically.
+
+    beds -> bedrooms (smallest room, upper floors first)
+    tables / shelves / counters / sofas -> living room / kitchen
+    crates -> every room in turn, so loot has to be searched for
+    """
     counts = spec.get("furniture", {})
     items: list[str] = []
     for kind, n in counts.items():
         items += [kind] * n
-    if not items:
-        return 0
+    if not items or not rooms:
+        return 0, []
 
-    priority = {"bed": 0, "sofa": 1, "counter": 2, "shelf": 3, "table": 4, "crate": 5}
-    items.sort(key=lambda k: priority.get(k, 9))
+    priority = ["bed", "sofa", "counter", "shelf", "table", "crate"]
+    items.sort(key=lambda k: priority.index(k) if k in priority else 99)
 
-    rooms = [(level, cell) for level in range(floors) for cell in cells]
-    if not rooms:
-        return 0
-
-    door_points_by_cell = {}
-    for (side, i, j) in door_edges:
-        door_points_by_cell.setdefault((i, j), []).append(edge_transform(side, i, j, nx, ny)[:2])
-
-    state = {}
-    for (level, cell) in rooms:
-        state[(level, cell)] = free_anchors(level, cell, nx, ny,
-                                            door_points_by_cell.get(cell, []),
-                                            cell == stair_cell)
-
-    def interleave(room_list):
-        """Round-robin across storeys so upper-floor rooms all get furnished."""
-        by_level = {}
-        for (lv, c) in room_list:
-            by_level.setdefault(lv, []).append((lv, c))
-        out = []
-        while any(by_level.values()):
-            for lv in sorted(by_level):
-                if by_level[lv]:
-                    out.append(by_level[lv].pop(0))
-        return out
-
-    upper = interleave([(lv, c) for (lv, c) in rooms if lv > 0]) or rooms
-    ground = interleave([(lv, c) for (lv, c) in rooms if lv == 0]) or rooms
-
-    cursor = {"upper": 0, "ground": 0}
+    anchors = [room_anchors(r["rect"], door_pts, stair_box) for r in rooms]
+    placed_per_room = [0] * len(rooms)
+    kinds_used = [set() for _ in rooms]
+    rng = random.Random(spec.get("seed", 7))
     placed = 0
+    placed_pts = []
+    placements = []
+
     for kind in items:
-        pool = upper if kind in ("bed", "sofa") else ground
-        slot = "upper" if pool is upper else "ground"
-        target = None
-        for attempt in range(len(pool)):
-            idx = (cursor[slot] + attempt) % len(pool)
-            room = pool[idx]
-            if state.get(room):
-                target = room
-                cursor[slot] = (idx + 1) % len(pool)
+        skipped = set()
+        chosen = None
+        idx = None
+        for _attempt in range(len(rooms) + 1):
+            idx = choose_room(kind, rooms, anchors, kinds_used, placed_per_room,
+                              skip=skipped)
+            if idx is None:
                 break
-        if target is None:          # every room full -> use whatever is left
-            for room in rooms:
-                if state.get(room):
-                    target = room
+            room = rooms[idx]
+            rect = room["rect"]
+            spots = anchors[idx]
+            if kind in WALL_HUG:
+                spots = sorted(spots, key=lambda a: (nearest_wall(a)[1], a["p"]))
+            else:
+                spots = sorted(spots, key=lambda a: (
+                    (a["p"][0] * 7.3 + a["p"][1] * 3.1) % 11.0, a["p"]))
+
+            for a in spots:
+                rot = furniture_rotation(kind, a, rect_center(rect), rng)
+                candidates = []
+                if kind in WALL_HUG:
+                    side, _d = nearest_wall(a)
+                    candidates.append(snap_to_wall(*a["p"], kind, rot, side, rect))
+                candidates.append(tuple(a["p"]))
+                for (px, py) in candidates:
+                    if not all(math.hypot(px - qx, py - qy) >= DOOR_CLEAR - 0.6
+                               for (qx, qy) in door_pts):
+                        continue
+                    if not piece_clear(kind, rot, px, py, rect, walls):
+                        continue
+                    chosen = (a, px, py, rot)
                     break
-        if target is None:
+                if chosen:
+                    break
+            if chosen is None:
+                skipped.add(idx)
+                continue
             break
-        (level, cell) = target
-        x, y = state[target].pop(0)
-        _, cy = cell_center(cell[0], cell[1], nx, ny)
-        rot = 0.0
-        if kind in ("shelf", "counter"):
-            rot = math.pi if y > cy else 0.0        # face into the room
-        elif kind == "crate":
-            rot = math.radians((placed * 37) % 90)
-        place(kind, f"Furn_{kind}_{placed}", (x, y, floor_top(level)),
+
+        if chosen is None or idx is None:
+            print(f"      ! no room with space left for {kind}")
+            continue
+
+        a, px, py, rot = chosen
+        place(kind, f"Furn_{kind}_{placed}", (px, py, floor_top(rooms[idx]["level"])),
               rot_z=rot, parts=parts)
+
+        radius = BLOCK_RADIUS.get(kind, 1.5)
+        anchors[idx] = [q for q in anchors[idx]
+                        if math.hypot(q["p"][0] - a["p"][0],
+                                      q["p"][1] - a["p"][1]) > radius]
+        kinds_used[idx].add(kind)
+        placed_per_room[idx] += 1
+        placed_pts.append((px, py))
+        placements.append(dict(kind=kind, x=px, y=py, rot=rot,
+                               level=rooms[idx]["level"], rect=rooms[idx]["rect"]))
         placed += 1
-    return placed
+
+    # ---- exact self-check: every piece inside a room, off every wall ------
+    bad = [q for q in placements
+           if not piece_clear(q["kind"], q["rot"], q["x"], q["y"], q["rect"], walls)]
+    if bad:
+        raise RuntimeError(f"{spec['name']}: furniture blocking a wall — "
+                           + "; ".join(f"{q['kind']} ({q['x']:.1f}, {q['y']:.1f})"
+                                       for q in bad[:4]))
+    return placed, placed_pts
+
+
+# ---------------------------------------------------------------------------
+# plan + geometry checks  (the CRITICAL RULES of the room pass)
+# ---------------------------------------------------------------------------
+def point_segment_dist(p, seg):
+    (x1, y1), (x2, y2) = seg
+    px, py = p
+    dx, dy = x2 - x1, y2 - y1
+    l2 = dx * dx + dy * dy
+    if l2 == 0.0:
+        return math.hypot(px - x1, py - y1)
+    t = max(0.0, min(1.0, ((px - x1) * dx + (py - y1) * dy) / l2))
+    return math.hypot(px - (x1 + t * dx), py - (y1 + t * dy))
+
+
+def segment_hits_box(wall, box, pad=0.0):
+    """Does an axis-aligned wall segment cut through an axis-aligned box?"""
+    bx0, by0, bx1, by1 = (box[0] - pad, box[1] - pad, box[2] + pad, box[3] + pad)
+    if wall.axis == "x":
+        return by0 < wall.pos < by1 and wall.lo < bx1 and wall.hi > bx0
+    return bx0 < wall.pos < bx1 and wall.lo < by1 and wall.hi > by0
+
+
+def check_plan(name, walls, rooms, stair_box, entrance_pts):
+    """Fail the build if a partition blocks a door, a stair or a room."""
+    problems = []
+
+    for wall in walls:
+        if stair_box is not None and segment_hits_box(wall, stair_box, pad=0.15):
+            problems.append(f"{wall.label} cuts through the staircase")
+        for pt in wall.door_points():
+            if stair_box is not None and (
+                    stair_box[0] - 1.2 <= pt[0] <= stair_box[2] + 1.2 and
+                    stair_box[1] - 1.2 <= pt[1] <= stair_box[3] + 1.2):
+                problems.append(f"{wall.label}: doorway at {pt} is in the stairwell")
+            for other in walls:
+                if other is wall:
+                    continue
+                d = point_segment_dist(pt, other.segment())
+                if d < 1.1:
+                    problems.append(f"{wall.label}: doorway at {pt} blocked by "
+                                    f"{other.label} ({d:.2f} m)")
+            for (ex, ey), _inner in entrance_pts:
+                if math.hypot(pt[0] - ex, pt[1] - ey) < 2.4:
+                    problems.append(f"{wall.label}: doorway at {pt} sits in front "
+                                    f"of the main entrance")
+
+    # ---- every room must be reachable through a doorway -------------------
+    def room_index(pt):
+        for k, r in enumerate(rooms):
+            if rect_contains(r, pt):
+                return k
+        return None
+
+    graph = {k: set() for k in range(len(rooms))}
+    for wall in walls:
+        nxv, nyv = (0.0, 1.0) if wall.axis == "x" else (1.0, 0.0)
+        for (px, py) in wall.door_points():
+            a = room_index((px + nxv * 0.35, py + nyv * 0.35))
+            b = room_index((px - nxv * 0.35, py - nyv * 0.35))
+            if a is None or b is None or a == b:
+                problems.append(f"{wall.label}: doorway at ({px:.1f}, {py:.1f}) "
+                                f"does not join two rooms")
+                continue
+            graph[a].add(b)
+            graph[b].add(a)
+
+    if entrance_pts:
+        start = room_index(entrance_pts[0][1])
+        seen = {start}
+        stack = [start]
+        while stack:
+            cur = stack.pop()
+            for nxt in graph.get(cur, ()):
+                if nxt not in seen:
+                    seen.add(nxt)
+                    stack.append(nxt)
+        unreachable = [k for k in range(len(rooms)) if k not in seen]
+        if unreachable:
+            problems.append(f"rooms {unreachable} cannot be reached from the entrance")
+
+    if problems:
+        raise RuntimeError(f"{name}: interior plan failed — " + "; ".join(problems))
+
+
+def check_geometry(obj, name, walls, door_specs, shift, avoid=()):
+    """Ray-cast the finished mesh: partitions must be solid, doorways open."""
+    ox, oy, oz = shift
+    failures = []
+
+    def cast(origin, direction, distance):
+        return obj.ray_cast(Vector(origin), Vector(direction), distance=distance)
+
+    def clear_of_furniture(p):
+        return all(math.hypot(p[0] - q[0], p[1] - q[1]) > 1.7 for q in avoid)
+
+    tested = 0
+    for wall in walls:
+        if wall.axis == "y":
+            nrm = (1.0, 0.0)
+        else:
+            nrm = (0.0, 1.0)
+        doors = set(wall.door_slots())
+        candidates = []
+        for k, c in enumerate(wall.slot_centers()):
+            if k in doors:                       # solid part beside the doorway
+                candidates += [c - 2.6, c - 3.9, c + 2.6, c + 3.9, c - 5.2, c + 5.2]
+            else:
+                candidates += [c, c - 2.5, c + 2.5]
+        for t in candidates:
+            if not (wall.lo + 0.6 < t < wall.hi - 0.6):
+                continue
+            p = (t, wall.pos) if wall.axis == "x" else (wall.pos, t)
+            # probe above every furniture piece (the tallest is the 2.0 m
+            # shelf) but well below the 3.0 m wall top
+            origin = (p[0] + ox - nrm[0] * 1.4, p[1] + oy - nrm[1] * 1.4, 2.65 + oz)
+            hit, loc, _n, _i = cast(origin, (nrm[0], nrm[1], 0.0), 2.8)
+            tested += 1
+            if not hit:
+                failures.append(f"{wall.label}: no collision at "
+                                f"({p[0]:.1f}, {p[1]:.1f})")
+
+    for (p, nrm) in door_specs:
+        origin = (p[0] + ox - nrm[0] * 1.3, p[1] + oy - nrm[1] * 1.3, 1.4 + oz)
+        hit, loc, _n, _i = cast(origin, (nrm[0], nrm[1], 0.0), 2.6)
+        if hit:
+            failures.append(f"doorway at ({p[0]:.1f}, {p[1]:.1f}) is blocked "
+                            f"at {loc[0] + 0.0:.1f}")
+
+    if failures:
+        raise RuntimeError(f"{name}: geometry check failed — " + "; ".join(failures))
+    print(f"      {tested} wall probes + {len(door_specs)} doorways verified")
 
 
 # ----------------------------------------------------------------------------
@@ -468,6 +1112,25 @@ def assemble(spec: dict) -> bpy.types.Object:
     window_rule = spec.get("windows", "all")
     solid_edges = {tuple(e) for e in spec.get("solid_edges", [])}
 
+    # ---- interior plan: partitions + the rooms they create ---------------
+    plan_walls, room_rects = build_plan(spec)
+    stair_cell = tuple(spec["stair_cell"]) if spec.get("stair_cell") else None
+    stair_box = None
+    if floors > 1 and stair_cell is not None:
+        scx, scy = cell_center(stair_cell[0], stair_cell[1], nx, ny)
+        sx, sy = scx + STAIR_LOCAL[0], scy + STAIR_LOCAL[1]
+        hx, hy = STAIR_SIZE[0] / 2.0, STAIR_SIZE[1] / 2.0
+        stair_box = (sx - hx, sy - hy, sx + hx, sy + hy)
+
+    entrance_pts = []
+    for (side, i, j) in doors:
+        ex, ey, _ = edge_transform(side, i, j, nx, ny)
+        nv = edge_normal(side)
+        # edge_normal() points out of the building -> step the other way
+        entrance_pts.append(((ex, ey), (ex - nv[0] * 2.0, ey - nv[1] * 2.0)))
+
+    check_plan(name, plan_walls, room_rects, stair_box, entrance_pts)
+
     parts: list[bpy.types.Object] = []
     wall_objs: list[bpy.types.Object] = []
     slab_objs: dict[tuple, bpy.types.Object] = {}
@@ -544,6 +1207,9 @@ def assemble(spec: dict) -> bpy.types.Object:
                              (level + 1) * STOREY - SLAB / 2 - 0.05),
                             (2.9, 3.8, 0.6))
 
+    # ---- interior partitions + doorways ----------------------------------
+    modules_used += add_partition_walls(plan_walls, floors, wall_mat, parts)
+
     # ---- roof -------------------------------------------------------------
     roof = spec.get("roof", "flat")
     roof_z = floors * STOREY
@@ -602,10 +1268,17 @@ def assemble(spec: dict) -> bpy.types.Object:
                             (rng.uniform(1.6, 2.8), rng.uniform(1.6, 2.8),
                              rng.uniform(1.4, 2.2)))
 
-    # ---- furniture --------------------------------------------------------
-    furniture_count = furnish(spec, cells, nx, ny, floors, stair_cell,
-                              [(s, i, j) for (s, i, j) in doors | garages],
-                              parts)
+    # ---- furniture, inside the rooms -------------------------------------
+    interior_door_pts = [pt for w in plan_walls for pt in w.door_points()]
+    all_door_pts = interior_door_pts + [e[0] for e in entrance_pts]
+    rooms = []
+    for level in range(floors):
+        kinds = assign_room_kinds(room_rects,
+                                  entrance_pts[0][1] if entrance_pts else (0.0, 0.0))
+        for rect, kind in zip(room_rects, kinds):
+            rooms.append(dict(level=level, rect=rect, kind=kind))
+    furniture_count, furniture_pts = furnish(spec, rooms, plan_walls, all_door_pts,
+                                             stair_box, parts)
 
     # ---- join into one mesh ----------------------------------------------
     bpy.ops.object.select_all(action="DESELECT")
@@ -617,6 +1290,10 @@ def assemble(spec: dict) -> bpy.types.Object:
     obj.name = name
     obj.data.name = name + "Mesh"
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+
+    merged = dedupe_materials(obj)
+    if merged:
+        print(f"      merged {merged} duplicate material slots")
 
     if spec.get("destroy", 0.0) > 0.0:
         damage(obj, spec["destroy"], seed=spec.get("seed", 7))
@@ -634,12 +1311,52 @@ def assemble(spec: dict) -> bpy.types.Object:
     obj.scale = (1.0, 1.0, 1.0)
     obj["module_count"] = modules_used
     obj["furniture_count"] = furniture_count
+    obj["room_count"] = len(room_rects) * floors
+    obj["partition_count"] = len(plan_walls)
+
+    # ---- prove the partitions are solid + the doorways are clear ----------
+    if spec.get("destroy", 0.0) <= 0.0:
+        door_specs = []
+        for w in plan_walls:
+            n = (0.0, 1.0) if w.axis == "x" else (1.0, 0.0)
+            door_specs += [(pt, n) for pt in w.door_points()]
+        for (pt, inner) in entrance_pts:
+            n = (inner[0] - pt[0], inner[1] - pt[1])
+            l = math.hypot(n[0], n[1]) or 1.0
+            door_specs.append((pt, (n[0] / l, n[1] / l)))
+        shift = (-(min_x + max_x) / 2.0, -(min_y + max_y) / 2.0, -min_z)
+        check_geometry(obj, name, plan_walls, door_specs, shift, furniture_pts)
     return obj
 
 
 # ----------------------------------------------------------------------------
 # export / verify
 # ----------------------------------------------------------------------------
+def dedupe_materials(obj):
+    """Collapse duplicate material datablocks (Mod_Wood.001 -> Mod_Wood)."""
+    mats = obj.data.materials
+    base = lambda n: n.split(".")[0]
+    keep, remap = {}, {}
+    for i, m in enumerate(mats):
+        if m is None:
+            continue
+        b = base(m.name)
+        if b in keep:
+            remap[i] = keep[b]
+        else:
+            keep[b] = i
+    if not remap:
+        return 0
+    for poly in obj.data.polygons:
+        if poly.material_index in remap:
+            poly.material_index = remap[poly.material_index]
+    bpy.ops.object.select_all(action="DESELECT")
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.material_slot_remove_unused()
+    return len(remap)
+
+
 def export_glb(obj, filename):
     bpy.ops.object.select_all(action="DESELECT")
     obj.select_set(True)
@@ -699,41 +1416,54 @@ def verify(path):
 FULL_2x2 = [(0, 0), (1, 0), (0, 1), (1, 1)]
 VILLA_L = [(0, 0), (1, 0), (0, 1)]          # 3 of 4 quadrants -> L shape
 
+# interior plans ------------------------------------------------------------
+# middle + nook  -> 3 rooms per storey: big living/kitchen, hall, small bedroom
+HOME_PLAN = dict(type="middle", doors=(0,), nook=dict(side="E", y=7.5))
+# hallway       -> central 5 m corridor with 3 rooms on each side
+CORRIDOR_PLAN = dict(type="hallway", half_width=2.5)
+# cross         -> 1x1 hut split into front room + back bedroom
+HUT_PLAN = dict(type="cross", pos=0.0, doors=(0,))
+
 BUILDINGS = [
     dict(name="house_blue", title="House Blue", nx=2, ny=2, floors=2,
          wall="BrightBlue", trim="BlueDark", floor="InteriorFloor",
          roof="slanted", roof_mat="DarkGrey",
          doors=[("S", 0, 0)], windows="all", stair_cell=(1, 1),
-         furniture={"bed": 1, "crate": 2},
-         blurb="2×2 grid, 2 floors, bright blue walls, dark grey hip roof"),
+         plan=HOME_PLAN,
+         furniture={"bed": 2, "shelf": 2, "table": 2, "counter": 2, "crate": 6},
+         blurb="2×2, 2 floors, blue walls, living/kitchen + hall + bedroom"),
 
     dict(name="school_yellow", title="School Yellow", nx=3, ny=2, floors=2,
          wall="SchoolYellow", trim="YellowDark", floor="InteriorFloor",
          roof="flat", roof_mat="FlatConcrete",
          doors=[("S", 1, 0)], windows="all", stair_cell=(2, 1),
-         furniture={"table": 8, "shelf": 4},
-         blurb="3×2 grid, 2 floors, school yellow, flat concrete roof + parapet"),
+         plan=CORRIDOR_PLAN,
+         furniture={"table": 12, "shelf": 6, "counter": 3, "crate": 6},
+         blurb="3×2, 2 floors, school yellow, 6 classrooms off a central hall"),
 
     dict(name="apartment_green", title="Apartment Green", nx=2, ny=2, floors=3,
          wall="ConcreteGreen", trim="GreenDark", floor="InteriorFloor",
          roof="flat", roof_mat="FlatConcrete",
          doors=[("S", 1, 0)], windows="all", stair_cell=(0, 0),
-         furniture={"bed": 4, "crate": 6},
-         blurb="2×2 grid, 3 floors with internal stairs, concrete green walls"),
+         plan=HOME_PLAN,
+         furniture={"bed": 4, "table": 3, "shelf": 3, "counter": 2, "crate": 9},
+         blurb="2×2, 3 floors, green concrete, one bedroom per floor + stairs"),
 
     dict(name="warehouse_metal", title="Warehouse Metal", nx=3, ny=2, floors=1,
          wall="SteelBlue", trim="SteelDark", floor="InteriorFloor",
          roof="flat", roof_mat="RustOrange",
          doors=[("S", 0, 0)], garages=[("S", 1, 0)], windows="alternate",
-         furniture={"crate": 14},
-         blurb="3×2 grid, steel blue, rust orange roof, 6 m garage door, loot crates"),
+         plan=CORRIDOR_PLAN,
+         furniture={"crate": 18, "shelf": 4, "table": 3},
+         blurb="3×2, steel blue, rust roof, 6 m garage, 6 store bays + corridor"),
 
     dict(name="cabin_wood", title="Cabin Wood", nx=1, ny=1, floors=1,
          wall="WoodBrown", trim="WoodDark", floor="InteriorFloor",
          roof="slanted", roof_mat="SlantedRed",
          doors=[("S", 0, 0)], windows="all",
-         furniture={"bed": 1, "table": 1},
-         blurb="1×1 grid (15×15 m), wood brown walls, red hip roof"),
+         plan=HUT_PLAN,
+         furniture={"bed": 1, "table": 1, "shelf": 1, "counter": 1, "crate": 2},
+         blurb="1×1 (15 m), wood, red hip roof, front room + back bedroom"),
 
     dict(name="ruined_building", title="Ruined Building", nx=2, ny=2, floors=2,
          wall="DamagedConcrete", trim="ConcreteDark", floor="RubbleGrey",
@@ -741,48 +1471,58 @@ BUILDINGS = [
          doors=[("S", 0, 0)], windows="all", stair_cell=(1, 1),
          missing_walls=[("N", 1, 1, 1), ("E", 1, 0, 1), ("S", 0, 1, 1)],
          destroy=0.20, seed=11,
-         furniture={"crate": 6},
+         plan=dict(type="middle", doors=(0,), nook=dict(side="E", y=7.5)),
+         furniture={"crate": 8, "shelf": 2},
          details=[("wall_holes", 5, 3), ("rubble", 9, 5)],
-         blurb="2×2 grid, 2 floors, damaged concrete, no roof, holes + rubble"),
+         blurb="2×2, 2 floors, damaged concrete, shattered interior partitions"),
 
     dict(name="shop_row", title="Shop Row", nx=2, ny=1, floors=1,
          wall="OffWhite", trim="WoodDark", floor="InteriorFloor",
          roof="slanted", roof_mat="SlantedRed",
          doors=[("S", 0, 0), ("S", 1, 0)], windows="all",
-         furniture={"counter": 4, "shelf": 6, "table": 2},
+         plan=dict(type="middle", doors=(0,)),
+         furniture={"counter": 4, "shelf": 6, "table": 2, "crate": 2},
          details=[("awning", "S", 0, 0), ("awning", "S", 1, 0)],
-         blurb="2×1 grid (30×15 m), off-white shops, awnings, counters + shelves"),
+         blurb="2×1 (30×15 m), off-white, two shops joined by an internal door"),
 
     dict(name="villa_white", title="Villa White", nx=2, ny=2, floors=2,
          footprint=VILLA_L,
          wall="OffWhite", trim="StoneGrey", floor="InteriorFloor",
          roof="flat", roof_mat="FlatConcrete",
          doors=[("S", 1, 0)], windows="all", stair_cell=(0, 1),
-         furniture={"sofa": 4, "table": 3, "bed": 2},
+         plan=dict(type="custom", walls=[
+             dict(axis="y", pos=0.0, lo=-14.8, hi=0.0, doors=(0,), label="villaMid"),
+             dict(axis="x", pos=0.0, lo=-14.8, hi=-0.05, doors=(0,), label="villaNorth"),
+         ]),
+         furniture={"sofa": 4, "table": 3, "bed": 2, "shelf": 2,
+                    "counter": 2, "crate": 4},
          details=[("roof_terrace", 1, 0)],
-         blurb="L-shaped 2×2 footprint, off-white, flat roof + roof balcony"),
+         blurb="L-shaped 2×2, off-white, 3 rooms/floor + roof terrace"),
 
     dict(name="farmhouse_stone", title="Farmhouse Stone", nx=2, ny=1, floors=1,
          wall="BrickRed", trim="BrickDark", floor="InteriorFloor",
          roof="slanted", roof_mat="TiledTerracotta",
          doors=[("S", 1, 0)], windows="all",
-         furniture={"table": 4, "crate": 5},
-         blurb="2×1 grid, brick red walls, terracotta tiled hip roof"),
+         plan=dict(type="middle", doors=(0,)),
+         furniture={"bed": 1, "table": 4, "shelf": 2, "crate": 5},
+         blurb="2×1 (30×15 m), brick red, kitchen + bedroom either side"),
 
     dict(name="bunker_military", title="Bunker Military", nx=1, ny=1, floors=1,
          wall="DarkCamoGreen", wall_alt="CamoBrown", trim="BunkerTrim",
          floor="InteriorFloor",
          roof="flat", roof_mat="FlatConcrete",
          doors=[("S", 0, 0)], windows="none",
-         furniture={"crate": 8, "shelf": 4},
-         blurb="1×1 grid, dark camo green, no windows, flat roof, supplies"),
+         plan=HUT_PLAN,
+         furniture={"crate": 8, "shelf": 4, "bed": 1},
+         blurb="1×1, camo green, no windows, bunk room + supply room"),
 
     dict(name="tower_sniper", title="Tower Sniper", nx=1, ny=1, floors=4,
          wall="ConcreteGrey", trim="ConcreteDark", floor="InteriorFloor",
          roof="open", roof_mat="FlatConcrete",
          doors=[("S", 0, 0)], windows="all", stair_cell=(0, 0),
-         furniture={"crate": 1},
-         blurb="1×1 grid, 4 floors (12.7 m), concrete grey, open flat top"),
+         plan=HUT_PLAN,
+         furniture={"crate": 2, "shelf": 1},
+         blurb="1×1, 4 floors (13 m), concrete grey, open top, 2 rooms/floor"),
 ]
 
 
@@ -798,9 +1538,12 @@ def main():
         obj = assemble(spec)
         mc = obj.get("module_count", 0)
         fc = obj.get("furniture_count", 0)
+        rc = obj.get("room_count", 0)
+        pc = obj.get("partition_count", 0)
         path = export_glb(obj, spec["name"] + ".glb")
         exported.append(path)
-        print(f"      {mc} modules · {fc} furniture pieces")
+        print(f"      {mc} modules · {fc} furniture pieces · "
+              f"{pc} partition walls · {rc} rooms")
 
     print("— verification (re-import) —")
     bad = []

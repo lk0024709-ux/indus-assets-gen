@@ -72,10 +72,10 @@ jobs:
       - name: Generate Rajasthani Mahal Rooms + Mega Assembly (4 walk-in rooms 20×15/20×20/15×10/15×5 → 50×40 m, 2 floors, teal + 4 gold domes)
         run: python tools/generate_mahal_rooms.py
 
-      - name: Generate 15 m Modular Building Blocks + furniture — walls, floor, roofs, stairs, table/bed/crate/shelf/counter/sofa
+      - name: Generate 15 m Modular Building Blocks — walls, interior partitions, floor, roofs, stairs, furniture
         run: python tools/generate_building_modules.py
 
-      - name: Assemble 11 Battle Royale Buildings (15 m grid, furnished) into docs/models/buildings_modular/
+      - name: Assemble 11 Battle Royale Buildings with interior rooms + furniture into docs/models/buildings_modular/
         run: python tools/assemble_buildings.py
 
       # The 10 m set in docs/models/buildings/modular/ was superseded by the 15 m
