@@ -24,6 +24,8 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 *   `tools/generate_phase1.py` — **Phase 1 `bpy` generator** (base ground + 6 buildings + hero scene).
 *   `tools/generate_buildings.py` — original four-building generator (pre-Phase-1 assets).
 *   `tools/generate_mahal_rooms.py` — **Phase 4 Room-by-Room Mahal `bpy` generator** (4 walk-in rooms → `assemble_mahal()` → one 50×40 m mega palace).
+*   `tools/generate_building_modules.py` — **Phase 5 Lego module generator** (8 building blocks on a 10 m grid).
+*   `tools/assemble_buildings.py` — **Phase 5 building assembler** (recipes for the 11 standard buildings).
 *   `tools/generate_test.py` — pipeline smoke-test (brown test crate).
 *   `tools/make_seamless.py` — makes the AI texture tiles perfectly seamless.
 *   `docs/` — The root folder for GitHub Pages.
@@ -36,6 +38,8 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 *   `docs/models/buildings/` — Building `.glb` files (textures packed inside).
 *   `docs/models/mahal/rooms/` — 4 walk-in room blocks (`room_darbar_hall`, `room_courtyard`, `room_ranivas`, `room_gateway`).
 *   `docs/models/mahal/rajasthani_mahal_mega.glb` — the assembled palace (one joined mesh).
+*   `docs/models/modules/` — the 8 modular building blocks (`mod_wall_solid`, `mod_wall_window`, `mod_wall_door`, `mod_wall_garage`, `mod_floor`, `mod_roof_flat`, `mod_roof_slanted`, `mod_stairs`).
+*   `docs/models/buildings/modular/` — the 11 buildings assembled from those modules.
 *   `.github/workflows/deploy.yml` — CI/CD pipeline: generate Phase 1 + Phase 2 assets and deploy to Pages.
 
 ## 🌍 Phase 2 Assets — Complete Map Environment
@@ -59,6 +63,44 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 | Nature | `bush.glb` | 1.9 m × 1.3 m × 1.25 m | Cluster of 3 low-poly green spheres | `grass_1k.png` |
 | Nature | `grass_clump.glb` | 0.85 m × 0.74 m × 0.90 m | 3 crossed planes with double-sided green material | `grass_1k.png` |
 
+## 🧱 Phase 5 — Modular Buildings: 8 Lego modules → 11 buildings
+`tools/generate_building_modules.py` builds the kit, `tools/assemble_buildings.py` imports it and places the pieces at
+exact X / Y / Z coordinates on a **10 m grid** (3 m storeys, 0.2 m slabs). Every module and every assembled building
+has a **bottom-centre `(0,0,0)`** origin and is flat shaded with solid Principled materials.
+
+### The kit — `docs/models/modules/`
+| Module | Size | Details | Tris |
+|---|---|---|---|
+| `mod_wall_solid.glb` | 10 × 0.2 × 3 m | plain panel | 12 |
+| `mod_wall_window.glb` | 10 × 0.38 × 3 m | 1.5 × 1.5 m opening, sill 1.0 m, ledge + lintel | 56 |
+| `mod_wall_door.glb` | 10 × 0.30 × 3 m | 1.5 × 2.2 m walk-through door, jambs + head | 64 |
+| `mod_wall_garage.glb` | 10 × 0.42 × 3 m | 6.0 × 2.6 m roller door, roller box + tracks | 64 |
+| `mod_floor.glb` | 10 × 10 × 0.2 m | slab with expansion grooves | 60 |
+| `mod_roof_flat.glb` | 10 × 10 × 0.66 m | 0.4 m parapet + sandstone coping | 108 |
+| `mod_roof_slanted.glb` | 10 × 10 × 2.64 m | hip roof, 2.6 m ridge, wood cap + eaves | 44 |
+| `mod_stairs.glb` | 2 × 3 × 2 m | 10 steps × 0.2 m rise (0.3 m tread) | 144 |
+
+Palette: **Sandstone `#D9C089`, Brick Red `#9E4B3C`, Concrete Grey `#B4B4AE`, Wood `#8B5A2B`** (hex → linear conversion so the
+GLB shows the intended colour).
+
+### The buildings — `docs/models/buildings/modular/`
+| Building | Grid | Floors | Roof | Size | Tris | Modules |
+|---|---|---|---|---|---|---|
+| `house_small.glb` | 2×2 | 1 | slanted | 20.1 × 20.2 × 5.6 m | 576 | 13 |
+| `cabin_wood.glb` | 1×1 | 1 | slanted | 10.2 × 10.1 × 5.6 m | 292 | 6 |
+| `house_tactical.glb` | 2×2 | 2 | slanted | 20.2 × 20.2 × 8.6 m | 1,460 | 27 |
+| `school_yellow.glb` | 3×2 | 2 | flat | 30.2 × 20.2 × 6.7 m | 2,704 | 40 |
+| `apartment_green.glb` | 2×2 | 3 | flat | 20.2 × 20.2 × 9.7 m | 2,856 | 43 |
+| `warehouse_metal.glb` | 3×2 | 1 | flat | 30.0 × 20.1 × 3.7 m | 1,268 | 22 |
+| `warehouse.glb` | 3×2 | 1 | flat | 30.0 × 20.1 × 3.7 m | 1,268 | 22 |
+| `garage.glb` | 1×1 | 1 | flat | 10.0 × 10.1 × 3.7 m | 268 | 6 |
+| `sniper_tower.glb` | 1×1 | 4 | flat | 10.2 × 10.2 × 12.7 m | 1,676 | 24 |
+| `ruined_building.glb` | 2×2 | 2 | none | 20.2 × 20.2 × 6.3 m | 1,167 | 26 |
+| `shop_row.glb` | 2×1 | 1 | slanted | 20.0 × 11.2 × 5.6 m | 452 | 9 |
+
+`ruined_building` gets a BMesh pass that deletes 18 % of its faces (seed 11) plus 7 rubble blocks. The original
+hand-detailed Phase-1 buildings remain in `docs/models/buildings/` — the modular set is a parallel, swap-in version.
+
 ## 🏯 Phase 4 — Rajasthani Mahal: Room-by-Room Modular Assembly
 `tools/generate_mahal_rooms.py` builds four **walk-in** rooms from solid vibrant materials (no textures), each with its origin at
 **bottom-centre (0, 0, 0)** and its floor exactly at `z = 0`, then welds them into one palace with `assemble_mahal()`.
@@ -72,7 +114,9 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 
 ### Palette — Golden Sandstone (Amber Fort / Jaisalmer)
 The Mahal exterior is no longer salmon pink. Every wall material is **golden sandstone `#D9C089`**, with **cream `#EDDBB3`**
-highlights and **tan `#B39466`** carving shadows. Because Blender/glTF base colours are stored **linear**, the script converts
+highlights and **tan `#B39466`** carving shadows — this covers the room set *and* the 50×50 m Hot Drop fortress, whose
+`sandstone_1k.png` map was regenerated as golden sandstone (mean ≈ `#D3BB8A`). Gold trim, teal domes and deep-blue
+doors/windows were deliberately left untouched. Because Blender/glTF base colours are stored **linear**, the script converts
 the sRGB hex through a `hex_color()` helper (`0.85/0.75/0.55` typed straight in would render as a washed-out `#EDE0C4`).
 
 | Material | sRGB hex | Notes |

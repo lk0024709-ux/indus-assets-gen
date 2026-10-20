@@ -3,7 +3,7 @@
 Mahal Palace — Royal Indian Fort (50m x 50m x 15m) with Hollow Courtyard
 Implements EXACT core mathematical rules:
 - Origin Bottom-center (0,0,0)
-- Textures sandstone_1k.png for walls, gold_trim_1k.png for domes (cube_project scale 0.2)
+- Textures golden sandstone #D9C089 for walls, gold_trim_1k.png for domes (cube_project scale 0.2)
 - Low-poly optimized (low-segment cylinders/spheres)
 - Outer 50x50 base hallowed by 20x20 Boolean, 15m thick walls
 - Grand archways 4m x 6m via math.sin/cos, 3 per wall, spacing = Length/4
@@ -86,27 +86,42 @@ def _lerp(c0,c1,t):
     return c0[None,None,:] + (c1-c0)[None,None,:] * t[...,None]
 
 def ensure_sandstone_1k():
+    """Golden sandstone map — Amber Fort / Jaisalmer, #D9C089.
+
+    Palette change: the old map was terracotta (0.62,0.32,0.18)->(0.86,0.56,0.34)
+    which read salmon-pink next to the teal domes.  This one is a light yellow
+    sandstone with cream highlights and tan mortar, and it is rewritten on every
+    run so a stale pink map can never be reused from cache.
+    """
     from PIL import Image
-    dst=os.path.join(TEXTURE_DIR,"sandstone_1k.png")
-    if os.path.isfile(dst): return
-    size=1024
-    base=_fft_noise(size,0.015,111)
-    detail=_fft_noise(size,0.08,112)
-    crack=_fft_noise(size,0.04,113)
-    fine=_fft_noise(size,0.45,114)
-    horiz=_fft_noise(size,0.035,115)
-    t=np.clip(0.5+0.38*base+0.18*detail+0.12*horiz,0,1)
-    col=_lerp((0.62,0.32,0.18),(0.86,0.56,0.34),t)
-    crack_mask=np.clip((np.clip(0.5+0.6*crack,0,1)-0.62)*3.2,0,1)
-    crack_col=_lerp((0.38,0.22,0.12),(0.28,0.16,0.09),np.clip(0.5+0.3*detail,0,1))
-    col=col*(1-crack_mask[...,None]*0.65)+crack_col*crack_mask[...,None]*0.65
-    layer=np.clip(0.5+0.4*horiz,0,1)
-    layer_col=_lerp((0.70,0.42,0.22),(0.80,0.55,0.30),layer)
-    col=col*0.88+layer_col*0.12
-    col=np.clip(col+0.05*fine[...,None],0,1)
-    col=np.clip((col-0.5)*1.08+0.5,0,1)
-    Image.fromarray((col*255).astype(np.uint8),"RGB").save(dst,"PNG")
-    print("  generated sandstone_1k.png")
+    dst = os.path.join(TEXTURE_DIR, "sandstone_1k.png")
+    size = 1024
+    base = _fft_noise(size, 0.015, 111)
+    detail = _fft_noise(size, 0.08, 112)
+    fine = _fft_noise(size, 0.45, 114)
+    horiz = _fft_noise(size, 0.035, 115)
+    grain = _fft_noise(size, 0.20, 116)
+
+    t = np.clip(0.5 + 0.34 * base + 0.18 * detail + 0.10 * horiz, 0, 1)
+    # tan #B39466 -> cream #EDDBB3
+    col = _lerp((0.70, 0.58, 0.40), (0.93, 0.86, 0.70), t)
+    # keep the average on the requested golden sandstone #D9C089
+    col = col * 0.55 + np.array([0.851, 0.753, 0.537])[None, None, :] * 0.45
+
+    # faint ashlar courses (lighter sandstone bands)
+    layer = np.clip(0.5 + 0.4 * horiz, 0, 1)
+    layer_col = _lerp((0.78, 0.68, 0.49), (0.91, 0.83, 0.65), layer)
+    col = col * 0.88 + layer_col * 0.12
+
+    # stone speckle + fine grain
+    speck = np.clip((grain - 1.05) * 0.55, 0, 1)
+    col = col * (1.0 - 0.22 * speck[..., None]) +         np.array([0.66, 0.55, 0.39])[None, None, :] * (0.22 * speck[..., None])
+    col = np.clip(col + 0.03 * fine[..., None], 0, 1)
+
+    os.makedirs(TEXTURE_DIR, exist_ok=True)
+    Image.fromarray((np.clip(col, 0, 1) * 255).astype(np.uint8), "RGB").save(dst, "PNG")
+    print("  regenerated sandstone_1k.png — golden sandstone #D9C089")
+
 
 def ensure_gold_trim_1k():
     from PIL import Image
