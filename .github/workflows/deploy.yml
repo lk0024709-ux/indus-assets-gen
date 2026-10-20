@@ -63,6 +63,9 @@ jobs:
       - name: Generate Mahal Palace Vibrant — Stylized Low-Poly (40×30 base)
         run: python tools/generate_mahal_vibrant.py
 
+      - name: Generate Rajasthani Mahal Master — Exterior + Interior Darbar (40×30 base, 30×20×12)
+        run: python tools/generate_mahal_master.py
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:
