@@ -8,6 +8,8 @@ shaded, and has its origin at BOTTOM-CENTRE (0, 0, 0) with the base on z = 0.
 
 Structural modules (15 m grid, 3 m storey)
   mod_wall_solid.glb     15.0 x 0.20 x 3.0 m   plain panel
+  mod_wall_partition.glb 15.0 x 0.10 x 3.0 m   thin interior partition
+  mod_wall_partition_door.glb 15.0 x 0.10 x 3.0 m  partition + 1.5 x 2.2 m doorway
   mod_wall_window.glb    15.0 x 0.38 x 3.0 m   two 1.5 x 1.5 m windows (sill 1.0)
   mod_wall_door.glb      15.0 x 0.30 x 3.0 m   1.5 x 2.2 m walk-through door
   mod_wall_garage.glb    15.0 x 0.42 x 3.0 m   6.0 x 2.6 m roller opening
@@ -45,6 +47,7 @@ os.makedirs(OUT_DIR, exist_ok=True)
 GRID = 15.0
 WALL_H = 3.0
 WALL_T = 0.2
+PARTITION_T = 0.1     # interior partitions are half the exterior thickness
 WINDOW_W, WINDOW_H, WINDOW_SILL = 1.5, 1.5, 1.0
 WINDOW_OFFSET = 3.6          # two windows per 15 m panel
 DOOR_W, DOOR_H = 1.5, 2.2
@@ -251,6 +254,46 @@ def build_wall_door():
 
 def build_wall_garage():
     return build_wall("garage", "mod_wall_garage.glb", "Mod_WallGarage")
+
+
+def build_partition(door: bool):
+    """Thin interior wall (0.10 m) with no opening, or a 1.5 m doorway.
+
+    One material slot only, so the assembler can re-skin the whole partition in
+    the building's own wall colour without touching anything else.
+    """
+    t = PARTITION_T
+    name = "Mod_WallPartitionDoor" if door else "Mod_WallPartition"
+    filename = "mod_wall_partition_door.glb" if door else "mod_wall_partition.glb"
+    panel = box(name, (GRID, t, WALL_H), (0.0, 0.0, WALL_H / 2.0), SANDSTONE)
+    parts = [panel]
+    if door:
+        cutter = box("Cut", (DOOR_W, t + 1.0, DOOR_H),
+                     (0.0, 0.0, DOOR_H / 2.0), SANDSTONE)
+        boolean_cut(panel, cutter)
+        frame_t = t + 0.12          # slim casing, 6 cm proud of each face
+        parts += [
+            box("FrameL", (0.12, frame_t, DOOR_H + 0.12),
+                (-DOOR_W / 2 - 0.06, 0.0, (DOOR_H + 0.12) / 2.0), SANDSTONE),
+            box("FrameR", (0.12, frame_t, DOOR_H + 0.12),
+                (DOOR_W / 2 + 0.06, 0.0, (DOOR_H + 0.12) / 2.0), SANDSTONE),
+            box("FrameHead", (DOOR_W + 0.36, frame_t, 0.12),
+                (0.0, 0.0, DOOR_H + 0.06), SANDSTONE),
+            box("SkirtL", (0.06, t + 0.06, 0.10),
+                (-DOOR_W / 2 - 0.12, 0.0, 0.05), SANDSTONE),
+            box("SkirtR", (0.06, t + 0.06, 0.10),
+                (DOOR_W / 2 + 0.12, 0.0, 0.05), SANDSTONE),
+        ]
+    obj = join(parts, name)
+    return export(obj, filename)
+
+
+def build_wall_partition():
+    return build_partition(door=False)
+
+
+def build_wall_partition_door():
+    return build_partition(door=True)
 
 
 def build_floor():
@@ -462,6 +505,8 @@ def main():
         ("mod_wall_window.glb", build_wall_window),
         ("mod_wall_door.glb", build_wall_door),
         ("mod_wall_garage.glb", build_wall_garage),
+        ("mod_wall_partition.glb", build_wall_partition),
+        ("mod_wall_partition_door.glb", build_wall_partition_door),
         ("mod_floor.glb", build_floor),
         ("mod_roof_flat.glb", build_roof_flat),
         ("mod_roof_slanted.glb", build_roof_slanted),
@@ -507,7 +552,7 @@ def main():
             bad.append((filename, min_z))
     if bad:
         raise RuntimeError(f"origin verification failed: {bad}")
-    print(f"Done — {len(builders)} modules generated (15 m grid + furniture).")
+    print(f"Done — {len(builders)} modules generated (15 m grid + partitions + furniture).")
     return 0
 
 

@@ -24,8 +24,8 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 *   `tools/generate_phase1.py` — **Phase 1 `bpy` generator** (base ground + 6 buildings + hero scene).
 *   `tools/generate_buildings.py` — original four-building generator (pre-Phase-1 assets).
 *   `tools/generate_mahal_rooms.py` — **Phase 4 Room-by-Room Mahal `bpy` generator** (4 walk-in rooms → `assemble_mahal()` → one 50×40 m mega palace).
-*   `tools/generate_building_modules.py` — **Phase 6 Lego module generator** (14 blocks: 8 structural bays/slabs/roofs/stairs + 6 furniture pieces, 15 m grid).
-*   `tools/assemble_buildings.py` — **Phase 6 Battle Royale building assembler** (11 recipes, wall + roof palettes, interior furniture).
+*   `tools/generate_building_modules.py` — **Lego module generator** (16 blocks: 8 structural bays/slabs/roofs/stairs + 2 interior partitions + 6 furniture pieces, 15 m grid).
+*   `tools/assemble_buildings.py` — **Battle Royale building assembler** (11 recipes, wall + roof palettes, interior partition plans, room-aware furniture).
 *   `tools/generate_test.py` — pipeline smoke-test (brown test crate).
 *   `tools/make_seamless.py` — makes the AI texture tiles perfectly seamless.
 *   `docs/` — The root folder for GitHub Pages.
@@ -38,7 +38,7 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 *   `docs/models/buildings/` — Building `.glb` files (textures packed inside).
 *   `docs/models/mahal/rooms/` — 4 walk-in room blocks (`room_darbar_hall`, `room_courtyard`, `room_ranivas`, `room_gateway`).
 *   `docs/models/mahal/rajasthani_mahal_mega.glb` — the assembled palace (one joined mesh).
-*   `docs/models/modules/` — the 14 modular blocks: `mod_wall_solid`, `mod_wall_window`, `mod_wall_door`, `mod_wall_garage`, `mod_floor`, `mod_roof_flat`, `mod_roof_slanted`, `mod_stairs` + furniture `mod_table`, `mod_bed`, `mod_crate`, `mod_shelf`, `mod_counter`, `mod_sofa`.
+*   `docs/models/modules/` — the 16 modular blocks: `mod_wall_solid`, `mod_wall_window`, `mod_wall_door`, `mod_wall_garage`, `mod_floor`, `mod_roof_flat`, `mod_roof_slanted`, `mod_stairs`, interior `mod_wall_partition` + `mod_wall_partition_door` + furniture `mod_table`, `mod_bed`, `mod_crate`, `mod_shelf`, `mod_counter`, `mod_sofa`.
 *   `docs/models/buildings_modular/` — the 11 Battle Royale buildings assembled from those modules (furniture already joined in).
 *   `.github/workflows/deploy.yml` — CI/CD pipeline: generate Phase 1 + Phase 2 assets and deploy to Pages.
 
@@ -63,16 +63,17 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 | Nature | `bush.glb` | 1.9 m × 1.3 m × 1.25 m | Cluster of 3 low-poly green spheres | `grass_1k.png` |
 | Nature | `grass_clump.glb` | 0.85 m × 0.74 m × 0.90 m | 3 crossed planes with double-sided green material | `grass_1k.png` |
 
-## 🧱 Phase 6 — Battle Royale Buildings: 15 m grid, wall/roof palettes, interior furniture
+## 🧱 Battle Royale Buildings: 15 m grid, interior rooms, wall/roof palettes
 
 `tools/generate_building_modules.py` builds the kit, `tools/assemble_buildings.py` imports it and places every bay,
-slab, stair and **furniture piece** at exact X / Y / Z coordinates on a **15 m grid** (3 m storeys, 0.2 m slabs,
-0.2 m walls). Every module and every assembled building has a **bottom-centre `(0,0,0)`** origin and is flat shaded
-with solid Principled materials. Each building is joined into **one mesh** before export.
+slab, stair, **interior partition** and **furniture piece** at exact X / Y / Z coordinates on a **15 m grid**
+(3 m storeys, 0.2 m slabs, 0.2 m exterior walls, 0.10 m partitions). Every module and every assembled building has a
+**bottom-centre `(0,0,0)`** origin and is flat shaded with solid Principled materials. Each building is joined into
+**one mesh** before export.
 
-The point of the phase is that the 11 blocks read as different places at a glance — like a real Battle Royale map
-(Blue House, Yellow School, Green Apartment) — so footprint, floor count, wall colour, roof type **and** furniture
-all change per recipe.
+The 11 blocks read as different places at a glance — like a real Battle Royale map (Blue House, Yellow School,
+Green Apartment) — so footprint, floor count, wall colour, roof type, **room plan** and furniture all change per
+recipe. No floor is a single empty room any more: each one is divided into bedrooms, hallways and living rooms.
 
 ### The kit — `docs/models/modules/` (15 m grid)
 
@@ -86,6 +87,8 @@ all change per recipe.
 | `mod_roof_flat.glb` | 15 × 15 × 0.66 m | 0.4 m parapet + coping (2 mats) | 108 |
 | `mod_roof_slanted.glb` | 15 × 15 × 3.04 m | true hip roof, 3 m ridge + wood cap (2 mats) | 44 |
 | `mod_stairs.glb` | 2.4 × 3.4 × 3.0 m | 10 steps × 0.3 m rise × 0.34 m tread, 2.4 m wide | 144 |
+| `mod_wall_partition.glb` | 15 × 0.10 × 3 m | interior partition, half the exterior thickness | 12 |
+| `mod_wall_partition_door.glb` | 15 × 0.22 × 3 m | partition + 1.5 × 2.2 m doorway + slim casing | 88 |
 | `mod_table.glb` | 2.2 × 1.1 × 0.79 m | top + 4 legs + stretcher (2 mats) | 72 |
 | `mod_bed.glb` | 2.12 × 1.35 × 0.8 m | frame, headboard, mattress, blanket, pillow (3 mats) | 108 |
 | `mod_crate.glb` | 1.13 × 1.13 × 1.12 m | corner posts + battens — loot crate (2 mats) | 108 |
@@ -110,19 +113,54 @@ all change per recipe.
 
 ### The buildings — `docs/models/buildings_modular/`
 
-| Building | Grid / size | Floors | Walls + roof | Furniture | Tris |
-|---|---|---|---|---|---|
-| `house_blue.glb` | 2×2 · 30.3 × 30.3 × 9.0 m | 2 | Bright Blue + Dark Grey hip | 1 bed, 2 crates | 2,638 |
-| `school_yellow.glb` | 3×2 · 45.3 × 30.3 × 6.7 m | 2 | School Yellow + flat concrete + parapet | 8 tables, 4 shelves | 4,494 |
-| `apartment_green.glb` | 2×2 · 30.3 × 30.3 × 9.7 m | 3 | Concrete Green + flat concrete | 4 beds, 6 crates | 4,964 |
-| `warehouse_metal.glb` | 3×2 · 45.3 × 30.3 × 3.7 m | 1 | Steel Blue + Rust Orange + 6 m garage | 14 crates | 3,104 |
-| `cabin_wood.glb` | 1×1 · 15.3 × 15.2 × 6.0 m | 1 | Wood Brown + red hip | 1 bed, 1 table | 684 |
-| `ruined_building.glb` | 2×2 · 30.3 × 30.3 × 6.1 m | 2 | Damaged Concrete, **no roof**, 3 missing bays, 5 Boolean holes, 20 % faces deleted, rubble | 6 crates | 3,129 |
-| `shop_row.glb` | 2×1 · 30.3 × 17.4 × 6.0 m | 1 | Off-White + red slanted + 2 awnings | 4 counters, 6 shelves, 2 tables | 1,628 |
-| `villa_white.glb` | L-shaped 2×2 · 30.3 × 30.3 × 9.0 m | 2 | Off-White + flat roof + walk-on roof terrace with pergola | 4 sofas, 3 tables, 2 beds | 3,350 |
-| `farmhouse_stone.glb` | 2×1 · 30.3 × 15.3 × 6.0 m | 1 | Brick Red + terracotta tiled hip | 4 tables, 5 crates | 1,616 |
-| `bunker_military.glb` | 1×1 · 15.3 × 15.2 × 3.7 m | 1 | Dark Camo Green + camo banding, **no windows**, flat roof | 8 crates, 4 shelves | 1,504 |
-| `tower_sniper.glb` | 1×1 · 15.3 × 15.3 × 13.0 m | 4 | Concrete Grey, **open top** with 0.95 m parapet | 1 crate | 2,422 |
+| Building | Grid / size | Floors | Walls + roof | Rooms | Furniture | Tris |
+|---|---|---|---|---|---|---|
+| `house_blue.glb` | 2×2 · 30.3 × 30.3 × 9.0 m | 2 | Bright Blue + Dark Grey hip | 3 rooms/floor | 2 beds, 2 tables, 2 counters, 2 shelves, 6 crates | 3,962 |
+| `school_yellow.glb` | 3×2 · 45.3 × 30.3 × 6.7 m | 2 | School Yellow + flat concrete + parapet | 7 (5 m hall + 6 rooms) | 12 tables, 6 shelves, 3 counters, 6 crates | 6,894 |
+| `apartment_green.glb` | 2×2 · 30.3 × 30.3 × 9.7 m | 3 | Concrete Green + flat concrete | 3/floor (9) | 4 beds, 3 tables, 3 shelves, 2 counters, 9 crates | 6,416 |
+| `warehouse_metal.glb` | 3×2 · 45.3 × 30.3 × 3.7 m | 1 | Steel Blue + Rust Orange + 6 m garage | 7 (5 m aisle + 6 bays) | 18 crates, 4 shelves, 3 tables | 4,664 |
+| `cabin_wood.glb` | 1×1 · 15.3 × 15.2 × 6.0 m | 1 | Wood Brown + red hip | 2 | 1 bed, 1 table, 1 counter, 1 shelf, 2 crates | 1,120 |
+| `ruined_building.glb` | 2×2 · 30.3 × 30.3 × 6.1 m | 2 | Damaged Concrete, **no roof**, 3 missing bays, 5 Boolean holes, 20 % faces deleted, rubble | 3/floor, shattered | 8 crates, 2 shelves + 9 rubble | 3,736 |
+| `shop_row.glb` | 2×1 · 30.3 × 17.4 × 6.0 m | 1 | Off-White + red slanted + 2 awnings | 2 shops + connecting door | 4 counters, 3 shelves, 2 tables, 2 crates | 1,932 |
+| `villa_white.glb` | L-shaped 2×2 · 30.3 × 30.3 × 9.0 m | 2 | Off-White + flat roof + walk-on roof terrace with pergola | 3/floor (6) | 4 sofas, 3 tables, 2 beds, 2 shelves, 2 counters, 4 crates | 4,398 |
+| `farmhouse_stone.glb` | 2×1 · 30.3 × 15.3 × 6.0 m | 1 | Brick Red + terracotta tiled hip | 2 (kitchen + bedroom) | 1 bed, 3 tables, 2 shelves, 5 crates | 1,980 |
+| `bunker_military.glb` | 1×1 · 15.3 × 15.2 × 3.7 m | 1 | Dark Camo Green + camo banding, **no windows**, flat roof | 2 (bunk + supply) | 1 bed, 1 shelf, 6 crates | 1,700 |
+| `tower_sniper.glb` | 1×1 · 15.3 × 15.3 × 13.0 m | 4 | Concrete Grey, **open top** with 0.95 m parapet | 2/floor (8) | 2 crates, 1 shelf | 2,966 |
+
+### Interior rooms
+
+Every storey is divided by **0.10 m partition walls** so the buildings have bedrooms, hallways and
+living rooms instead of one empty shell. The plans are declarative (`plan=` on each recipe) and the
+rooms are *derived* by splitting the footprint outline with each wall, so furniture placement knows
+exactly which room it is in.
+
+| Plan | Buildings | Result |
+|---|---|---|
+| `middle` + jog | `house_blue`, `apartment_green`, `ruined_building` | 15 m wall down the middle + a 7.5 m jog wall → 15 m living room, 7.5 × 15 m hallway, 7.5 × 7.5 m bedroom (jog mirrored away from the staircase) |
+| `hallway` (5 m) | `school_yellow`, `warehouse_metal` | 5 m central hallway full length + 3 rooms either side, each with its own doorway (7 rooms/floor) |
+| `cross` | `cabin_wood`, `bunker_military`, `tower_sniper` | one 15 m wall → front room + bedroom on every floor |
+| `middle` | `shop_row`, `farmhouse_stone` | two 15 × 15 m rooms joined by one doorway |
+| `custom` | `villa_white` | 15 m spine wall + north wing wall through the L-shape → 3 rooms/floor |
+
+Each run is built from `mod_wall_partition` bays with exactly one `mod_wall_partition_door`, grown by
+10 cm at each end so the bays overlap and the end caps are buried inside the walls they meet.
+
+**Build-time guarantees** (the script raises and refuses to export if any of these fail):
+
+1. no partition cuts the staircase (2.4 × 3.4 m reserved box, 0.15 m pad);
+2. no interior doorway sits in the stairwell, within 1.1 m of another wall, or within 2.4 m of the
+   front door;
+3. every room is reachable from the entrance through the doorway graph;
+4. ray casts at 2.65 m through every partition hit solid geometry (bullets cannot pass through) and
+   ray casts through every doorway pass cleanly;
+5. no furniture footprint overlaps a partition, a doorway, the stairs or leaves its room.
+
+### Furniture per room
+
+Beds go to the bedroom, tables/shelves/counters/sofas to the living room & kitchen, and crates are
+dealt round-robin to whichever room has the fewest pieces, so loot has to be searched for across the
+whole building. Pieces are pushed against the nearest wall (headboards and shelf backs against it) on
+a per-room 2.6 m lattice, 1.0 m off the walls.
 
 ### How the assembler works
 
