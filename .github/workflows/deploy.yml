@@ -66,6 +66,9 @@ jobs:
       - name: Generate Rajasthani Mahal Master — Exterior + Interior Darbar (40×30 base, 30×20×12)
         run: python tools/generate_mahal_master.py
 
+      - name: Generate Modular Palace Blocks — wall/arch/dome/pillar (10×0.5×4, 10×0.5×6 arch, r5 dome, r0.5 h6 pillar)
+        run: python tools/generate_modular.py
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:
