@@ -72,6 +72,16 @@ jobs:
       - name: Generate Rajasthani Mahal Rooms + Mega Assembly (4 walk-in rooms 20×15/20×20/15×10/15×5 → 50×40 m, 2 floors, teal + 4 gold domes)
         run: python tools/generate_mahal_rooms.py
 
+      - name: Generate Modular Building Blocks — mod_wall_solid/window/door/garage, mod_floor, mod_roof_flat/slanted, mod_stairs
+        run: python tools/generate_building_modules.py
+
+      - name: Assemble 11 Modular Buildings from the Lego modules
+        run: python tools/assemble_buildings.py
+
+      # Keep res://assets/downloaded_models/rajasthani_mahal.glb (the Godot alias) in sync
+      - name: Sync rajasthani_mahal.glb alias with the freshly generated master
+        run: cp docs/models/buildings/mahal_palace_master.glb docs/models/buildings/rajasthani_mahal.glb
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:
