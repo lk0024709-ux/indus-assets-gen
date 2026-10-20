@@ -57,8 +57,11 @@ jobs:
           python tools/generate_bridges.py
           python tools/generate_nature.py
 
-      - name: Generate Mahal Palace Hot Drop POI (40×40×15m fortress)
+      - name: Generate Mahal Palace Hot Drop POI (50×50×15m fortress)
         run: python tools/generate_mahal.py
+
+      - name: Generate Mahal Palace Vibrant — Stylized Low-Poly (40×30 base)
+        run: python tools/generate_mahal_vibrant.py
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
