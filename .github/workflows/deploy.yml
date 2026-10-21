@@ -57,6 +57,9 @@ jobs:
           python tools/generate_bridges.py
           python tools/generate_nature.py
 
+      - name: Generate Elite Cargo Dropship — Battle Royale drop ship (45 m span × 35 m, 4 nacelles, open cargo ramp)
+        run: python tools/generate_plane_cargo_elite.py
+
       - name: Generate Mahal Palace Hot Drop POI (50×50×15m fortress)
         run: python tools/generate_mahal.py
 
