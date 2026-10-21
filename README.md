@@ -13,10 +13,11 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 1. **Textures:** Seamless tileable maps (`brick_wall`, `wood_plank`, `metal_corrugated`, `concrete_wall`) plus procedurally generated maps (`grass`, `grass_hero` with baked building shadows, `metal_rusted`) live in `docs/textures/`. The generator also bakes **vibrant tinted variants** (`brick_red`, `concrete_yellow`, `concrete_green`, `wood_warm`, `metal_steelblue`, `rust_orange`, `concrete_greydark`, `concrete_dark`, `wood_dark`) so the colour multiplies are stored in the texture pixels themselves — Blender's glTF exporter drops intermediate MixRGB tint nodes, but honours baked images.
 2. **Code Generation:** `tools/generate_phase1.py` uses `bpy` (Blender as a Python module) to build terrain and buildings at real-world metre scale — boolean door/window cutouts, density-normalised `uv.smart_project()` unwrapping, and for every wall/floor material the chain **`Texture Coordinate (UV) → Mapping (Scale 0.3, 0.3, 0.3) → Image Texture (Extension REPEAT) → Base Color`** so bricks/wood/concrete tile at human scale with no stretching (exported to glTF as `KHR_texture_transform`). Point lights are exported as `KHR_lights_punctual`. Every building's origin sits exactly at its bottom-centre (0, 0, 0).
 3. **Automated Export:** Models are exported as packed `.glb` files (`export_format='GLB'`, `export_image_format='JPEG'` so the textures pack inside the container) into `docs/models/`.
-4. **CI/CD Deployment:** GitHub Actions (`.github/workflows/deploy.yml`) triggers on every push to `main`, installs `bpy`, runs the Phase 1 generator, and deploys the `docs/` folder to GitHub Pages.
-5. **Web Viewing:** `docs/index.html` uses Google's `<model-viewer>` (generated dynamically from a JS array) with `environment-image="neutral"` and `shadow-intensity="1"` so the PBR textures and shadows read clearly on any device — a hero card shows the combined `scene_phase1.glb` world preview.
+4. **CI/CD Deployment:** GitHub Actions (`.github/workflows/deploy.yml`) triggers on every push to `main`, installs `bpy`, runs the Elite Cargo Dropship generator + the Phase 1 and Phase 2 generators, and deploys the `docs/` folder to GitHub Pages.
+5. **Web Viewing:** `docs/index.html` uses Google's `<model-viewer>` (generated dynamically from a JS array) with `environment-image="neutral"` and `shadow-intensity="1"` so the PBR textures and shadows read clearly on any device — hero cards show the **Elite Cargo Dropship** (no textures, so it gets its own steel-blue preview backdrop and exposure) and the combined `scene_phase1.glb` world preview.
 
 ## 📂 Project Structure
+*   `tools/generate_plane_cargo_elite.py` — **Phase 8 Elite Cargo Dropship `bpy` generator** (`plane_cargo_elite.glb`: 45 m span × 35 m, 4 octagonal nacelles, Boolean cargo bay + lowered ramp, ~200 greebles, 12 solid materials, no textures).
 *   `tools/generate_terrain.py` — **Phase 2 Terrain `bpy` generator** (`terrain_ground.glb`, `terrain_hill_large.glb`, `terrain_plateau.glb`, `terrain_valley.glb`).
 *   `tools/generate_water.py` — **Phase 2 Water & Beach `bpy` generator** (`water_ocean.glb`, `water_river.glb`, `beach_sand.glb`, `dam_concrete.glb`).
 *   `tools/generate_bridges.py` — **Phase 2 Bridges `bpy` generator** (`bridge_wood.glb`, `bridge_concrete.glb`).
@@ -29,12 +30,13 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 *   `tools/generate_test.py` — pipeline smoke-test (brown test crate).
 *   `tools/make_seamless.py` — makes the AI texture tiles perfectly seamless.
 *   `docs/` — The root folder for GitHub Pages.
-*   `docs/index.html` — The 3D web viewer (dark UI, mobile responsive, categorized into Terrain, Water & Bridges, Nature, and Buildings).
+*   `docs/index.html` — The 3D web viewer (dark UI, mobile responsive, categorized into Vehicles, Battle Royale Buildings, Mahal, Terrain, Water & Bridges, Nature, and Buildings).
 *   `docs/textures/` — Seamless 1K texture maps (PNG), including `grass_1k.png`, `rock_stone_1k.png`, `wood_plank_1k.png`, `concrete_wall_1k.png`, `sand_1k.png`, `water_1k.png`.
 *   `docs/models/terrain/` — Terrain `.glb` models.
 *   `docs/models/water/` — Water, beach, and dam `.glb` models.
 *   `docs/models/bridges/` — Wooden and concrete bridge `.glb` models.
 *   `docs/models/nature/` — Trees, rocks, bushes, and grass `.glb` models.
+*   `docs/models/vehicles/` — Vehicle `.glb` models (`plane_cargo_elite.glb`, the elite drop ship).
 *   `docs/models/buildings/` — Building `.glb` files (textures packed inside).
 *   `docs/models/mahal/rooms/` — 4 walk-in room blocks (`room_darbar_hall`, `room_courtyard`, `room_ranivas`, `room_gateway`).
 *   `docs/models/mahal/rajasthani_mahal_mega.glb` — the assembled palace (one joined mesh).
@@ -229,6 +231,34 @@ Everything is joined into **one mesh** (`rajasthani_mahal_mega`) — 54 m × 40.
 Corner service wings fill the cross-plan voids so the ground plane is continuous (no gaps to fall through).
 Origin of the mega file = courtyard centre at ground level `(0, 0, 0)`; North is Blender **+Y** (glTF **−Z** after the Y-up conversion).
 
+## 🛩 Phase 8 — Elite Cargo Dropship (Battle Royale drop sequence)
+
+`tools/generate_plane_cargo_elite.py` builds the **next-gen stealth cargo plane** that opens every match and exports a
+single joined mesh to `docs/models/vehicles/plane_cargo_elite.glb`.
+
+| Spec | Value |
+|---|---|
+| Size | **45.00 m wingspan × 35.00 m length × 10.33 m tall** (normalised at export, so the GLB is exactly on-brief) |
+| Origin | **bottom-centre (0, 0, 0)** — `min Z = 0.000`, so it sits on the ground when dropped at the origin |
+| Budget | **~22.3k tris**, 13,643 verts, **1.2 MB** GLB, flat shading, 12 materials, **0 textures** |
+| Materials | body `#2C2E33` (metallic 0.55 / rough 0.62), panels `#4A4E57`, accents `#15171B` + `#78808C`, engines `#1B1D22`, interior `#23262C`, glass `#123A66` (metallic **0.8** / rough **0.1**), emissives cyan `#21E6FF` (×5), ember `#FF7A18` (×6), red `#FF2B36`, green `#35FF6E`, white `#DFF6FF` |
+
+### How it is built
+
+| Part | Construction |
+|---|---|
+| **Fuselage** | Blended-wing-body loft: 12 station profiles (chined 16-point superellipse rings) blended from a 0.16 m nose tip to a 5.8 m wide cargo section — no round tube. Thin dark panel-line ribbons follow the curvature down both flanks plus 9 ring seams. |
+| **Greebling** | Raised lighter access panels (18 per side), 9 belly/shoulder vent banks with real slats, dorsal spine plates + rails, 8 blade antennas (4 dorsal, 2 ventral), RCS pods, chaff/flare dispensers, sensor blisters, fuel caps, tie-down rings, service hatches (deterministic RNG), boarding steps and grab handles. |
+| **Cockpit** | Faceted 6-station canopy lofted in tinted glass, framed with 3 arches, 2 shoulder rails, a spine rail and cyan recognition strips; nose sensor pods with lens rings, pitot probes, EO/FLIR chin turret, nose lights. |
+| **Wings** | 7-section swept wing loft (root chord 16.7 m → tip 1.4 m), canted winglets, dark leading-edge band, cyan LE strips, spanwise + chordwise panel lines, flap hinge fairings, vortex generators and 2 under-wing drop tanks with fins and pylons. |
+| **Engines** | 4 octagonal nacelles (8-sided loft) with **open intakes** — recessed duct, spinner cone, 10 curved fan blades, glow ring, guide vanes — armoured bands, heat-exchanger fins, vectoring nozzle petals, and emissive thrusters: cyan cylinder around an ember-orange core with a white-hot centre. |
+| **Tail** | Canted twin fins (6-section loft) with dark leading edges, cyan trailing strips, nav lights and tip antennas, plus a dorsal fairing, ribs, strobe and heat vents. |
+| **Cargo bay** | Real **Boolean Difference** (EXACT solver, bevelled cutter, applied) opens the rear bay; the generator ray-casts through the opening at build time and **fails the build** if the rear wall is still closed. Inside: floor, ribbed walls/ceiling, bulkhead, ceiling strip lights, tie-downs and 4 strapped crates. |
+| **Ramp** | Lowered 5.28 m wide plate built in an explicit ramp-local frame (`u` down-slope, `v` across, `w` normal) so treads, rails, cyan edge strips, under-beams, hydraulics and hazard tabs sit exactly on the surface. Red/green indicator lights + bezels ring the opening. |
+
+The script is pure `bpy` (no external assets) and asserts its own output: dimensions, `minZ == 0`, ≤ 120k tris,
+≥ 10 materials, **zero images in the GLB**, and a clear ray through the cargo opening.
+
 ## 🏗️ Phase 1 Assets
 | File | Size (real-world) | Details | Texture |
 |---|---|---|---|
@@ -253,10 +283,13 @@ Origin of the mega file = courtyard centre at ground level `(0, 0, 0)`; North is
 # 1. Install Blender as a Python module (Python 3.11 → bpy 5.0.x) + texture deps
 pip install bpy pillow numpy
 
-# 2. Generate Phase 1 assets (terrain + 6 buildings + hero scene)
+# 2. Generate the Elite Cargo Dropship (45 m span × 35 m, one joined mesh)
+python tools/generate_plane_cargo_elite.py
+
+# 3. Generate Phase 1 assets (terrain + 6 buildings + hero scene)
 python tools/generate_phase1.py
 
-# 3. Serve the viewer locally
+# 4. Serve the viewer locally
 python -m http.server 8000 --directory docs
 # → open http://localhost:8000 in a browser
 ```
