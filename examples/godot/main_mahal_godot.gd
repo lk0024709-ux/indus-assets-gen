@@ -1,6 +1,6 @@
-# main_mahal_godot.gd — TASK 2: Replace old procedural Mahal with rajasthani_mahal.glb
+# main_mahal_godot.gd — load the Grand Mahal (rajasthani_mahal_mega.glb) into your Godot map
 # Godot 4.2+ | Place this script on your map root (Node3D) or autoload it from main.gd
-# Requires: res://assets/downloaded_models/rajasthani_mahal.glb  (or modular/ fallback — see modular_mahal_builder.gd)
+# Requires: res://assets/downloaded_models/rajasthani_mahal_mega.glb
 #
 # What it does:
 # - Removes old procedural Mahal if present (looks for %OldMahal, $OldMahal, "Mahal", "ProceduralMahal")
@@ -9,20 +9,20 @@
 # - Optional: rebakes Navigation if you use NavigationServer3D
 #
 # Usage:
-#   1) Put rajasthani_mahal.glb at res://assets/downloaded_models/rajasthani_mahal.glb (see GODOT_INTEGRATION.md Task 1)
+#   1) Put rajasthani_mahal_mega.glb at res://assets/downloaded_models/rajasthani_mahal_mega.glb (see GODOT_INTEGRATION.md)
 #   2) Attach this script to your World/Map node, set `mahal_glb_path` in Inspector, run.
 #   3) Remove your old `generate_mahal()` call — or leave it, this script auto-removes it.
 #
-# Import tip (Editor): Select rajasthani_mahal.glb in FileSystem → Import → Root Type = Node3D, Generate Collisions = OFF
+# Import tip (Editor): Select rajasthani_mahal_mega.glb in FileSystem → Import → Root Type = Node3D, Generate Collisions = OFF
 # We generate accurate trimesh ourselves (convex would seal archways).
 
 extends Node3D
 class_name MainMahalLoader
 
-## Path inside res:// (must exist). Canonical alias after this branch: docs/models/buildings/rajasthani_mahal.glb
-@export var mahal_glb_path: String = "res://assets/downloaded_models/rajasthani_mahal.glb"
-## Fallback path if you keep the original name from this repo
-@export var mahal_fallback_path: String = "res://assets/downloaded_models/mahal_palace_master.glb"
+## Path inside res:// (must exist). Source: docs/models/mahal/rajasthani_mahal_mega.glb
+@export var mahal_glb_path: String = "res://assets/downloaded_models/rajasthani_mahal_mega.glb"
+## Fallback path (older download name kept by some projects)
+@export var mahal_fallback_path: String = "res://assets/downloaded_models/rajasthani_mahal.glb"
 ## Map center — per spec, exactly (0,0,0). Change only if your terrain is offset.
 @export var mahal_position: Vector3 = Vector3.ZERO
 ## Collision layers — adjust to your player/world
@@ -94,10 +94,8 @@ func _resolve_glb_path() -> String:
 	if FileAccess.file_exists(mahal_fallback_path):
 		return mahal_fallback_path
 	# Also try the original repo names if user downloaded verbatim
-	for p in ["res://assets/downloaded_models/buildings/rajasthani_mahal.glb",
-			  "res://assets/downloaded_models/mahal_palace.glb",
-			  "res://assets/downloaded_models/mahal_palace_master.glb",
-			  "res://assets/downloaded_models/mahal_palace_vibrant.glb"]:
+	for p in ["res://assets/downloaded_models/mahal/rajasthani_mahal_mega.glb",
+			  "res://assets/downloaded_models/rooms/room_darbar_hall.glb"]:
 		if FileAccess.file_exists(p):
 			return p
 	return ""

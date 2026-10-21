@@ -1,30 +1,30 @@
-# download_assets.ps1 — TASK 1 helper for Godot project (Windows PowerShell)
-# Usage: copy to your Godot project root, then:  powershell -ExecutionPolicy Bypass -File download_assets.ps1
+# download_assets.ps1 — fetch the production assets from the GitHub Pages site (Windows)
+# Usage: copy this file to your Godot project root, then: powershell -ExecutionPolicy Bypass -File .\download_assets.ps1
+$ErrorActionPreference = "Stop"
 
 $BaseUrl = "https://lk0024709-ux.github.io/indus-assets-gen/models"
-$Dest = "assets/downloaded_models"
-$ModularDest = "$Dest/modular"
+$Dest    = "assets/downloaded_models"
 
-Write-Host "→ Creating $Dest …"
-New-Item -ItemType Directory -Force -Path $Dest | Out-Null
-New-Item -ItemType Directory -Force -Path $ModularDest | Out-Null
+Write-Host "-> Creating $Dest ..."
+New-Item -ItemType Directory -Force -Path "$Dest/terrain" | Out-Null
 
-Write-Host "→ Downloading rajasthani_mahal.glb (4.2 MB) …"
-Invoke-WebRequest -Uri "$BaseUrl/buildings/rajasthani_mahal.glb" -OutFile "$Dest/rajasthani_mahal.glb"
-Copy-Item "$Dest/rajasthani_mahal.glb" "$Dest/mahal_palace_master.glb" -ErrorAction SilentlyContinue
-Get-ChildItem "$Dest/rajasthani_mahal.glb" | Format-List Length, Name
+Write-Host "-> Downloading the Grand Mahal (rajasthani_mahal_mega.glb, 4.0 MB) ..."
+Invoke-WebRequest -Uri "$BaseUrl/mahal/rajasthani_mahal_mega.glb" -OutFile "$Dest/rajasthani_mahal_mega.glb"
+Get-ChildItem "$Dest/rajasthani_mahal_mega.glb" | Format-List Length, Name
 
-Write-Host "→ Downloading modular blocks (4) …"
-@("wall_block","arch_block","dome","pillar") | ForEach-Object {
+Write-Host "-> Downloading the 11 Modular Buildings ..."
+@("house_blue","school_yellow","apartment_green","warehouse_metal","cabin_wood",
+  "ruined_building","shop_row","villa_white","farmhouse_stone","bunker_military","tower_sniper") | ForEach-Object {
   Write-Host "  - $_.glb"
-  Invoke-WebRequest -Uri "$BaseUrl/modular/$_.glb" -OutFile "$ModularDest/$_.glb"
+  Invoke-WebRequest -Uri "$BaseUrl/buildings_modular/$_.glb" -OutFile "$Dest/$_.glb"
 }
-Copy-Item "$ModularDest/wall_block.glb" "$ModularDest/wall_module.glb" -ErrorAction SilentlyContinue
-Copy-Item "$ModularDest/arch_block.glb" "$ModularDest/arch_module.glb" -ErrorAction SilentlyContinue
-Copy-Item "$ModularDest/dome.glb" "$ModularDest/dome_module.glb" -ErrorAction SilentlyContinue
-Copy-Item "$ModularDest/pillar.glb" "$ModularDest/pillar_module.glb" -ErrorAction SilentlyContinue
 
-Write-Host "→ Done. Verifying:"
-Get-ChildItem $Dest, $ModularDest | Format-Table Name, Length
-Write-Host "Place: res://assets/downloaded_models/"
-Write-Host "Next: See GODOT_INTEGRATION.md Task 2 + examples/godot/main_mahal_godot.gd"
+Write-Host "-> Downloading the 4 Terrain tiles ..."
+@("terrain_ground","terrain_hill_large","terrain_plateau","terrain_valley") | ForEach-Object {
+  Write-Host "  - $_.glb"
+  Invoke-WebRequest -Uri "$BaseUrl/terrain/$_.glb" -OutFile "$Dest/terrain/$_.glb"
+}
+
+Write-Host "-> Done. Verifying:"
+Get-ChildItem "$Dest" -Recurse -Filter *.glb | Format-Table Length, FullName
+Write-Host "Place: res://assets/downloaded_models/  — see GODOT_INTEGRATION.md"

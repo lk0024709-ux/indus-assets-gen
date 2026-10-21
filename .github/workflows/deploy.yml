@@ -1,5 +1,11 @@
 # ============================================================
-# 3D Asset Pipeline: generate models with bpy, deploy to Pages
+# 3D Asset Pipeline: generate the production sets with bpy, deploy to Pages
+#
+# The gallery ships exactly three asset sets:
+#   1. The Grand Mahal          docs/models/mahal/
+#   2. Modular Buildings (11)   docs/models/buildings_modular/
+#   3. Terrain tiles (4)        docs/models/terrain/
+# plus the Elite Cargo Dropship GLB kept for the Battle Royale drop sequence.
 # ============================================================
 name: Generate & Deploy 3D Assets
 
@@ -47,49 +53,29 @@ jobs:
           python -m pip install --upgrade pip
           pip install bpy pillow numpy
 
-      - name: Generate Phase 1 3D assets (terrain + buildings)
-        run: python tools/generate_phase1.py
+      # ---- 1. Terrain tiles (1000 m ground, hill, plateau, valley) ----------
+      - name: Generate Terrain tiles — ground, hill, plateau, valley
+        run: python tools/generate_terrain.py
 
-      - name: Generate Phase 2 3D assets (terrain, water, bridges, nature)
-        run: |
-          python tools/generate_terrain.py
-          python tools/generate_water.py
-          python tools/generate_bridges.py
-          python tools/generate_nature.py
-
-      - name: Generate Elite Cargo Dropship — Battle Royale drop ship (45 m span × 35 m, 4 nacelles, open cargo ramp)
-        run: python tools/generate_plane_cargo_elite.py
-
-      - name: Generate Mahal Palace Hot Drop POI (50×50×15m fortress)
-        run: python tools/generate_mahal.py
-
-      - name: Generate Mahal Palace Vibrant — Stylized Low-Poly (40×30 base)
-        run: python tools/generate_mahal_vibrant.py
-
-      - name: Generate Rajasthani Mahal Master — Exterior + Interior Darbar (40×30 base, 30×20×12)
-        run: python tools/generate_mahal_master.py
-
-      - name: Generate Modular Palace Blocks — wall/arch/dome/pillar (10×0.5×4, 10×0.5×6 arch, r5 dome, r0.5 h6 pillar)
-        run: python tools/generate_modular.py
-
-      - name: Generate Rajasthani Mahal Rooms + Mega Assembly (4 walk-in rooms 20×15/20×20/15×10/15×5 → 50×40 m, 2 floors, teal + 4 gold domes)
+      # ---- 2. The Grand Mahal (4 walk-in rooms -> one assembled palace) -----
+      - name: Generate Grand Mahal — 4 walk-in rooms + mega assembly (50×40 m)
         run: python tools/generate_mahal_rooms.py
 
-      - name: Generate 15 m Modular Building Blocks — walls, interior partitions, floor, roofs, stairs, furniture
+      # ---- 3. Modular Buildings (15 m kit -> 11 coloured buildings) ---------
+      - name: Generate 15 m Modular Building kit — walls, partitions, floors, roofs, stairs, furniture
         run: python tools/generate_building_modules.py
 
-      - name: Assemble 11 Battle Royale Buildings with interior rooms + furniture into docs/models/buildings_modular/
+      - name: Assemble 11 Modular Buildings with interior rooms + furniture
         run: python tools/assemble_buildings.py
 
-      # The 10 m set in docs/models/buildings/modular/ was superseded by the 15 m
-      # kit in docs/models/buildings_modular/. Drop it so Pages never serves stale
-      # same-named GLBs (e.g. school_yellow.glb) next to the new ones.
-      - name: Remove superseded 10 m modular set
-        run: rm -rf docs/models/buildings/modular
+      # The 15 m kit is an intermediate build product: the assembler needs it,
+      # the gallery does not. Keep it out of the published site.
+      - name: Drop the intermediate module kit from the published site
+        run: rm -rf docs/models/modules
 
-      # Keep res://assets/downloaded_models/rajasthani_mahal.glb (the Godot alias) in sync
-      - name: Sync rajasthani_mahal.glb alias with the freshly generated master
-        run: cp docs/models/buildings/mahal_palace_master.glb docs/models/buildings/rajasthani_mahal.glb
+      # ---- 4. Elite Cargo Dropship (kept for the drop sequence) -------------
+      - name: Generate Elite Cargo Dropship — Battle Royale drop sequence (45 m span × 35 m)
+        run: python tools/generate_plane_cargo_elite.py
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5

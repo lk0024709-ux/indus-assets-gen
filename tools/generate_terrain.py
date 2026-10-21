@@ -21,7 +21,6 @@ import json
 import math
 import os
 import random
-import shutil
 import struct
 import sys
 
@@ -119,18 +118,13 @@ def ensure_rock_stone_1k() -> None:
 
 
 def ensure_textures() -> None:
+    """Only the two maps the terrain tiles actually use are kept in the repo.
+
+    Both can be rebuilt procedurally, so a fresh clone / CI run never depends
+    on any of the retired building textures."""
     os.makedirs(TEXTURE_DIR, exist_ok=True)
     ensure_grass_1k()
     ensure_rock_stone_1k()
-    for src_name, dst_name in [
-        ("wood_plank.png", "wood_plank_1k.png"),
-        ("concrete_wall.png", "concrete_wall_1k.png"),
-    ]:
-        dst = os.path.join(TEXTURE_DIR, dst_name)
-        if not os.path.isfile(dst):
-            src = os.path.join(TEXTURE_DIR, src_name)
-            if os.path.isfile(src):
-                shutil.copy(src, dst)
 
 
 # ---------------------------------------------------------------------------

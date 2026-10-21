@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0c1220" />
-  <title>Indus Asset Viewer — Phase 8: Elite Cargo Dropship + Battle Royale World</title>
+  <title>Indus Asset Viewer — The Grand Mahal · Modular Buildings · Terrain</title>
 
   <!-- Google's <model-viewer> via CDN (with a fallback CDN for resilience) -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
@@ -265,108 +265,63 @@
 </head>
 <body>
   <header>
-    <h1>Indus Asset Viewer <span class="phase">— Phase 8: Elite Cargo Dropship + Battle Royale World</span></h1>
+    <h1>Indus Asset Viewer <span class="phase">— The Grand Mahal · Modular Buildings · Terrain</span></h1>
     <p class="subtitle">
-      <strong style="color:#38bdf8">New — the drop ship:</strong> the <strong>Elite Cargo Dropship</strong> that opens the
-      Battle Royale match. A 45 m-span, 35 m-long blended-wing-body stealth airlifter with <strong>four octagonal engine
-      nacelles</strong> (open intakes with 10-blade fans, vectoring nozzle petals and emissive cyan + orange thrusters),
-      a faceted tinted canopy, canted twin tails, swept wings with winglets and two drop tanks. It is covered in
-      <strong>greebles</strong> — panel lines, lighter access panels, vent banks, blade antennas, RCS pods, chaff
-      dispensers, sensor blisters and navigation lights — and the rear cargo bay is a real <strong>Boolean-cut opening</strong>
-      with a ribbed interior, crates and a <strong>lowered ramp</strong> framed by red/green indicator lights. Solid colours
-      only, no textures: gunmetal <code>#2C2E33</code> body, lighter grey panels, neon cyan and ember-orange emissives and
-      metallic <code>0.8 / 0.1 roughness</code> tinted glass. ~22k tris, one joined mesh, origin bottom-centre.<br />
-      <strong style="color:#f5a623">Interior rooms:</strong> the 11 buildings are no longer one empty shell.
-      Each floor is now divided by <strong>0.10 m interior partition walls</strong> — 2×2 blocks get a 15 m wall down the
-      middle plus a jog wall (living room, hallway, bedroom), 3×2 blocks get a <strong>5 m central hallway</strong> with three
-      rooms either side, 1×1 huts get a front room + bedroom. Every partition has a <strong>1.5 m doorway</strong>, and the build
-      refuses to finish if a partition blocks a doorway, cuts the staircase, or leaves a room unreachable. Furniture is
-      assigned per room: <em>beds in the bedroom, tables/shelves/counters in the living room &amp; kitchen, crates scattered
-      through every room</em> so loot has to be searched for.<br />
-      <strong style="color:#d9c089">New palette:</strong> every Mahal wall is now <strong style="color:#d9c089">golden sandstone
-      #D9C089</strong> (Amber Fort / Jaisalmer) with cream <code>#EDDBB3</code> highlights and tan <code>#B39466</code> carving shadows —
-      gold trim, teal domes and deep-blue doors/windows kept exactly as they were (the 50×50 Hot Drop fortress now uses the same golden sandstone map).
-      The <strong>Rajasthani Mahal — Room-by-Room Modular Assembly</strong>: four walk-in rooms
-      (<strong>Darbar Hall</strong> 20×15 m with dais, golden throne &amp; 8 banded pillars, <strong>Courtyard Aangan</strong> 20×20 m
-      open to the sky with a marble fountain at the exact centre &amp; arched jharokha walkways, <strong>Ranivas</strong> 15×10 m
-      with two rooms, a corridor, protruding cube patterns &amp; balconies, and the <strong>Gateway</strong> 15×5 m with a
-      multi-layered scalloped Mehrab and open wooden doors) assembled into one gap-free <strong>50×40 m, 23.8 m tall</strong> palace —
-      courtyard at (0,0,0), darbar north at Y=17.5, ranivas at X=±17.5, gateway south at Y=−12.5, a second floor of the same
-      rooms scaled 0.85, flat roof over everything except the aangan, a large central teal dome and 4 golden corner domes.
-      Plus the rest of the world — low-poly Battle Royale map environment built with Blender <code>bpy</code> for 4GB RAM devices:
-      featuring the <strong>Mahal Palace (50m×50m × 15m, walls 15m thick)</strong> Hot Drop Fortress, <strong>Vibrant Stylized Palace (40m×30m base, 30m×20m×15m walls)</strong>, <strong>Rajasthani Mahal Master — Exterior + Royal Darbar Interior (40m×30m base, 30m×20m×12m walls, sawtooth parapet, central teal dome r6 + 4 yellow r3, chhatris, checkered floor, 8 pillars, throne, jali, chandelier)</strong> and <strong>Modular Palace Blocks (wall 10×0.5×4 + gold border, arch 10×0.5×6 with r2 cutter + torus frame, dome r5 + spire, pillar r0.5 h6 with 3 bands)</strong> — hollow Boolean bases, trig arches via math.sin/cos, sliced domes with Kalash/cylinder+cone spires,
-      plus <strong>Terrain</strong> (1000m ground, mountains, plateaus, valleys),
-      <strong>Water &amp; Bridges</strong> (ocean, river, beach, dam, bridges),
-      <strong>Nature</strong> (trees, rocks, bushes), and <strong>Phase 1 Buildings</strong>.
-      All props use 1K/2K PBR textures & solid Principled BSDF with bottom-center <code>(0,0,0)</code> origins.
+      A focused gallery of the three production-ready <code>bpy</code> asset sets: the
+      <strong style="color:#d9c089">Grand Mahal</strong> (golden sandstone, 50 × 40 m, 23.8 m tall, with a walk-in
+      darbar, courtyard, ranivas wings and gateway), the <strong style="color:#f5a623">11 Modular Buildings</strong>
+      (15 m grid, real interior rooms, per-building palettes and furniture) and the
+      <strong style="color:#38bdf8">Terrain tiles</strong> (1000 m ground, hill, plateau, valley).
+      Every asset is generated by <code>bpy</code> in this repo, joined into one flat-shaded mesh, uses solid
+      Principled materials with a bottom-centre <code>(0,0,0)</code> origin, and is regenerated and redeployed by
+      GitHub Actions on every push to <code>main</code>.
     </p>
     <nav class="category-nav" aria-label="Asset categories" id="category-nav">
-      <button class="cat-btn active" data-cat="all">All Categories (64)</button>
-      <button class="cat-btn" data-cat="Vehicles">🛩 Vehicles — Elite Dropship (1)</button>
-      <button class="cat-btn" data-cat="Battle Royale Buildings">🧱 Battle Royale Buildings — Rooms (11)</button>
-      <button class="cat-btn" data-cat="Building Modules">📦 Building Modules — 15 m Kit + Partitions (16)</button>
-      <button class="cat-btn" data-cat="Mahal Mega Assembly">🏯 Mahal Mega — Assembly (1)</button>
-      <button class="cat-btn" data-cat="Mahal Rooms">🏛 Mahal Rooms — Modular (4)</button>
-      <button class="cat-btn" data-cat="Mahal Palace">🏰 Mahal Palace — Hot Drop (1)</button>
-      <button class="cat-btn" data-cat="Mahal Palace Master">👑 Mahal Master — Darbar (1)</button>
-      <button class="cat-btn" data-cat="Mahal Palace Vibrant">🎨 Mahal Palace Vibrant (1)</button>
-      <button class="cat-btn" data-cat="Modular Palace Blocks">🧱 Modular Blocks — Palace (4)</button>
-      <button class="cat-btn" data-cat="Terrain">Terrain (4)</button>
-      <button class="cat-btn" data-cat="Water & Bridges">Water &amp; Bridges (6)</button>
-      <button class="cat-btn" data-cat="Nature">Nature (7)</button>
-      <button class="cat-btn" data-cat="Buildings">Buildings — Phase 1 (7)</button>
+      <button class="cat-btn active" data-cat="all">All Categories (16)</button>
+      <button class="cat-btn" data-cat="Grand Mahal">🏯 The Grand Mahal (1)</button>
+      <button class="cat-btn" data-cat="Modular Buildings">🧱 Modular Buildings (11)</button>
+      <button class="cat-btn" data-cat="Terrain">🌍 Terrain (4)</button>
     </nav>
   </header>
 
   <main id="main-content"></main>
 
   <footer>
-    <strong>Palette update:</strong> Mahal walls regenerated in golden sandstone <code>#D9C089</code>
-    (cream <code>#EDDBB3</code> / tan <code>#B39466</code> shades) across <code>generate_mahal_rooms.py</code>,
-    <code>generate_mahal_master.py</code>, <code>generate_mahal_vibrant.py</code> and <code>generate_modular.py</code>;
-    gold, teal and deep-blue accents unchanged.
-    <strong>Phase 8:</strong> the Elite Cargo Dropship is generated by <code>tools/generate_plane_cargo_elite.py</code>
-    (13 station loft, Boolean cargo bay, 4 octagonal nacelles, ~200 greebles, 12 solid materials, no textures) &rarr;
-    <code>docs/models/vehicles/plane_cargo_elite.glb</code>.<br />
-    Generated by <code>tools/generate_building_modules.py</code> (16 Lego modules — 15 m structural kit + 2 interior partitions + 6 furniture) +
-    <code>tools/assemble_buildings.py</code> (11 buildings) + <code>tools/generate_mahal_rooms.py</code> (4 walk-in rooms 20×15 / 20×20 / 15×10 / 15×5 + <code>assemble_mahal()</code> →
-    <code>rajasthani_mahal_mega.glb</code> 50×40 m, 2 floors, central teal dome + 4 gold domes) +
-    <code>tools/generate_mahal.py</code> (50×50×15m) + <code>tools/generate_mahal_vibrant.py</code> (40×30 base, 30×20×15 walls, r8/r4) + <code>tools/generate_mahal_master.py</code> (40×30 base, 30×20×12 walls, procedural brick/checker, sawtooth parapet, multi-layer arches, jharokhas, central r6 + corner r3, chhatris, interior Darbar) + <code>tools/generate_modular.py</code> (wall 10×0.5×4 + arch 10×0.5×6 r2 + dome r5 + pillar r0.5 h6),
-    <code>tools/generate_terrain.py</code>, <code>tools/generate_water.py</code>,
-    <code>tools/generate_bridges.py</code>, <code>tools/generate_nature.py</code> &amp;
-    <code>tools/generate_phase1.py</code> (Blender <code>bpy</code>) &rarr;
-    deployed automatically by GitHub Actions to GitHub Pages.
+    <strong>Generated by <code>bpy</code></strong> ·
+    <code>tools/generate_mahal_rooms.py</code> (4 walk-in rooms → <code>rajasthani_mahal_mega.glb</code>, 50 × 40 m) ·
+    <code>tools/generate_building_modules.py</code> + <code>tools/assemble_buildings.py</code> (15 m kit → 11 buildings) ·
+    <code>tools/generate_terrain.py</code> (ground, hill, plateau, valley) &rarr;
+    exported as packed <code>.glb</code>, deployed to GitHub Pages by GitHub Actions on every push to
+    <code>main</code>. Only the production asset sets are kept in this repository.
   </footer>
 
   <script>
     const CATEGORIES = [
       {
-        id: "Vehicles",
-        title: "🛩 Elite Cargo Dropship — Next-Gen Stealth Airlifter for the Battle Royale Drop Sequence",
-        subtitle: "tools/generate_plane_cargo_elite.py lofts the blended-wing-body hull from 12 station profiles, Boolean-cuts the rear cargo bay, then bolts on 4 octagonal nacelles (open intakes, 10-blade fans, vectoring petals, emissive thrusters), canted twin tails, swept wings + canted winglets, 2 drop tanks, a faceted tinted canopy and ~200 greeble pieces — panel lines, access panels, vent banks, antennas, RCS pods, dispensers and nav lights. Built at exactly 45.0 m span × 35.0 m length, joined into ONE mesh, flat shaded, origin bottom-centre (0,0,0). Solid colours only — zero textures.",
+        id: "Grand Mahal",
+        title: "🏯 The Grand Mahal — Golden Sandstone Palace (50 × 40 m, 2 floors, 23.8 m tall)",
+        subtitle: "The showcase build: four walk-in rooms assembled into one gap-free palace — courtyard at (0,0,0), darbar hall north, ranivas wings east and west, scalloped gateway south, a second floor of the same rooms scaled 0.85, a flat roof over everything except the open aangan, a central teal dome on a marble drum and four golden chhatri domes. Solid golden-sandstone materials (no textures), one joined mesh, origin bottom-centre (0,0,0).",
         assets: [
           {
-            id: "plane_cargo_elite",
-            file: "models/vehicles/plane_cargo_elite.glb",
-            name: "🛩 Elite Cargo Dropship — “Indus Ascendant”",
-            alt: "Elite stealth cargo plane: blended wing body with faceted gunmetal hull, blue tinted canopy, four octagonal engine nacelles with glowing cyan and orange thrusters, canted twin tails, swept wings with winglets and drop tanks, and a lowered rear cargo ramp ringed by red and green lights",
-            desc: "The elite drop ship. Blended-wing-body stealth fuselage with a chined, faceted skin, sleek slanted tinted canopy flanked by nose sensor pods and a chin FLIR turret, and 4 massive octagonal nacelles: each one has an open intake duct with a 10-blade fan and glowing ring, armoured bands, heat-exchanger fins and a vectoring nozzle with a cyan outer thruster around a hot orange core. Swept wings with canted winglets, 2 under-wing drop tanks, canted twin tails and a dorsal spine packed with panels, vent banks, blade antennas and formation lights. The rear cargo bay is Boolean-cut wide open — ribbed interior walls, ceiling strip lights, tie-downs and strapped crates — with a wide lowered ramp (treads, rails, hazard tabs) and red/green indicator lights around the opening. ~200 greebles, 12 solid materials, no textures.",
-            dims: "45.0 m span × 35.0 m length × 10.3 m tall",
-            material: "Gunmetal #2C2E33 + panels #4A4E57 + neon cyan #21E6FF + ember #FF7A18 + glass metallic 0.8 / rough 0.1 · ~22.3k tris · 12 mats · 0 textures",
-            orbit: "34deg 62deg 92%",
-            fov: "32deg",
+            id: "rajasthani_mahal_mega",
+            file: "models/mahal/rajasthani_mahal_mega.glb",
+            name: "Rajasthani Mahal Mega — Full Palace Assembly (54 m × 40.5 m × 23.8 m, 62,542 tris)",
+            alt: "Complete Rajasthani palace assembled from four modular rooms: central open courtyard with fountain, north darbar hall with teal dome, east and west ranivas wings, south scalloped gateway, second floor, continuous flat roof and four golden corner domes",
+            desc: "TASK 2 assembly of the room set: room_courtyard.glb at (0,0,0); room_darbar_hall.glb North (Y=17.5); room_ranivas.glb East & West (X=±17.5, the west one rotated 180° so its balconies face outwards); room_gateway.glb South (Y=−12.5). Second floor = the same darbar/ranivas/gateway rooms scaled 0.85 (gate 0.60) on a 6.4 m roof deck. Flat roof covers the whole 50×40 m plan except the 20×20 m courtyard, which stays open to the sky with a gold-capped safety parapet at the roof edge. Central teal hemisphere r4.6 on a 4.7 m marble drum above the darbar (apex 23.8 m), 4 golden chhatri domes r2.1 at the roof corners (±21, 21) and (±21, −11.5). Sawtooth-free crenellated parapet (alternating sandstone/yellow merlons) all round, corner service wings with blind blue arches fill the cross-plan voids so the ground plane is continuous — one joined mesh, min Z = 0.000, no gaps between rooms. 12 solid Principled materials (walls #D9C089 / cream #EDDBB3 / tan #B39466), flat shading, 54.0 × 40.5 × 23.8 m bbox, 62,542 tris, 4.1 MB.",
+            dims: "54 m × 40.5 m × 23.8 m · 2 floors · courtyard 20×20 m open to sky",
+            material: "Mahal_Wall_Sandstone #D9C089 / Wall_Cream #EDDBB3 / Wall_Tan #B39466 / Gold / Teal / DeepBlue / Yellow / Marble / Wood · 62,542 tris · 11 mats · solid Principled roughness 0.6",
+            orbit: "35deg 62deg 105m",
+            chip: ".glb · solid-colour PBR · origin (0,0,0)",
+            fov: "40deg",
             hero: true,
-            eager: true,
-            exposure: "1.15",
-            bg: "radial-gradient(circle at 50% 38%, #33455f 0%, #16202e 62%, #0a0f1a 100%)",
-            chip: ".glb · solid-colour PBR · origin (0,0,0)"
+            eager: true
           }
         ]
       },
       {
-        id: "Battle Royale Buildings",
-        title: "🧱 Battle Royale Buildings — 11 Distinct 15 m-Grid Blocks with Real Interior Rooms",
-        subtitle: "tools/assemble_buildings.py places every bay, slab, stair, partition and furniture piece at exact X / Y / Z coordinates — no random geometry, all maths. Each of the 11 recipes now has an interior plan: 2×2 buildings get a 15 m partition down the middle plus a jog wall (living room + hallway + bedroom), 3×2 buildings get a 5 m central hallway with three rooms either side, and 1×1 huts are split into front room + bedroom. Partitions are MOD_WALL_PARTITION (0.10 m solid walls, 1.5 m doorways) and are checked at build time: no doorway is ever blocked, no wall crosses the stairs, every room is reachable from the front door, and a ray-cast pass proves each partition is solid while each doorway stays open. Every building is joined into ONE mesh, flat shaded, origin bottom-centre (0,0,0).",
+        id: "Modular Buildings",
+        title: "🧱 Modular Buildings — 11 Battle Royale Blocks with Real Interior Rooms",
+        subtitle: "Built from a 15 m Lego kit on a 3 m storey grid: every wall, slab, stair, 0.10 m interior partition and furniture piece is placed at an exact coordinate by tools/assemble_buildings.py — no random geometry. Each block has its own footprint, floor count, wall/roof palette and furniture set, so 11 buildings read as 11 different places. Every building is joined into ONE flat-shaded mesh with solid materials and a bottom-centre (0,0,0) origin.",
         assets: [
           {
             id: "mod_house_blue",
@@ -377,6 +332,7 @@
             dims: "30.3 × 30.3 × 9.0 m",
             material: "Bright Blue #2F6FBF + Dark Grey #43454A · 3,962 tris · 16 mats · 3 rooms/floor",
             orbit: "30deg 62deg 56m",
+            chip: ".glb · solid-colour PBR · origin (0,0,0)",
             fov: "40deg",
             hero: false,
             eager: true
@@ -390,6 +346,7 @@
             dims: "45.3 × 30.3 × 6.7 m",
             material: "School Yellow #E8C24A + Flat Concrete #A8A8A2 · 6,894 tris · 13 mats · 7 rooms/floor",
             orbit: "30deg 62deg 78m",
+            chip: ".glb · solid-colour PBR · origin (0,0,0)",
             fov: "40deg",
             hero: false,
             eager: true
@@ -403,6 +360,7 @@
             dims: "30.3 × 30.3 × 9.7 m",
             material: "Concrete Green #5E9E5A + Flat Concrete #A8A8A2 · 6,416 tris · 16 mats · 9 rooms total",
             orbit: "30deg 62deg 60m",
+            chip: ".glb · solid-colour PBR · origin (0,0,0)",
             fov: "40deg",
             hero: false,
             eager: true
@@ -416,6 +374,7 @@
             dims: "45.3 × 30.3 × 3.7 m",
             material: "Steel Blue #4A7C99 + Rust Orange #B4552E · 4,664 tris · 10 mats · 7 rooms",
             orbit: "30deg 62deg 80m",
+            chip: ".glb · solid-colour PBR · origin (0,0,0)",
             fov: "40deg",
             hero: false,
             eager: true
@@ -429,6 +388,7 @@
             dims: "15.3 × 15.2 × 6.0 m",
             material: "Wood Brown #8B5A2B + Slanted Red #8E3B31 · 1,120 tris · 16 mats · 2 rooms",
             orbit: "30deg 60deg 32m",
+            chip: ".glb · solid-colour PBR · origin (0,0,0)",
             fov: "40deg",
             hero: false,
             eager: true
@@ -442,6 +402,7 @@
             dims: "30.3 × 30.3 × 6.1 m",
             material: "Damaged Concrete #8C8C84 + Rubble Grey #6E6E68 · 3,736 tris · 7 mats · 3 rooms/floor",
             orbit: "30deg 62deg 54m",
+            chip: ".glb · solid-colour PBR · origin (0,0,0)",
             fov: "40deg",
             hero: false,
             eager: true
@@ -455,6 +416,7 @@
             dims: "30.3 × 17.4 × 6.0 m",
             material: "Off-White #E8E4DA + Slanted Red #8E3B31 · 1,932 tris · 14 mats · 2 rooms",
             orbit: "30deg 62deg 56m",
+            chip: ".glb · solid-colour PBR · origin (0,0,0)",
             fov: "40deg",
             hero: false,
             eager: true
@@ -468,6 +430,7 @@
             dims: "30.3 × 30.3 × 9.0 m",
             material: "Off-White #E8E4DA + Flat Concrete #A8A8A2 · 4,398 tris · 18 mats · 6 rooms total",
             orbit: "30deg 62deg 58m",
+            chip: ".glb · solid-colour PBR · origin (0,0,0)",
             fov: "40deg",
             hero: false,
             eager: true
@@ -481,6 +444,7 @@
             dims: "30.3 × 15.3 × 6.0 m",
             material: "Brick Red #9E4B3C + Tiled Terracotta #A9573C · 1,980 tris · 13 mats · 2 rooms",
             orbit: "30deg 62deg 52m",
+            chip: ".glb · solid-colour PBR · origin (0,0,0)",
             fov: "40deg",
             hero: false,
             eager: true
@@ -494,6 +458,7 @@
             dims: "15.3 × 15.2 × 3.7 m",
             material: "Dark Camo Green #414B36 + Camo Brown #5B4A33 · 1,700 tris · 12 mats · 2 rooms",
             orbit: "30deg 58deg 34m",
+            chip: ".glb · solid-colour PBR · origin (0,0,0)",
             fov: "40deg",
             hero: false,
             eager: true
@@ -507,417 +472,17 @@
             dims: "15.3 × 15.3 × 13.0 m",
             material: "Concrete Grey #B4B4AE + Concrete Dark #8E8E88 · 2,966 tris · 7 mats · 8 rooms",
             orbit: "30deg 60deg 44m",
+            chip: ".glb · solid-colour PBR · origin (0,0,0)",
             fov: "40deg",
             hero: false,
-            eager: true
-          }
-        ]
-      },
-      {
-        id: "Building Modules",
-        title: "📦 Building Modules — 15 m Lego Kit (10 structural blocks + 6 furniture pieces)",
-        subtitle: "The kit is on a 15 m grid (3 m storeys, 0.2 m slabs, 0.2 m exterior walls, 0.1 m partitions) and every module uses an exact Boolean opening, flat shading and a bottom-centre origin, so a module dropped at (0, 0, 0) sits exactly on the ground. Walls come in 15 × 3 m solid / window / door / garage bays plus the two NEW interior partitions, and the furniture pieces (table, bed, crate, shelf, counter, sofa) are the ones the assembler joins into the rooms.",
-        assets: [
-          {
-            id: "mod_wall_solid",
-            file: "models/modules/mod_wall_solid.glb",
-            name: "🧱 Wall Solid",
-            alt: "🧱 Wall Solid — 15 × 3 m solid bay, 0.20 m thick",
-            desc: "The workhorse bay: a single 15 m × 3 m wall panel, 0.20 m thick, flat-shaded, origin at the bottom-left-centre so a module dropped at (0, 0, 0) sits exactly on the ground and its outer face on the cell line.",
-            dims: "15 × 0.2 × 3 m",
-            material: "Solid palette colour · 12 tris · 1 mat",
-            orbit: "28deg 62deg 28m",
-            fov: "40deg",
-            hero: false,
-            eager: true
-          },
-          {
-            id: "mod_wall_window",
-            file: "models/modules/mod_wall_window.glb",
-            name: "🪟 Wall Window",
-            alt: "🪟 Wall Window — 15 × 3 m bay, two 1.5 × 1.5 m windows",
-            desc: "15 m bay with two 1.5 × 1.5 m punched windows at x = ±3.6 m, 1.0 m sill — EXACT-solver Booleans, no boolean artefacts or missing faces. Thin reveals are kept so the opening reads as a real hole in an exterior render.",
-            dims: "15 × 0.38 × 3 m",
-            material: "Solid palette colour · 100 tris · 1 mat",
-            orbit: "28deg 62deg 28m",
-            fov: "40deg",
-            hero: false,
-            eager: true
-          },
-          {
-            id: "mod_wall_door",
-            file: "models/modules/mod_wall_door.glb",
-            name: "🚪 Wall Door",
-            alt: "🚪 Wall Door — 15 × 3 m bay, 1.5 × 2.2 m doorway",
-            desc: "15 m bay with a 1.5 m wide × 2.2 m tall walk-through doorway cut with the EXACT solver. The assembler only ever drops these on recipe-declared door edges, so each building's entrance lands exactly where the floor plan wants it.",
-            dims: "15 × 0.32 × 3 m",
-            material: "Solid palette colour · 64 tris · 1 mat",
-            orbit: "28deg 62deg 28m",
-            fov: "40deg",
-            hero: false,
-            eager: true
-          },
-          {
-            id: "mod_wall_garage",
-            file: "models/modules/mod_wall_garage.glb",
-            name: "🚗 Wall Garage",
-            alt: "🚗 Wall Garage — 15 × 3 m bay, 6.0 × 2.6 m roller opening",
-            desc: "15 m bay with a 6.0 × 2.6 m garage opening — wide enough for vehicles in-engine and for loot-room sightlines in a Battle Royale block.",
-            dims: "15 × 0.44 × 3 m",
-            material: "Solid palette colour · 64 tris · 1 mat",
-            orbit: "28deg 62deg 28m",
-            fov: "40deg",
-            hero: false,
-            eager: true
-          },
-          {
-            id: "mod_wall_partition",
-            file: "models/modules/mod_wall_partition.glb",
-            name: "▏ Partition Wall",
-            alt: "▏ Partition Wall — 15 × 3 m interior wall, 0.10 m thick",
-            desc: "NEW — the interior room divider. Exactly half the exterior thickness (0.10 m) so it reads as a partition, same 15 × 3 m bay and bottom-centre origin. Placed as a solid closed box, so it is watertight: bullets cannot pass through it in-engine. Out of the box it is sandstone; the assembler re-skins it to each building's wall colour.",
-            dims: "15 × 0.1 × 3 m",
-            material: "Sandstone #D9C089 (re-skinned) · 12 tris · 1 mat",
-            orbit: "28deg 60deg 28m",
-            fov: "40deg",
-            hero: false,
-            eager: true
-          },
-          {
-            id: "mod_wall_partition_door",
-            file: "models/modules/mod_wall_partition_door.glb",
-            name: "🚪 Partition + Door",
-            alt: "🚪 Partition + Door — 15 × 3 m interior wall with a 1.5 × 2.2 m doorway",
-            desc: "NEW — the partition bay with a 1.5 m × 2.2 m walk-through doorway plus a slim casing (6 cm proud on each face), so rooms stay connected. The assembler drops exactly one of these per partition run and keeps every doorway 2.8 m clear of furniture and 1.2 m clear of the staircase.",
-            dims: "15 × 0.22 × 3 m",
-            material: "Sandstone #D9C089 (re-skinned) · 88 tris · 1 mat",
-            orbit: "28deg 60deg 28m",
-            fov: "40deg",
-            hero: false,
-            eager: true
-          },
-          {
-            id: "mod_floor",
-            file: "models/modules/mod_floor.glb",
-            name: "◼ Floor Slab",
-            alt: "◼ Floor Slab — 15 × 15 × 0.20 m floor / ceiling",
-            desc: "A 15 m × 15 m structural slab, 0.20 m thick — it is both the floor of a storey and the ceiling of the one below. Stair holes are Boolean-cut per building so the flights always break through the right cell.",
-            dims: "15 × 15 × 0.2 m",
-            material: "Solid palette colour · 60 tris · 1 mat",
-            orbit: "30deg 58deg 26m",
-            fov: "40deg",
-            hero: false,
-            eager: true
-          },
-          {
-            id: "mod_roof_flat",
-            file: "models/modules/mod_roof_flat.glb",
-            name: "▭ Flat Roof",
-            alt: "▭ Flat Roof — 15 × 15 m + 0.4 m parapet",
-            desc: "15 × 15 m flat roof with a 0.4 m parapet and a contrasting coping. Two material slots (deck + coping), so the assembler can recolour the roof without touching the trim.",
-            dims: "15 × 15 × 0.66 m",
-            material: "2 mats · 108 tris",
-            orbit: "30deg 58deg 26m",
-            fov: "40deg",
-            hero: false,
-            eager: true
-          },
-          {
-            id: "mod_roof_slanted",
-            file: "models/modules/mod_roof_slanted.glb",
-            name: "🔺 Slanted Hip Roof",
-            alt: "🔺 Slanted Hip Roof — 15 × 15 m, 3 m ridge",
-            desc: "True hip roof: 15 × 15 m eaves rising to a 3 m ridge, a wood ridge cap (x = ±3) and flush eaves, built as a closed solid so no faces are missing. The assembler scales it per cell on non-square footprints.",
-            dims: "15 × 15 × 3.04 m",
-            material: "Roof colour + Wood · 44 tris · 2 mats",
-            orbit: "30deg 58deg 28m",
-            fov: "40deg",
-            hero: false,
-            eager: true
-          },
-          {
-            id: "mod_stairs",
-            file: "models/modules/mod_stairs.glb",
-            name: "🪜 Staircase",
-            alt: "🪜 Staircase — 10 × 0.3 m steps, exactly 3.0 m rise",
-            desc: "Ten solid steps at 0.3 m rise × 0.34 m tread, 2.4 m wide with side stringers — maths via tan/rise so it bridges exactly one 3 m storey, no Z-scaling needed. Drops into a reserved 2.4 × 3.4 m stair box in the cell corner, which no partition may cross.",
-            dims: "2.4 × 3.4 × 3.0 m",
-            material: "Floor colour · 144 tris · 1 mat",
-            orbit: "28deg 62deg 18m",
-            fov: "40deg",
-            hero: false,
-            eager: true
-          },
-          {
-            id: "mod_table",
-            file: "models/modules/mod_table.glb",
-            name: "🪑 Table",
-            alt: "🪑 Table — Desk / dining table",
-            desc: "2.2 × 1.1 m top on four legs with a stretcher — used as a school desk, dining table and shop display. 72 tris, 2 material slots (top + legs).",
-            dims: "2.2 × 1.1 × 0.79 m",
-            material: "Table wood + dark legs · 72 tris · 2 mats",
-            orbit: "28deg 62deg 8m",
-            fov: "40deg",
-            hero: false,
-            eager: true
-          },
-          {
-            id: "mod_bed",
-            file: "models/modules/mod_bed.glb",
-            name: "🛏 Bed",
-            alt: "🛏 Bed — Frame + mattress + blanket + pillow",
-            desc: "Single bed: wood frame and headboard, cream mattress, blue blanket and a pillow — 3 material slots, 108 tris. Placed only in bedrooms, never within 2.8 m of a doorway.",
-            dims: "2.12 × 1.35 × 0.8 m",
-            material: "Bed frame + mattress + blanket · 108 tris · 3 mats",
-            orbit: "28deg 62deg 8m",
-            fov: "40deg",
-            hero: false,
-            eager: true
-          },
-          {
-            id: "mod_crate",
-            file: "models/modules/mod_crate.glb",
-            name: "📦 Crate",
-            alt: "📦 Crate — Loot crate with battens",
-            desc: "1.13 m cube with corner posts and two battens per axis — the Battle-Royale loot crate. 108 tris, 2 material slots (board + batten).",
-            dims: "1.13 × 1.13 × 1.12 m",
-            material: "Crate wood + batten · 108 tris · 2 mats",
-            orbit: "28deg 62deg 6m",
-            fov: "40deg",
-            hero: false,
-            eager: true
-          },
-          {
-            id: "mod_shelf",
-            file: "models/modules/mod_shelf.glb",
-            name: "🗄 Shelf",
-            alt: "🗄 Shelf — 4-board wall shelf",
-            desc: "1.8 m wide, 2.0 m tall shelving unit with four boards and a closed back — kitchen, shop and bunker storage. 84 tris, 2 material slots.",
-            dims: "1.8 × 0.45 × 2.0 m",
-            material: "Shelf wood + frame · 84 tris · 2 mats",
-            orbit: "28deg 62deg 7m",
-            fov: "40deg",
-            hero: false,
-            eager: true
-          },
-          {
-            id: "mod_counter",
-            file: "models/modules/mod_counter.glb",
-            name: "🧾 Counter",
-            alt: "🧾 Counter — Shop counter with cash box",
-            desc: "2.75 m shop counter: body, overhanging top, kick board and a cash box on top — 3 material slots, 48 tris.",
-            dims: "2.75 × 0.92 × 1.28 m",
-            material: "Counter body + top + metal · 48 tris · 3 mats",
-            orbit: "28deg 62deg 8m",
-            fov: "40deg",
-            hero: false,
-            eager: true
-          },
-          {
-            id: "mod_sofa",
-            file: "models/modules/mod_sofa.glb",
-            name: "🛋 Sofa",
-            alt: "🛋 Sofa — 3-seat sofa with arms + back",
-            desc: "2.3 m three-seat sofa: seat, back and two arms in two fabric tones — 60 tris, 2 material slots. Used in the villa living rooms.",
-            dims: "2.3 × 0.95 × 0.8 m",
-            material: "Sofa fabric + wood · 60 tris · 2 mats",
-            orbit: "28deg 62deg 8m",
-            fov: "40deg",
-            hero: false,
-            eager: true
-          }
-        ]
-      },
-      {
-        id: "Mahal Mega Assembly",
-        title: "🏯 Rajasthani Mahal — Room-by-Room Modular Assembly (50×40 m, 2 Floors, 23.8 m tall)",
-        subtitle: "The four walk-in rooms assembled exactly like a real palace — courtyard at (0,0,0), darbar north at Y=17.5, ranivas east & west at X=±17.5, gateway south at Y=−12.5, a second floor made from the same rooms scaled 0.85, a flat roof over everything except the open aangan, a large central teal dome on a marble drum and 4 smaller golden chhatri domes on the corners — joined into ONE mesh with gap-free solid collision.",
-        assets: [
-          {
-            id: "rajasthani_mahal_mega",
-            file: "models/mahal/rajasthani_mahal_mega.glb",
-            name: "Rajasthani Mahal Mega — Full Palace Assembly (54 m × 40.5 m × 23.8 m, 62,542 tris)",
-            alt: "Complete Rajasthani palace assembled from four modular rooms: central open courtyard with fountain, north darbar hall with teal dome, east and west ranivas wings, south scalloped gateway, second floor, continuous flat roof and four golden corner domes",
-            desc: "TASK 2 assembly of the room set: room_courtyard.glb at (0,0,0); room_darbar_hall.glb North (Y=17.5); room_ranivas.glb East & West (X=±17.5, the west one rotated 180° so its balconies face outwards); room_gateway.glb South (Y=−12.5). Second floor = the same darbar/ranivas/gateway rooms scaled 0.85 (gate 0.60) on a 6.4 m roof deck. Flat roof covers the whole 50×40 m plan except the 20×20 m courtyard, which stays open to the sky with a gold-capped safety parapet at the roof edge. Central teal hemisphere r4.6 on a 4.7 m marble drum above the darbar (apex 23.8 m), 4 golden chhatri domes r2.1 at the roof corners (±21, 21) and (±21, −11.5). Sawtooth-free crenellated parapet (alternating sandstone/yellow merlons) all round, corner service wings with blind blue arches fill the cross-plan voids so the ground plane is continuous — one joined mesh, min Z = 0.000, no gaps between rooms. 12 solid Principled materials (walls #D9C089 / cream #EDDBB3 / tan #B39466), flat shading, 54.0 × 40.5 × 23.8 m bbox, 62,542 tris, 4.1 MB.",
-            dims: "54 m × 40.5 m × 23.8 m · 2 floors · courtyard 20×20 m open to sky",
-            material: "Mahal_Wall_Sandstone #D9C089 / Wall_Cream #EDDBB3 / Wall_Tan #B39466 / Gold / Teal / DeepBlue / Yellow / Marble / Wood · 62,542 tris · 11 mats · solid Principled roughness 0.6",
-            orbit: "35deg 62deg 105m",
-            fov: "40deg",
-            hero: true,
-            eager: true
-          }
-        ]
-      },
-      {
-        id: "Mahal Rooms",
-        title: "🏛 Mahal Rooms — 4 Modular Walk-In Blocks (Origin Bottom-Centre 0,0,0)",
-        subtitle: "Four individually inspectable rooms generated by tools/generate_mahal_rooms.py — every wall is cut with true math.sin/cos arches, every floor is individually laid tile geometry (no textures), every room's origin is its bottom-centre so they snap together in Godot/Unity.",
-        assets: [
-          {
-            id: "room_darbar_hall",
-            file: "models/mahal/rooms/room_darbar_hall.glb",
-            name: "Darbar Hall — Royal Throne Room (20 m × 15 m × 6.07 m)",
-            alt: "Walk-in Rajasthani throne room with teal and sandstone checkered floor, raised sandstone dais, golden throne with red cushion and canopy, 8 pillars with red blue yellow bands, deep blue arched windows and jali lattice panels",
-            desc: "20×15 m hall, 6 m walls. Sandstone base + 54 individually laid 2 m Teal/Cream checkered tiles. Raised 12×3×1 m dais at the back with two steps and a marble top. Golden throne: stepped base, red cushion, tall back, armrests, 4 gold canopy posts + teal canopy with gold trim + 3 finials. 8 pillars r0.32 h6 with marble bases, gold capitals and Red/Blue/Yellow torus bands. 5 m arched south doorway with gold trim and marble sill. 4 deep-blue arched windows (east/west) framed in gold. 2 jali lattice windows on the north wall: 5 vertical + 4 horizontal sandstone bars whose lengths are computed from the arch equation (no overhang). Gold string course at 4.35 m. Gold chandelier ring with 6 bulbs. 10,494 tris, 8 materials.",
-            dims: "20 m × 15 m × 6.07 m · 54 checker tiles · 8 pillars · dais + throne",
-            material: "Teal / Cream / Gold / DeepBlue / Red / Marble / Sandstone · 10,494 tris · 8 mats · flat shaded",
-            orbit: "28deg 68deg 36m",
-            fov: "42deg",
-            eager: true
-          },
-          {
-            id: "room_courtyard",
-            file: "models/mahal/rooms/room_courtyard.glb",
-            name: "Courtyard Aangan — Open-Sky Centre (20 m × 20 m, fountain at exact centre)",
-            alt: "Open to the sky Rajasthani courtyard with sandstone and marble checker floor, tiered marble fountain at the exact centre, arched colonnade walkways with sandstone spandrels on all four sides and four small teal chhatris on the rim",
-            desc: "20×20 m aangan, open to the sky. Sandstone base with a 10×10 sandstone/marble checker floor and marble border. Tiered marble fountain exactly at (0,0): r2.4 basin, gold rim, blue water disc, pedestal, r1.15 bowl, upper water disc, column and gold finial. Arched jharokha walkways on all 4 sides: 2.4 m deep marble platforms, 6 columns per side (r0.28 h5.65 with gold capitals), 4 arched spandrel panels per side Boolean-cut with a true semicircular arch, gold coping — the central 3 m bay of every side is left completely open as the passage into the adjoining room. Four small teal chhatris (r0.95 domes + spires) stand on the courtyard rim at ±9 m. 9,178 tris, 7 materials.",
-            dims: "20 m × 20 m (open sky) · fountain at (0,0) · 24 columns · 16 arches",
-            material: "Marble / Sandstone / Gold / Teal / DeepBlue · 9,178 tris · 7 mats · flat shaded",
-            orbit: "30deg 66deg 42m",
-            fov: "42deg",
-            eager: true
-          },
-          {
-            id: "room_ranivas",
-            file: "models/mahal/rooms/room_ranivas.glb",
-            name: "Ranivas — Residential Wing (15 m × 10 m × 6 m, 2 rooms + corridor + balconies)",
-            alt: "Rajasthani residential wing with two side rooms joined by a central corridor, golden sandstone walls, raised coloured cube geometric patterns, two protruding balconies with gold railings and pyramidal roofs",
-            desc: "15×10 m wing. Two 5.5 m wide rooms either side of a 3 m marble corridor, separated by tan sandstone dividers with 2 m doorways and lintels. Arched doors to the courtyard (west) and garden (east), arched corridor windows north/south. Colourful geometric pattern: 90 protruding 0.34 m cubes in orange / yellow / blue / teal / tan arranged in a chevron-diamond mask across both long facades. Two balconies protrude 1.5 m from the outer facade at z=3 m with marble slabs, gold railings + 5 balusters each, twin posts and gold pyramid roofs. 3,420 tris, 9 materials.",
-            dims: "15 m × 10 m × 6 m · 2 rooms + corridor · 2 balconies (17 m overall with overhang)",
-            material: "Sandstone / Tan / Orange / Yellow / DeepBlue / Teal / Gold / Marble / Sandstone · 3,420 tris · 9 mats",
-            orbit: "30deg 68deg 32m",
-            fov: "42deg",
-            eager: true
-          },
-          {
-            id: "room_gateway",
-            file: "models/mahal/rooms/room_gateway.glb",
-            name: "Gateway — Grand Scalloped Mehrab Entrance (15 m × 5 m, doors open)",
-            alt: "Monumental Rajasthani gateway with a five-lobed scalloped Mehrab arch layered in sandstone and gold, deep blue spandrels, two flanking turrets with golden domes and two large wooden doors swung open",
-            desc: "15×5 m gateway, 8.4 m main block. The Mehrab is a true cusped arch: a 6 m wide × 4.4 m rectangular opening unioned with 5 circle foils r0.70 placed along a semi-ellipse (math.cos/sin, apex 7.3 m), cut with an EXACT Boolean. Two-layer scalloped frame: 5 tan-sandstone tori r0.88 + 5 gold tori r0.71, gold jambs and sandstone outer jambs, deep-blue spandrels with gold trim. Massive double wooden doors (3 m each, 4.25 m tall) with 3 battens and 12 gold studs per leaf, hinged exactly on the opening jambs and swung 65° open inwards. Flanking turrets with 3 gold bands and chhatri domes. 5,960 tris, 8 materials.",
-            dims: "15 m × 5 m · Mehrab 6 m wide, apex 7.3 m · doors 2 × 3 m open 65°",
-            material: "Sandstone / Tan / Gold / DeepBlue / Yellow / Wood / Marble / Sandstone · 5,960 tris · 8 mats",
-            orbit: "18deg 72deg 32m",
-            fov: "44deg",
-            eager: true
-          }
-        ]
-      },
-      {
-        id: "Mahal Palace",
-        title: "🏰 Mahal Palace — Ultimate Hot Drop POI (Mathematical Royal Architecture)",
-        subtitle: "Majestic 50m×50m base hallowed to 20m courtyard (walls 15m thick) — sandstone walls (cube_project 0.2), gold domes (metallic 0.8), marble fountain r=3 at (0,0,0), 12 trig arches (4×6m, 3 per wall), central dome r=10 + 4 corner domes r=6 sliced at Z=15 with Kalash spires, 60-step 30° stairs (Y=-i*0.25/tan30) + 4×4 roof hole, 2m balconies at Z=10 with pillars r=0.3 every 3m — origin bottom-center (0,0,0)",
-        assets: [
-          {
-            id: "mahal_palace",
-            file: "models/buildings/mahal_palace.glb",
-            name: "Mahal Palace — Royal Fortress (50m×50m×15m, 15m Walls)",
-            alt: "Massive 50x50m Indian palace with hollow 20m courtyard, marble fountain, 12 trig arched gateways 4x6m, central dome r10 + 4 corner domes r6 with Kalash, gold trim, balconies",
-            desc: "Mathematical royal build: Outer 50×50 square base Boolean-hollowed by 20×20 cutter at (0,0) → 15m thick walls, marble fountain r=3 at origin. 12 grand archways (4m wide -2 to 2, 6m tall: 0-4 straight + arch 4-6 r=2) generated via math.sin/cos semi-circle, 3 per wall (spacing 12.5 = 50/4). Central dome UV sphere r=10 at (0,0,15) + 4 corner domes r=6 at (±20,±20) each sliced at Z=15 via Boolean cube, topped with Kalash cylinders r0.5 h3. 60 marble steps (h=0.25, depth=0.25/tan30) loop Z=i*0.25 Y=-i*depth to roof, 4×4 roof hole cut. 2m balconies at Z=10 on all 4 outer walls with railings + pillars r0.3 every 3m. Sandstone cube_project 0.2 + gold metallic 0.8/rough 0.2. Origin bottom-center, 54×54×28 bbox, ~6.1k tris, 2 PBR mats, low-poly (spheres 16 seg).",
-            dims: "50 m × 50 m × 15 m · walls 15m thick · courtyard 20m",
-            material: "sandstone_1k (cube_project 0.2) + gold_trim_1k (metallic 0.8) · ~6119 tris · 2 mats · 3 lights",
-            orbit: "35deg 62deg 55m",
-            fov: "38deg",
-            hero: true,
-            eager: true
-          }
-        ]
-      },
-      {
-        id: "Mahal Palace Master",
-        title: "👑 Rajasthani Mahal Master — Exterior + Royal Darbar Interior (40×30 base, 30×20×12 walls)",
-        subtitle: "40m×30m base with 3-step entrance, 30m×20m×12m walls with vibrant procedural brick+checker diamond tiles (golden sandstone #D9C089, cube_project 0.2), sawtooth parapet sandstone/yellow triangular prisms via for-loop, multi-layered arches outer 5m gold trim inner 4m deep blue, jharokhas 2m protruding with teal half-domes + gold pillars, central teal dome r6 + gold Kalash/flag + 4 yellow corner domes r3, chhatris with mini-domes, interior checkered floor cream/blue/yellow/cyan + 4×4 stair hole, 8 pillars with red/blue/yellow bands, raised dome ceiling + chandelier, jali lattice windows, golden throne + sofas + potted plants, math sin/cos arches/dome rings — faceted low-poly, origin bottom-center",
-        assets: [
-          {
-            id: "mahal_palace_master",
-            file: "models/buildings/mahal_palace_master.glb",
-            name: "Mahal Palace Master — Rajasthani Darbar (40×30 Base, 30×20×12 Walls, Interior + Exterior)",
-            alt: "Highly detailed vibrant Rajasthani Mahal master: exterior golden sandstone geometric walls, teal central dome r6, yellow corners r3, jharokhas, sawtooth parapet, interior checkered floor, pillars, throne, jali windows",
-            desc: "Senior Engineer build Phases 1-6: Phase1 Base 40×30×1 + 3 steps, walls 30×20×12 (0.8 thin) golden sandstone procedural brick (ShaderNodeTexBrick 4.5 + ColorRamp sandstone/orange/yellow/blue + Checker overlay, cube_project 0.2) + sawtooth parapet triangular prisms 0.9 alternating sandstone/yellow via for-loop. Phase2 Multi-layered arches front 3 (outer 5m gold trim 3+2 via math.sin/cos, inner 4m blue) + sides 2 each + jali upper arches, jharokhas 2m protruding balconies 2×2.8 @6m + gold pillars r0.12 + teal half-domes r1.5 sliced. Phase3 Central teal dome r6 sliced + torus base ring (sin/cos) + Kalash cylinder 0.55×1.6 + cone + flag, 4 yellow corners r3 + rings/spires/flags, 4 chhatris 2×2 platforms + 4 pillars + mini-domes r1.4. Phase4 Interior Darbar: checkered floor procedural Checker 6.0 cream/blue/yellow/cyan + 4×4 hole, 8 interior stair steps via tan30, 8 pillars r0.45 + 3 bands red/blue/yellow, raised dome ceiling r7 sliced + chandelier chain/arms/bulbs, 8 jali lattice arch windows 3.2×2.8 r1.6, throne golden box+backrest+cushion red + sofas + 4 potted plants, fountain & 4 palms courtyard. Math sin/cos for arches/dome rings, isometric validated, vibrant no flat colors. Bbox 40×34×26.6, ~9816 tris, 23 mats, 3 imgs (2K teal/yellow/blue), 3 lights, cube_project 0.2, bottom-center origin, low-poly flat shading.",
-            dims: "40 m × 30 m base · 30 m × 20 m × 12 m walls · central dome r6 · 4× corner r3 · interior Darbar",
-            material: "Procedural brick+checker vibrant (cube_project 0.2) + palace_dome_teal/yellow/blue 2K · ~9816 tris · 23 mats · 3 lights",
-            orbit: "38deg 65deg 55m",
-            fov: "36deg",
-            hero: true,
-            eager: true
-          }
-        ]
-      },
-      {
-        id: "Mahal Palace Vibrant",
-        title: "🎨 Mahal Palace Vibrant — Stylized Low-Poly Indian Palace (40×30 base)",
-        subtitle: "40m×30m wide base with stepped entrance (south), 30m×20m×15m main walls box hollowed via Boolean multi-layered arches (deep blue inside) — golden sandstone walls with 2K geometric tile texture (cube_project), central teal dome r8 sliced + cylinder+cone golden spire, 4 yellow corner domes r4, jharokhas with tiny domes, flags (plane meshes), alternating sandstone/yellow parapet blocks, fountain + low-poly palm trees on sand — faceted low-poly, origin bottom-center",
-        assets: [
-          {
-            id: "mahal_palace_vibrant",
-            file: "models/buildings/mahal_palace_vibrant.glb",
-            name: "Mahal Palace Vibrant — Stylized Palace (40×30 Base, 30×20×15 Walls)",
-            alt: "Vibrant stylized low-poly Indian Palace golden sandstone geometric walls, teal central dome r8, 4 yellow corner domes r4, blue arches, jharokhas, flags, parapet, fountain & palms",
-            desc: "Highly vibrant stylized build: 40m×30m base (1m thick) with 3-step entrance south (12/10/8m wide, Y=-15→-18.6). Main walls box 30×20×15 hollowed (thin 0.8m walls) with Boolean trig arch cutters (width 2–3.5m, rect 2.5–3.5m + radius 1–1.75m via math.sin/cos semi-circle, 5 front/5 back/3+3 sides) + deep royal blue interior panels (2K). Central dome UV sphere r8 sliced at roof 16.5 via Boolean cube, cylinder 0.6×2 + cone 0.6→0×1.5 golden spire + flag pole/plane; 4 corner yellow domes r4 sliced at roof corners. 4 jharokhas (1.5×2.5 balconies at 7m + pillars r0.15 + tiny domes r1.2). Flags plane meshes on all domes, alternating sandstone/yellow parapet blocks (1.4×0.6×0.9 every 1.8m), fountain (r2.2/1.2/0.4) + 4 low-poly palms (trunk r0.25 h4 + 5 cone leaves + icosphere top) on sand courtyard. 4×2K vibrant PBR (wall_tiles sandstone/orange/yellow/blue diamonds, dome_teal shiny, dome_yellow gold, door_blue royal). Low-poly flat shading (no smooth), cube_project UVs, bottom-center origin. Bbox 40×33.6×29, ~4914 tris, 13 mats, 5 imgs, 2 lights.",
-            dims: "40 m × 30 m base · 30 m × 20 m × 15 m walls · central dome r8 · 4× corner r4",
-            material: "palace_wall_tiles_2k (sandstone) + palace_dome_teal_2k + palace_dome_yellow_2k + palace_door_blue_2k (2K) · ~4914 tris · 13 mats · 2 lights",
-            orbit: "35deg 62deg 55m",
-            fov: "38deg",
-            hero: true,
-            eager: true
-          }
-        ]
-      },
-      {
-        id: "Modular Palace Blocks",
-        title: "🧱 Modular Palace Blocks — Kitbash Walls/Arches/Domes/Pillars (10m wall, 6m arch, r5 dome, 6m pillar)",
-        subtitle: "Four combinable low-poly palace modules with solid Principled BSDF (SandstoneWall #D9C089, GoldYellow, TealCyan, SandstoneBeige, BandRed/Blue/Yellow) — wall 10×0.5×4 + gold border 10×0.6×0.3, arch 10×0.5×6 with 4×1×4 box + r2 cylinder UNION→DIFFERENCE + gold posts & torus frame sliced at Z4, dome r5 UV sphere 16×8 sliced at Z0 + gold spire cyl r0.3 h3 + cone r0.45, pillar r0.5 h6 + 3 torus bands r0.52 at 0.6/3.0/5.4 — EXACT Booleans, bottom-center (0,0,0) origins, faceted low-poly",
-        assets: [
-          {
-            id: "wall_block",
-            file: "models/modular/wall_block.glb",
-            name: "Wall Block — 10×0.5×4m + Gold Border 10×0.6×0.3m",
-            alt: "10m wide 4m tall golden sandstone wall block with gold top border",
-            desc: "BLOCK 1 wall_block.glb: Main box 10×0.5×4 (center Z2) SandstoneWall #D9C089 + top border 10×0.6×0.3 at Z4.15 GoldYellow, joined, origin bottom-center (0,0,0), 2 mats, Principled BSDF roughness 0.6. Bbox 10×0.6×4.3.",
-            dims: "10 m × 0.5 m × 4 m + 0.3 m border · 2 mats",
-            material: "SandstoneWall #D9C089 + GoldYellow (Principled roughness 0.6) · ~12 tris · 2 mats",
-            orbit: "30deg 65deg 14m",
-            eager: true
-          },
-          {
-            id: "arch_block",
-            file: "models/modular/arch_block.glb",
-            name: "Arch Block — 10×0.5×6m with 4m Rajasthani Arch (r2) + Gold Frame",
-            alt: "10m wall with central 4m wide archway cut by box+cylinder union and gold torus frame",
-            desc: "BLOCK 2 arch_block.glb: Main 10×0.5×6 box with arch cutter box 4×1×4 at Z2 + cyl r2 at Z4 UNION→DIFFERENCE (EXACT), gold frame posts 0.2×0.6×4 at X±2 + torus major2 minor0.12 scaled depth 2.5 sliced at Z4 → upper half only, joined. Bbox 10×0.6×6.12, 2 mats.",
-            dims: "10 m × 0.5 m × 6 m · arch 4 m × 6 m (r2) · 2 mats",
-            material: "SandstoneWall #D9C089 + GoldYellow (Principled roughness 0.6) · ~200 tris · 2 mats",
-            orbit: "30deg 65deg 14m",
-            eager: true
-          },
-          {
-            id: "dome",
-            file: "models/modular/dome.glb",
-            name: "Dome — r5 Hemisphere + Gold Spire r0.3 h3 + Cone r0.45",
-            alt: "Teal hemisphere dome radius 5 with gold spire cylinder and cone",
-            desc: "BLOCK 3 dome.glb: UV sphere 16×8 r5 at (0,0,0) sliced at Z0 via Boolean cube 12×12×6 (EXACT) → hemisphere, TealCyan + spire cyl r0.3 h3 at Z6.5 + cone r0.45→0 h1 at Z8.5 GoldYellow, joined, bottom-center origin. Bbox 10×10×9.",
-            dims: "Ø 10 m · h 5 m dome + 4 m spire = 9 m · 2 mats",
-            material: "TealCyan + GoldYellow (Principled roughness 0.6) · ~150 tris · 2 mats",
-            orbit: "30deg 65deg 16m",
-            eager: true
-          },
-          {
-            id: "pillar",
-            file: "models/modular/pillar.glb",
-            name: "Pillar — r0.5 h6 + 3 Torus Bands r0.52 at 0.6/3.0/5.4",
-            alt: "Sandstone pillar radius 0.5 height 6 with red/blue/yellow decorative torus bands",
-            desc: "BLOCK 4 pillar.glb: Cylinder r0.5 h6 at Z3 SandstoneBeige + 3 torus bands major0.52 minor0.08 at Z 0.6/3.0/5.4 → BandRed/Blue/Yellow, joined, bottom-center origin. Bbox 1.2×1.2×6, 4 mats, 16 verts cyl + 16/12 torus.",
-            dims: "r 0.5 m · h 6 m · 3 bands at 0.6/3.0/5.4 m · 4 mats",
-            material: "SandstoneBeige + BandRed/Blue/Yellow (Principled roughness 0.6) · ~350 tris · 4 mats",
-            orbit: "30deg 70deg 10m",
             eager: true
           }
         ]
       },
       {
         id: "Terrain",
-        title: "Terrain",
-        subtitle: "Base ground, jagged mountain hills, walkable plateaus, and V-shaped valleys (1K grass & rock textures)",
+        title: "🌍 Terrain — Modular Ground, Hills, Slopes and Valleys",
+        subtitle: "Four 1K-textured terrain tiles that snap together to build the Battle Royale map: a 1000 m grass ground plane, an 80 m jagged hill, a 200 m plateau with walk-up ramps on all four sides, and a 200 m valley cut 15 m deep with rocky walls. Each tile is origin bottom-centre (0,0,0) so a tile dropped at the origin sits exactly on the ground.",
         assets: [
           {
             id: "terrain_ground",
@@ -961,249 +526,6 @@
             dims: "200 m × 200 m × 15 m (15 m deep)",
             material: "grass_1k + rock_stone_1k · 24 tris",
             orbit: "28deg 62deg 118%",
-            eager: false
-          }
-        ]
-      },
-      {
-        id: "Water & Bridges",
-        title: "Water & Bridges",
-        subtitle: "Semi-transparent ocean & river meshes, island shoreline beach, concrete hydro dam, and river-crossing bridges",
-        assets: [
-          {
-            id: "water_ocean",
-            file: "models/water/water_ocean.glb",
-            name: "Ocean Water Plane",
-            alt: "4000x4000m flat ocean plane with semi-transparent blue water material (alpha = 0.6)",
-            desc: "Massive 4000 m × 4000 m ocean plane with a semi-transparent blue 1K ripple material (alpha = 0.6, glTF BLEND mode).",
-            dims: "4000 m × 4000 m",
-            material: "water_1k.png (alpha 0.6) · 2 tris",
-            orbit: "25deg 65deg 120%",
-            eager: false
-          },
-          {
-            id: "water_river",
-            file: "models/water/water_river.glb",
-            name: "Curved River Mesh",
-            alt: "30m wide S-curved river mesh with semi-transparent blue water",
-            desc: "Long S-curved river channel mesh (width 30 m) with semi-transparent blue water material (alpha = 0.6) to wind through valleys and under bridges.",
-            dims: "400 m length · 30 m width",
-            material: "water_1k.png (alpha 0.6) · 48 tris",
-            orbit: "30deg 58deg 115%",
-            eager: false
-          },
-          {
-            id: "beach_sand",
-            file: "models/water/beach_sand.glb",
-            name: "Island Beach Sand Ring",
-            alt: "50m wide sand-colored perimeter ring where island grass meets ocean water",
-            desc: "50 m wide gently sloped sand ring/plane (sand_1k.png) placed around the 1000 m island perimeter where grass meets the ocean.",
-            dims: "1000 m × 1000 m (50 m band)",
-            material: "sand_1k.png · 8 tris",
-            orbit: "30deg 60deg 120%",
-            eager: false
-          },
-          {
-            id: "dam_concrete",
-            file: "models/water/dam_concrete.glb",
-            name: "Concrete Hydro Dam",
-            alt: "50m wide, 20m tall, 5m thick curved concrete dam wall",
-            desc: "Massive concrete dam wall (50 m wide, 20 m tall, 5 m thick) with a curved arch front face to hold back the river water.",
-            dims: "50 m × 5 m × 20 m",
-            material: "concrete_wall_1k.png · 84 tris",
-            orbit: "28deg 68deg 115%",
-            eager: false
-          },
-          {
-            id: "bridge_wood",
-            file: "models/bridges/bridge_wood.glb",
-            name: "Wooden Walkway Bridge",
-            alt: "20m long, 4m wide wooden plank bridge with side railings and support pillars",
-            desc: "20 m long, 4 m wide wooden walkway with dual side railings, posts, and support pillars underneath, textured with wood_plank_1k.png.",
-            dims: "20 m × 4 m × 4.3 m",
-            material: "wood_plank_1k.png · 300 tris",
-            orbit: "32deg 68deg 115%",
-            eager: false
-          },
-          {
-            id: "bridge_concrete",
-            file: "models/bridges/bridge_concrete.glb",
-            name: "Concrete Highway Bridge",
-            alt: "40m long, 8m wide concrete bridge with high side barrier walls and thick support pillars",
-            desc: "40 m long, 8 m wide heavy concrete bridge with 1.2 m high protective side barriers and triple rows of thick concrete support pillars (concrete_wall_1k.png).",
-            dims: "40 m × 8 m × 6.7 m",
-            material: "concrete_wall_1k.png · 216 tris",
-            orbit: "30deg 68deg 115%",
-            eager: false
-          }
-        ]
-      },
-      {
-        id: "Nature",
-        title: "Nature",
-        subtitle: "Low-poly trees, rocks, bushes, and foliage props with 1K textures and bottom-center (0,0,0) origins",
-        assets: [
-          {
-            id: "tree_pine",
-            file: "models/nature/tree_pine.glb",
-            name: "Pine Tree",
-            alt: "8m tall low-poly pine tree with cylinder trunk and 3 stacked foliage cones",
-            desc: "8 m tall low-poly conifer built from an 8-sided cylinder trunk (wood_plank_1k.png) and 3 stacked foliage cones (grass_1k.png).",
-            dims: "3.7 m × 3.7 m × 8.0 m",
-            material: "wood_plank_1k + grass_1k · 70 tris",
-            orbit: "25deg 72deg 115%",
-            eager: false
-          },
-          {
-            id: "tree_oak",
-            file: "models/nature/tree_oak.glb",
-            name: "Oak Tree",
-            alt: "6m tall low-poly oak tree with thick trunk and broad green icosphere canopy",
-            desc: "6 m tall broadleaf oak featuring a thick tapered trunk (wood_plank_1k.png) and a clustered low-poly green icosphere canopy (grass_1k.png).",
-            dims: "3.8 m × 3.3 m × 6.0 m",
-            material: "wood_plank_1k + grass_1k · 88 tris",
-            orbit: "25deg 72deg 115%",
-            eager: false
-          },
-          {
-            id: "tree_dead",
-            file: "models/nature/tree_dead.glb",
-            name: "Dead Tree",
-            alt: "Low-poly bare dead tree with jagged forked branches",
-            desc: "Gnarled, leafless dead tree with bare jagged primary and secondary branches, textured with wood_plank_1k.png.",
-            dims: "3.6 m × 2.6 m × 5.5 m",
-            material: "wood_plank_1k.png · 252 tris",
-            orbit: "28deg 70deg 115%",
-            eager: false
-          },
-          {
-            id: "rock_large",
-            file: "models/nature/rock_large.glb",
-            name: "Large Boulder Rock",
-            alt: "3x3x2m displaced low-poly icosphere boulder with rock_stone_1k texture",
-            desc: "Displaced low-poly icosphere boulder (3 m × 3 m × 2 m) for natural cover, textured with rock_stone_1k.png.",
-            dims: "3.0 m × 3.0 m × 2.0 m",
-            material: "rock_stone_1k.png · 80 tris",
-            orbit: "30deg 68deg 115%",
-            eager: false
-          },
-          {
-            id: "rock_small",
-            file: "models/nature/rock_small.glb",
-            name: "Small Field Rock",
-            alt: "1x1x0.8m displaced low-poly icosphere stone with rock_stone_1k texture",
-            desc: "Compact displaced icosphere rock (1 m × 1 m × 0.8 m) for terrain scatter, textured with rock_stone_1k.png.",
-            dims: "1.0 m × 1.0 m × 0.8 m",
-            material: "rock_stone_1k.png · 20 tris",
-            orbit: "30deg 68deg 115%",
-            eager: false
-          },
-          {
-            id: "bush",
-            file: "models/nature/bush.glb",
-            name: "Foliage Bush Cluster",
-            alt: "Cluster of 3 small green low-poly spheres forming a bush",
-            desc: "Low-poly bush formed from a cluster of 3 organic green icospheres with grass_1k.png texture for stealth and ground cover.",
-            dims: "1.9 m × 1.3 m × 1.25 m",
-            material: "grass_1k.png · 60 tris",
-            orbit: "28deg 68deg 115%",
-            eager: false
-          },
-          {
-            id: "grass_clump",
-            file: "models/nature/grass_clump.glb",
-            name: "Grass Clump (3 Crossed Planes)",
-            alt: "3 crossed planes at 60-degree intervals with double-sided green grass material",
-            desc: "Ultra-lightweight 6-triangle grass clump built from 3 crossed planes (0°, 60°, 120°) with a double-sided green 1K grass material.",
-            dims: "0.85 m × 0.74 m × 0.90 m",
-            material: "grass_1k.png · 6 tris",
-            orbit: "25deg 70deg 115%",
-            eager: false
-          }
-        ]
-      },
-      {
-        id: "Buildings",
-        title: "Buildings (Phase 1)",
-        subtitle: "Vibrant Battle-Royale tactical buildings with 32° interior stairs, exact-fit open doors/shutters, and world preview",
-        assets: [
-          {
-            id: "scene_phase1",
-            file: "models/scene_phase1.glb",
-            name: "Phase 1 World Preview (Hero Scene)",
-            alt: "100m grass ground with all six colourful Phase 1 buildings placed on it, shadows baked in",
-            desc: "Combined Phase 1 town preview: 100 m grass ground with the red-brick tactical house, green apartment, yellow school, blue-and-rust warehouse, dark ruined building and warm wood cabin.",
-            dims: "100 m × 100 m ground",
-            material: "Grass + 6 tinted PBR buildings",
-            orbit: "30deg 62deg 105m",
-            fov: "40deg",
-            hero: true,
-            eager: false
-          },
-          {
-            id: "house_tactical",
-            file: "models/buildings/house_tactical.glb",
-            name: "Tactical House — Red Brick",
-            alt: "2-storey 10x8m red brick house with wooden porch, balcony, rusty gable roof and back fire escape",
-            desc: "2 storeys of red-brown brick with a wooden porch, balcony, rusty metal gable roof and back fire escape. All four doors swing open inward; interior stairs, furniture cover and warm OmniLights inside.",
-            dims: "10 m × 8 m · 2 floors",
-            material: "Tinted brick + wood + rust",
-            orbit: "25deg 70deg 118%",
-            eager: false
-          },
-          {
-            id: "school_yellow",
-            file: "models/buildings/school_yellow.glb",
-            name: "School — Bright Yellow",
-            alt: "2-storey 14x10m bright yellow concrete school with flat roof, parapet and open shuttered windows",
-            desc: "2 storeys of bright yellow concrete with a flat roof and parapet, corridor partition, classrooms with desks on both floors, and a 32° stair.",
-            dims: "14 m × 10 m · 2 floors",
-            material: "Yellow concrete + wood",
-            orbit: "28deg 70deg 122%",
-            eager: false
-          },
-          {
-            id: "apartment_green",
-            file: "models/buildings/apartment_green.glb",
-            name: "Apartment Block — Vibrant Green",
-            alt: "3-storey 12x10m vibrant green concrete apartment with internal switchback stairs to the flat roof",
-            desc: "3 storeys of vibrant green concrete. Switchback interior stairs connect all three floors and the roof hatch.",
-            dims: "12 m × 10 m · 3 floors",
-            material: "Green concrete + wood",
-            orbit: "24deg 72deg 116%",
-            eager: false
-          },
-          {
-            id: "cabin_wood",
-            file: "models/buildings/cabin_wood.glb",
-            name: "Wood Cabin — Warm Brown",
-            alt: "1-storey 8x6m warm brown wooden cabin with gable roof, brick chimney and porch",
-            desc: "Single-storey warm brown wood cabin with a pitched rusty roof, brick chimney, covered porch and open shuttered windows.",
-            dims: "8 m × 6 m · 1 floor",
-            material: "Warm wood + rust + brick",
-            orbit: "25deg 70deg 108%",
-            eager: false
-          },
-          {
-            id: "warehouse_metal",
-            file: "models/buildings/warehouse_metal.glb",
-            name: "Metal Warehouse — Steel Blue + Rust",
-            alt: "20x12m steel-blue corrugated-metal warehouse with rust-coloured roof and two open garage doors",
-            desc: "Steel-blue corrugated shell under a rusty orange roof, with two wide-open 6 m garage doors, side personnel door, dark concrete floor and crate cover.",
-            dims: "20 m × 12 m · 1 floor",
-            material: "Steel-blue metal + rust",
-            orbit: "20deg 74deg 114%",
-            eager: false
-          },
-          {
-            id: "ruined_building",
-            file: "models/buildings/ruined_building.glb",
-            name: "Ruined Building — Dark Grey",
-            alt: "Heavily destroyed 2-storey 10x8m dark grey concrete building with BMesh-deleted walls, exposed rebar and rubble",
-            desc: "Heavily destroyed shell in darkened grey concrete: walls and roof ripped apart with BMesh face deletion, bare openings, exposed rebar and rubble piles.",
-            dims: "10 m × 8 m · 2 floors",
-            material: "Dark concrete + rebar",
-            orbit: "33deg 68deg 118%",
             eager: false
           }
         ]

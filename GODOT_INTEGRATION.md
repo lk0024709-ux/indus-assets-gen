@@ -1,187 +1,129 @@
-# Godot Integration — Rajasthani Mahal (Tasks 1-4)
+# Godot Integration — Grand Mahal, Modular Buildings, Terrain
 
-This file implements your exact requested workflow for the **Godot game project** (separate from this asset repo `indus-assets-gen`).  
-**This repo is the asset pipeline** — it generates and hosts the GLBs. Your Godot project consumes them.
+This repo (`lk0024709-ux/indus-assets-gen`) is the **3D asset pipeline**. Its GitHub Action generates the GLBs and
+deploys the web viewer to GitHub Pages; it does **not** build a Godot APK. Your game repo consumes the published `.glb`
+URLs below.
 
----
-
-## Repo layout (this asset repo)
-
-```
-docs/models/buildings/rajasthani_mahal.glb  ← alias of mahal_palace_master.glb (4.2 MB, 40×34×26.6 m, bottom-center (0,0,0))
-docs/models/buildings/mahal_palace_master.glb  (canonical master)
-docs/models/modular/wall_block.glb | wall_module.glb   (3.4 KB)
-docs/models/modular/arch_block.glb | arch_module.glb   (38 KB)
-docs/models/modular/dome.glb | dome_module.glb         (17 KB)  r=5 + spire
-docs/models/modular/pillar.glb | pillar_module.glb     (86 KB)  r0.5 h6 + 3 bands
-```
-
-> All modular blocks use `create_solid_material` Principled BSDF `Roughness 0.6`, `EXACT` Booleans, origin set via 3D cursor bottom-center `(0,0,0)` — so dropping them at `(0,0,0)` in Godot puts the floor at `y=0`.
-
-Live viewer + direct downloads (after `main` deploy succeeds):
-* Viewer: https://lk0024709-ux.github.io/indus-assets-gen/
-* Mahal full: https://lk0024709-ux.github.io/indus-assets-gen/models/buildings/rajasthani_mahal.glb
-* Alternate (same file): https://lk0024709-ux.github.io/indus-assets-gen/models/buildings/mahal_palace_master.glb
-* Modular folder: https://lk0024709-ux.github.io/indus-assets-gen/models/modular/ → `wall_block.glb`, `arch_block.glb`, `dome.glb`, `pillar.glb` (and `*_module.glb` aliases)
+**Live viewer:** https://lk0024709-ux.github.io/indus-assets-gen/
 
 ---
 
-## TASK 1 — Download new assets (do this in your GODOT repo)
+## 1 — What is published
 
-### Option A: Manual (one-time)
+| Asset | File on Pages | Size |
+|---|---|---|
+| Grand Mahal (assembled palace) | `models/mahal/rajasthani_mahal_mega.glb` | ~4.0 MB |
+| Mahal rooms (4 walk-in blocks) | `models/mahal/rooms/room_*.glb` | 0.2–0.7 MB each |
+| 11 Modular Buildings | `models/buildings_modular/<name>.glb` | 0.08–0.45 MB each |
+| 4 Terrain tiles | `models/terrain/terrain_*.glb` | 0.45–0.92 MB each |
+| Elite Cargo Dropship (drop sequence) | `models/vehicles/plane_cargo_elite.glb` | 1.2 MB |
 
-1. Go to the latest successful Action run → artifact `github-pages` is not a zip of `docs/` you want — easiest is direct download:
+Base URL: `https://lk0024709-ux.github.io/indus-assets-gen/models/`
+
+> The retired building/nature/water/bridge sets and the old modular palace blocks are **no longer published**.
+> Use the four assets above.
+
+---
+
+## 2 — Download the assets
+
+Copy `examples/godot/download_assets.sh` (Linux/macOS) or `download_assets.ps1` (Windows) into your Godot project root
+and run it. Files land in `res://assets/downloaded_models/`:
+
+```
+assets/downloaded_models/
+  rajasthani_mahal_mega.glb
+  house_blue.glb … tower_sniper.glb      (11 buildings)
+  terrain/terrain_ground.glb, terrain_hill_large.glb, terrain_plateau.glb, terrain_valley.glb
+```
+
+Or fetch them by hand:
 
 ```bash
-# in your Godot project root
-mkdir -p assets/downloaded_models/modular
-
-# Mahal — full assembled (use either name):
-curl -L -o assets/downloaded_models/rajasthani_mahal.glb \
-  https://lk0024709-ux.github.io/indus-assets-gen/models/buildings/rajasthani_mahal.glb
-
-# Modular blocks (4 files, 2 naming schemes kept in sync):
-for f in wall_block arch_block dome pillar; do
-  curl -L -o assets/downloaded_models/modular/${f}.glb \
-    https://lk0024709-ux.github.io/indus-assets-gen/models/modular/${f}.glb
-done
-# aliases if your GDScript expects *_module.glb:
-for f in wall_module arch_module dome_module pillar_module; do
-  cp assets/downloaded_models/modular/${f%_module*}.glb assets/downloaded_models/modular/${f}.glb 2>/dev/null || true
-done
+curl -L -o assets/downloaded_models/rajasthani_mahal_mega.glb \
+  https://lk0024709-ux.github.io/indus-assets-gen/models/mahal/rajasthani_mahal_mega.glb
 ```
 
-PowerShell (Windows):
-
-```powershell
-New-Item -ItemType Directory -Force -Path assets/downloaded_models/modular | Out-Null
-Invoke-WebRequest -Uri https://lk0024709-ux.github.io/indus-assets-gen/models/buildings/rajasthani_mahal.glb -OutFile assets/downloaded_models/rajasthani_mahal.glb
-@("wall_block","arch_block","dome","pillar") | ForEach-Object {
-  Invoke-WebRequest -Uri "https://lk0024709-ux.github.io/indus-assets-gen/models/modular/$_.glb" -OutFile "assets/downloaded_models/modular/$_.glb"
-}
-```
-
-### Option B: Auto-sync via GitHub Action (recommended — add to your GODOT repo)
-
-Copy `.github/workflows/sync-mahal-assets.yml.example` from this repo into your Godot repo as `.github/workflows/sync-mahal-assets.yml`.  
-It runs on `workflow_dispatch` and on a daily cron, fetches the 5 GLBs above, commits if changed, and can trigger your Godot export.
-
-We also provide `examples/godot/download_assets.sh` / `.ps1` helper scripts — copy them into your Godot project.
-
-> **Where to place files:** Exactly `res://assets/downloaded_models/rajasthani_mahal.glb` and `res://assets/downloaded_models/modular/*.glb` as you specified. Do **not** put them under `res://addons/` or `res://imports/`.
+**Auto-sync:** copy `.github/workflows/sync-mahal-assets.yml.example` into your game repo as
+`.github/workflows/sync-mahal-assets.yml` — it refreshes the assets daily and on demand, and commits them.
 
 ---
 
-## TASK 2 — Replace the old procedural Mahal (`main.gd`)
+## 3 — Import settings in Godot 4.x
 
-In your Godot project's map builder (typically `main.gd`, `world.gd`, or `mahal_manager.gd`):
+Select each `.glb` → **Import** tab:
 
-1. **Remove/disable** the old procedural calls (`generate_mahal()`, `build_mahal_walls()`, etc.).
-2. **Instance the new GLB** at map center `(0,0,0)` and generate trimesh collision so stairs, archways, interior Darbar, jali, and chhatris are walkable.
+| Setting | Value | Why |
+|---|---|---|
+| Root Type | `Node3D` | keeps the scene hierarchy intact |
+| Generate Collisions | **Off** | we build accurate trimesh at runtime (convex hulls seal doorways and arches) |
+| Meshes → Ensure Tangents | Off | materials are solid colours, no normal maps |
+| Scale | 1.0 | the GLBs are authored in metres |
 
-Paste one of these ready-made scripts:
-
-* **Minimal** — `examples/godot/main_mahal_godot.gd` (drop-in `Node3D` script, auto-creates `StaticBody3D` with `ConcavePolygonShape3D` per mesh, handles bottom-center origin correctly).
-* **Advanced** — includes navmesh rebake hook and LOD placeholder.
-
-Key points already handled in the script:
-* `GLTFDocument` load at runtime OR pre-import via Godot's `Import` tab (recommended: set `Root Type: Node3D`, ensure `Generate Collisions: Off` — we generate our own trimesh so you get perfect stair collisions instead of convex hull approximations).
-* `StaticBody3D` + `CollisionShape3D` with `ConcavePolygonShape3D` (trimesh) — required for interior + stairs + arched openings. Do **not** use `ConvexPolygonShape3D` (it will seal doorways).
-* Recursively walks `MeshInstance3D` children (the master has 23 mats, ~9816 tris, 40×34×26.6 bbox) and calls `mesh.create_trimesh_shape()`.
-* Map center: `mahal.global_position = Vector3.ZERO` — the GLB's origin is already bottom-center `(0,0,0)`, so its floor sits flush on your `terrain_ground`/`base_ground` at `y=0`. No offset needed.
-* Optional: enable `physics/physics_ticks_per_second = 60`, `collision_layer = 1`.
-
-> See file header comments for tuning (e.g., `collision_mask`, `navmesh`).
-
-### Verify
-
-Run scene → player should:
-* Spawn outside, walk through 3 front + side multi-layer arches (5 m outer gold trim, 4 m inner deep-blue)
-* Climb 60-step 30° stair loop to roof hole, walk on dome base
-* Enter interior Darbar (checkered floor, 8 pillars with red/blue/yellow bands, throne, jali lattice), pass sawtooth parapet and jharokhas with teal half-domes
-
-If collisions feel “floaty”, ensure `create_trimesh_collision()` ran (check Remote Inspector for `StaticBody3D` children).
+Every asset has its **origin at bottom-centre `(0, 0, 0)`**, so dropping it at `Vector3.ZERO` puts its floor exactly on
+your ground plane — no offset needed.
 
 ---
 
-## TASK 3 — Optional: Modular assembly (when full GLB is too heavy)
+## 4 — Load the Mahal
 
-Use when `rajasthani_mahal.glb` (4.2 MB) exceeds your mobile budget or you want procedural variation.
+`examples/godot/main_mahal_godot.gd` is a drop-in `Node3D` script (`class_name MainMahalLoader`):
 
-Script: `examples/godot/modular_mahal_builder.gd`
+* resolves `res://assets/downloaded_models/rajasthani_mahal_mega.glb`,
+* instances it at `Vector3.ZERO`,
+* walks every `MeshInstance3D` and creates a `StaticBody3D` + `ConcavePolygonShape3D` (trimesh) so the darbar, courtyard
+  arches, stairs and roof are all walkable,
+* optionally re-bakes a `NavigationRegion3D`.
 
-It demonstrates:
-* Instantiating `dome_module.glb` at center `(0, 12, 0)` r=6 logic → places `dome.glb` (r=5) scaled 1.2× to approximate r=6 central dome + 4 corners at `(±10, 0, ±7)` scaled 0.6× for corner r=3 domes (positions match Master spec: BUILD_W 30×BUILD_D 20, BUILD_H 12)
-* `pillar_module.glb` grid: 8 interior pillars + jharokha pillars + chhatri supports
-* `wall_module.glb` / `arch_module.glb` rows to rebuild 30×20×12 walls with 5 front / 3 side arch cutters (replicating the `math.sin/cos` arch logic in GDScript for placement, not geometry)
-* Jharokha composition: `wall_module` stub + 2× `pillar_module` (scaled 0.25×) + `dome_module` half-sphere (scaled 0.3×) at `y=7`
+Attach it to your map root (or call `MainMahalLoader.load_full_mahal_at(Vector3.ZERO)` from `main.gd`) and remove the old
+procedural Mahal call.
 
-Switch with a feature flag:
-
-```gdscript
-const USE_MODULAR_FALLBACK = false # set from ProjectSettings or memory check
-if USE_MODULAR_FALLBACK:
-    ModularMahalBuilder.assemble_at(Vector3.ZERO, get_tree().current_scene)
-else:
-    MainMahalLoader.load_full_mahal_at(Vector3.ZERO)
-```
-
-Collision: each module also gets `ConcavePolygonShape3D` trimesh via same helper.
+Key point: use **trimesh** (`mesh.create_trimesh_shape()`), never `ConvexPolygonShape3D` — convex shapes seal the
+archways and doorways.
 
 ---
 
-## TASK 4 — Build & Deploy → Live APK link
+## 5 — Place the modular buildings
 
-**Important scope clarification:**
+The 11 buildings are single joined meshes on a 15 m grid, each with real interior rooms, doorways and furniture:
 
-* This repository (`lk0024709-ux/indus-assets-gen`) is the **3D asset pipeline** — its GitHub Action **generates GLBs and deploys the web viewer** to GitHub Pages. It does **not** build a Godot APK. Pushing to `main` here correctly triggers `Generate & Deploy 3D Assets` → https://lk0024709-ux.github.io/indus-assets-gen/ (verified in last run #39403901369 `success`).
-* Your Godot game (where `main.gd` lives) is a **separate repository** (e.g., `lk0024709-ux/indus` or `indus-game`). The live APK is built by **that repo's** Godot export Action (e.g., `godot-export.yml` using `barichello/godot-ci:4.x` + `actions/upload-artifact` → Release).
+| File | Footprint × height | Floors |
+|---|---|---|
+| `house_blue.glb` | 30.3 × 30.3 × 9.0 m | 2 |
+| `school_yellow.glb` | 45.3 × 30.3 × 6.7 m | 2 |
+| `apartment_green.glb` | 30.3 × 30.3 × 9.7 m | 3 |
+| `warehouse_metal.glb` | 45.3 × 30.3 × 3.7 m | 1 |
+| `cabin_wood.glb` | 15.3 × 15.2 × 6.0 m | 1 |
+| `ruined_building.glb` | 30.3 × 30.3 × 6.1 m | 2 (no roof) |
+| `shop_row.glb` | 30.3 × 17.4 × 6.0 m | 1 |
+| `villa_white.glb` | 30.3 × 30.3 × 9.0 m | 2 |
+| `farmhouse_stone.glb` | 30.3 × 15.3 × 6.0 m | 1 |
+| `bunker_military.glb` | 15.3 × 15.2 × 3.7 m | 1 |
+| `tower_sniper.glb` | 15.3 × 15.3 × 13.0 m | 4 |
 
-What to do:
-
-1. **In this asset repo:** Push is already done on branch `arena/6eae1dec-indus-assets-gen` → open PR → merge to `main` → Action deploys viewer + `rajasthani_mahal.glb` URL above becomes live. (We have prepared alias copies so your download script works immediately after merge.)
-
-2. **In your Godot repo:** Copy the `download_assets` step (Option B) or run the manual `curl` (Option A), commit `assets/downloaded_models/`, replace `main.gd` with the provided loader script, then:
-
-```bash
-git add assets/downloaded_models/ main.gd
-git commit -m "feat: replace procedural mahal with rajasthani_mahal.glb + trimesh collisions"
-git push origin main
-```
-
-Your Godot repo's export workflow (example supplied in `examples/godot/godot-export.yml.example`) will build:
-
-* `export_presets.cfg` preset `Android` → `builds/indus.apk`
-* On success, the Action uploads artifact and creates a Release; the live link looks like:
-
-```
-https://github.com/<YOUR_GODOT_ORG>/<YOUR_GODOT_REPO>/releases/download/latest/indus.apk
-or
-https://github.com/<YOUR_GODOT_ORG>/<YOUR_GODOT_REPO>/actions/runs/<RUN_ID>  → Artifacts → indus-apk
-```
-
-**We cannot provide a real APK link from this asset repo** — if you share your Godot repo URL, we can create the export workflow there and trigger it. Until then, test locally:
-
-* Godot Editor → Play → walk inside Mahal (WASD + mouse, jump to test stairs).
-* Android → `Project → Export → Android → Export With Debug` → install on device / `adb install builds/indus.apk`.
-
-### Checklist before you report “done”
-
-- [ ] `res://assets/downloaded_models/rajasthani_mahal.glb` loads without `ERR_FILE_NOT_FOUND`
-- [ ] `StaticBody3D` children visible in Remote, `ConcavePolygonShape3D` data non-empty
-- [ ] Player can pass all archways (no invisible wall) and climb stairs to roof
-- [ ] Modular fallback tested on low-end device (if applicable)
-- [ ] `main` pushed → Godot Action green → APK artifact downloadable → link pasted in PR description
+Place them on a 15 m grid; the same trimesh-collision helper works for each one (interiors matter — players must be able
+to walk in, up the stairs and out the back).
 
 ---
 
-## Files delivered in this branch
+## 6 — Terrain
 
-* `docs/models/buildings/rajasthani_mahal.glb` (alias, 4.2 MB)
-* `docs/models/modular/{dome,pillar,wall,arch}_module.glb` aliases + `README.md`
-* `examples/godot/main_mahal_godot.gd` — Task 2 loader with trimesh collisions
-* `examples/godot/modular_mahal_builder.gd` — Task 3 runtime assembler
-* `examples/godot/download_assets.{sh,ps1}` — Task 1 helpers
-* `.github/workflows/sync-mahal-assets.yml.example` + `godot-export.yml.example` — Task 4 templates
+| File | Size | Notes |
+|---|---|---|
+| `terrain_ground.glb` | 1000 × 1000 m | flat base island |
+| `terrain_hill_large.glb` | 80 × 80 × 40 m | jagged mountain, rock + grass |
+| `terrain_plateau.glb` | 200 × 200 × 15 m | ramps on all four sides |
+| `terrain_valley.glb` | 200 × 200 × 15 m | 15 m V-shaped cut |
 
-Questions? Open an Issue with your Godot repo link and target Godot version (3.x / 4.x) — loader script currently targets **Godot 4.2+** (`GLTFDocument`, `create_trimesh_collision()`).
+All four are origin bottom-centre and tile edge-to-edge, so you can compose a map from a handful of copies. Generate
+trimesh collision once per tile at load time (or bake a NavigationMesh from them).
+
+---
+
+## 7 — Checklist
+
+- [ ] `res://assets/downloaded_models/rajasthani_mahal_mega.glb` loads without `ERR_FILE_NOT_FOUND`
+- [ ] Mahal sits at `(0,0,0)` with its floor flush on the terrain
+- [ ] Player can walk through the gateway arch, into the darbar and around the courtyard
+- [ ] Player can enter each modular building through a doorway and climb its stairs
+- [ ] Old procedural Mahal / building calls removed from `main.gd`
