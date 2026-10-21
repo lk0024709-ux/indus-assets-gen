@@ -7,27 +7,29 @@ Production asset pipeline for **Indus : Battle Royale**. Every model in this rep
 
 👉 **[lk0024709-ux.github.io/indus-assets-gen](https://lk0024709-ux.github.io/indus-assets-gen/)**
 
-The gallery is deliberately small — it ships **only the three production asset sets**:
+The gallery is deliberately small — it ships **only the production asset sets**:
 
 | # | Category | Assets | Source | Where |
 |---|---|---|---|---|
-| 1 | 🏯 **The Grand Mahal** | 1 assembled palace (+ 4 room blocks used to build it) | `tools/generate_mahal_rooms.py` | `docs/models/mahal/` |
-| 2 | 🧱 **Modular Buildings** | 11 coloured blocks with real interior rooms | `tools/generate_building_modules.py` + `tools/assemble_buildings.py` | `docs/models/buildings_modular/` |
-| 3 | 🌍 **Terrain** | 4 tiles — ground, hill, plateau, valley | `tools/generate_terrain.py` | `docs/models/terrain/` |
+| 1 | 🛩 **Vehicles** | 1 Elite Cargo Dropship (45 m span) | `tools/generate_plane_cargo_elite.py` | `docs/models/vehicles/` |
+| 2 | 🏯 **The Grand Mahal** | 1 assembled palace (+ 4 room blocks used to build it) | `tools/generate_mahal_rooms.py` | `docs/models/mahal/` |
+| 3 | 🧱 **Modular Buildings** | 11 coloured blocks with real interior rooms | `tools/generate_building_modules.py` + `tools/assemble_buildings.py` | `docs/models/buildings_modular/` |
+| 4 | 🌍 **Terrain** | 4 tiles — ground, hill, plateau, valley | `tools/generate_terrain.py` | `docs/models/terrain/` |
 
 > **Note on folder names:** the brief calls these sets `buildings_final/` and `terrain_modules/`. In this repository they
 > are the long-standing canonical paths **`docs/models/buildings_modular/`** and **`docs/models/terrain/`** — the 11 modular
 > buildings and the 4 terrain tiles. Those paths are what the generators write to, what the CI publishes and what the
 > Godot docs link to, so they were kept intact rather than renamed.
 
-One extra asset lives outside the gallery: **`docs/models/vehicles/plane_cargo_elite.glb`**, the Elite Cargo Dropship used
-by the Battle Royale drop sequence (not shown in the viewer).
+The **Elite Cargo Dropship** (`docs/models/vehicles/plane_cargo_elite.glb`) opens every Battle Royale match, so it gets its
+own **Vehicles** category at the top of the gallery: 45.0 m span × 35.0 m length, 22,358 tris, 12 solid materials and
+zero textures — see the [Dropship section](#-vehicles--elite-cargo-dropship-docsmodelsvehicles) below.
 
 ## ⚙️ How the Pipeline Works
 
 1. **Generation** — each `tools/generate_*.py` script drives `bpy` (Blender as a Python module) to build meshes at
    real-world metre scale with Boolean openings, exact trig for arches and stairs, and deterministic placement.
-2. **Materials** — the three shipped sets use **solid Principled BSDF colours** (no image textures). Only the terrain
+2. **Materials** — the dropship, Mahal and buildings use **solid Principled BSDF colours** (no image textures). Only the terrain
    tiles carry a 1K PBR map (`grass_1k.png`, `rock_stone_1k.png`), and both can be regenerated procedurally.
    Colours are converted **sRGB → linear** before they reach the shader, so a hex value in the code is the colour you see
    in the GLB.
@@ -46,16 +48,35 @@ tools/
   generate_mahal_rooms.py      # 4 walk-in rooms + assemble_mahal() -> rajasthani_mahal_mega.glb
   generate_building_modules.py # 15 m modular kit (walls, partitions, slabs, roofs, stairs, furniture)
   assemble_buildings.py        # 11 building recipes -> one joined mesh each
-  generate_plane_cargo_elite.py# Elite Cargo Dropship (drop sequence, not in the gallery)
+  generate_plane_cargo_elite.py# Elite Cargo Dropship (Vehicles category)
 
 docs/                          # GitHub Pages site (viewer + models)
-  index.html                   # 3-category gallery
+  index.html                   # 4-category gallery
   models/mahal/                # Grand Mahal (mega assembly + rooms/)
   models/buildings_modular/    # the 11 modular buildings
   models/terrain/              # the 4 terrain tiles
   models/vehicles/             # plane_cargo_elite.glb
   textures/                    # grass_1k.png + rock_stone_1k.png (terrain only)
 ```
+
+## 🛩 Vehicles — Elite Cargo Dropship (`docs/models/vehicles/`)
+
+`generate_plane_cargo_elite.py` builds the next-gen stealth cargo plane used for the drop sequence and exports one joined
+mesh. **45.00 m wingspan × 35.00 m length × 10.33 m tall**, origin bottom-centre `(0, 0, 0)`, **22,358 tris**, 1.2 MB,
+12 solid materials, no textures.
+
+| Part | Construction |
+|---|---|
+| Fuselage | blended-wing-body loft from 12 chined stations — no round tube — with ring seams and longitudinal panel-line ribbons |
+| Greebling | ~200 pieces: access panels, 12 vent banks with slats, dorsal spine rails, blade antennas, RCS pods, chaff dispensers, sensor blisters, tie-downs, service hatches |
+| Cockpit | faceted tinted canopy (metallic 0.8 / roughness 0.1) with arch framing, nose sensor pods, pitot probes, chin FLIR turret |
+| Wings | 7-section sweeps with canted winglets, leading-edge bands, flap fairings, vortex generators, 2 under-wing drop tanks |
+| Engines | 4 octagonal nacelles: open intakes with 10-blade fans, guide vanes, armour bands, heat fins, vectoring petals, emissive cyan + ember-orange thrusters |
+| Tail | canted twin fins with cyan trailing strips, tapered dorsal fairing, strobe, heat vents |
+| Cargo bay | EXACT Boolean opening (ray-cast verified at build time) with ribbed interior, ceiling strips, crates, and a lowered ramp in an explicit ramp-local frame; red/green indicator lights around the opening |
+
+The generator asserts its own output — dimensions, `minZ == 0`, ≤ 120k tris, ≥ 10 materials, **zero images in the GLB**,
+and a clear ray through the cargo opening.
 
 ## 🏯 The Grand Mahal — `docs/models/mahal/`
 
