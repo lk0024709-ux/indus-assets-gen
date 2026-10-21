@@ -57,6 +57,9 @@ jobs:
           python tools/generate_bridges.py
           python tools/generate_nature.py
 
+      - name: Generate Elite Cargo Dropship — Battle Royale drop ship (45 m span × 35 m, 4 nacelles, open cargo ramp)
+        run: python tools/generate_plane_cargo_elite.py
+
       - name: Generate Mahal Palace Hot Drop POI (50×50×15m fortress)
         run: python tools/generate_mahal.py
 
@@ -78,8 +81,6 @@ jobs:
       - name: Assemble 11 Battle Royale Buildings with interior rooms + furniture into docs/models/buildings_modular/
         run: python tools/assemble_buildings.py
 
-      - name: Generate Elite Cargo Plane — 35 m stealth drop ship with Boolean cargo ramp + emissive engines
-        run: python tools/generate_plane_cargo_elite.py
 
       # The 10 m set in docs/models/buildings/modular/ was superseded by the 15 m
       # kit in docs/models/buildings_modular/. Drop it so Pages never serves stale
