@@ -14,7 +14,7 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 2. **Code Generation:** `tools/generate_phase1.py` uses `bpy` (Blender as a Python module) to build terrain and buildings at real-world metre scale — boolean door/window cutouts, density-normalised `uv.smart_project()` unwrapping, and for every wall/floor material the chain **`Texture Coordinate (UV) → Mapping (Scale 0.3, 0.3, 0.3) → Image Texture (Extension REPEAT) → Base Color`** so bricks/wood/concrete tile at human scale with no stretching (exported to glTF as `KHR_texture_transform`). Point lights are exported as `KHR_lights_punctual`. Every building's origin sits exactly at its bottom-centre (0, 0, 0).
 3. **Automated Export:** Models are exported as packed `.glb` files (`export_format='GLB'`, `export_image_format='JPEG'` so the textures pack inside the container) into `docs/models/`.
 4. **CI/CD Deployment:** GitHub Actions (`.github/workflows/deploy.yml`) triggers on every push to `main`, installs `bpy`, runs the Phase 1 generator, and deploys the `docs/` folder to GitHub Pages.
-5. **Web Viewing:** `docs/index.html` uses Google's `<model-viewer>` (generated dynamically from a JS array) with `environment-image="neutral"` and `shadow-intensity="1"` so the PBR textures and shadows read clearly on any device — a hero card shows the combined `scene_phase1.glb` world preview.
+5. **Web Viewing:** `docs/index.html` uses Google's `<model-viewer>` (generated dynamically from a JS array) with `environment-image="neutral"` and `shadow-intensity="1"` so PBR surfaces and shadows read clearly on any device — hero cards include the Elite Cargo Plane and the combined `scene_phase1.glb` world preview.
 
 ## 📂 Project Structure
 *   `tools/generate_terrain.py` — **Phase 2 Terrain `bpy` generator** (`terrain_ground.glb`, `terrain_hill_large.glb`, `terrain_plateau.glb`, `terrain_valley.glb`).
@@ -22,6 +22,7 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 *   `tools/generate_bridges.py` — **Phase 2 Bridges `bpy` generator** (`bridge_wood.glb`, `bridge_concrete.glb`).
 *   `tools/generate_nature.py` — **Phase 2 Nature & Plants `bpy` generator** (`tree_pine.glb`, `tree_oak.glb`, `tree_dead.glb`, `rock_large.glb`, `rock_small.glb`, `bush.glb`, `grass_clump.glb`).
 *   `tools/generate_phase1.py` — **Phase 1 `bpy` generator** (base ground + 6 buildings + hero scene).
+*   `tools/generate_plane_cargo_elite.py` — **Elite Cargo Plane `bpy` generator** (35 m next-gen stealth drop ship, 45 m span, Boolean rear cargo bay/ramp, four octagonal emissive-thruster engines, no image textures).
 *   `tools/generate_buildings.py` — original four-building generator (pre-Phase-1 assets).
 *   `tools/generate_mahal_rooms.py` — **Phase 4 Room-by-Room Mahal `bpy` generator** (4 walk-in rooms → `assemble_mahal()` → one 50×40 m mega palace).
 *   `tools/generate_building_modules.py` — **Lego module generator** (16 blocks: 8 structural bays/slabs/roofs/stairs + 2 interior partitions + 6 furniture pieces, 15 m grid).
@@ -40,7 +41,30 @@ Click the link below to view, rotate, and zoom the generated 3D models directly 
 *   `docs/models/mahal/rajasthani_mahal_mega.glb` — the assembled palace (one joined mesh).
 *   `docs/models/modules/` — the 16 modular blocks: `mod_wall_solid`, `mod_wall_window`, `mod_wall_door`, `mod_wall_garage`, `mod_floor`, `mod_roof_flat`, `mod_roof_slanted`, `mod_stairs`, interior `mod_wall_partition` + `mod_wall_partition_door` + furniture `mod_table`, `mod_bed`, `mod_crate`, `mod_shelf`, `mod_counter`, `mod_sofa`.
 *   `docs/models/buildings_modular/` — the 11 Battle Royale buildings assembled from those modules (furniture already joined in).
-*   `.github/workflows/deploy.yml` — CI/CD pipeline: generate Phase 1 + Phase 2 assets and deploy to Pages.
+*   `docs/models/vehicles/plane_cargo_elite.glb` — 35 m × 45 m Elite Cargo Plane, one optimized 3,130-triangle mesh with bottom-centre origin, 11 solid-color materials, no bitmap images and a true rear cargo-ramp Boolean cut.
+*   `.github/workflows/deploy.yml` — CI/CD pipeline: regenerate all world assets plus the Elite Cargo Plane and deploy to Pages.
+
+## ✈️ Elite Cargo Plane — Drop-Sequence Vehicle
+
+`tools/generate_plane_cargo_elite.py` builds `docs/models/vehicles/plane_cargo_elite.glb` without any image textures. The asset is a **35.0 m long × 45.0 m wingspan × 10.18 m high** stealth dropship with an exact bottom-centre `(0,0,0)` origin and a compact **3,130-triangle** / **11-material** budget.
+
+| Feature | Implementation |
+|---|---|
+| Stealth body | Faceted blended-wing station hull in matte dark gunmetal **#2C2E33**, with raised dark-grey panel seams and lighter access hatches |
+| Cockpit + sensors | Long slanted deep-blue glossy canopy (metallic 0.8 / roughness 0.1), dual side sensor pods and cyan lenses |
+| Wings + tail | Swept dihedral wings, canted upturned winglets, two under-wing drop tanks, and a stealthy canted twin-tail |
+| Engines | Four eight-sided nacelles with intake rings, ridge greebles, black-chrome nozzles, orange ion rings and cyan emissive exhaust cores |
+| Cargo bay | A real EXACT Boolean subtraction opens the rear; the result includes a lowered solid ramp, floor, guide rails and red/green status lights |
+| Greebling | Dorsal/side panel strips, transverse seams, hatches, two six-slot vent banks, sensor domes and three low-profile blade antennas |
+
+Generate only this vehicle locally with:
+
+```bash
+pip install bpy
+python tools/generate_plane_cargo_elite.py
+```
+
+The web viewer's **Vehicles — Elite Drop Ship** category loads it from `models/vehicles/plane_cargo_elite.glb` after GitHub Pages deploys `docs/`.
 
 ## 🌍 Phase 2 Assets — Complete Map Environment
 | Category | File | Size (real-world) | Details | 1K Texture |

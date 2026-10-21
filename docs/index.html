@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0c1220" />
-  <title>Indus Asset Viewer — Phase 7: Battle Royale Buildings with Interior Rooms + Golden Sandstone Mahal</title>
+  <title>Indus Asset Viewer — Phase 8: Elite Cargo Plane + Battle Royale Asset Library</title>
 
   <!-- Google's <model-viewer> via CDN (with a fallback CDN for resilience) -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
@@ -265,9 +265,10 @@
 </head>
 <body>
   <header>
-    <h1>Indus Asset Viewer <span class="phase">— Phase 7: Battle Royale Buildings with Interior Rooms + Golden Sandstone Mahal</span></h1>
+    <h1>Indus Asset Viewer <span class="phase">— Phase 8: Elite Cargo Plane + Battle Royale Asset Library</span></h1>
     <p class="subtitle">
-      <strong style="color:#f5a623">New — interior rooms:</strong> the 11 buildings are no longer one empty shell.
+      <strong style="color:#00e5ff">New — Elite Cargo Plane:</strong> a <strong>35 m × 45 m</strong> next-generation stealth dropship for the Battle Royale drop sequence — angular blended-wing fuselage, glossy blue cockpit, four octagonal nacelles with cyan/orange emissive thrusters, canted twin tails, raised greeble panels/vents/antennas, two under-wing drop tanks and a real Boolean-cut rear cargo bay with a lowered ramp and red/green status lamps. It is a single optimized <code>plane_cargo_elite.glb</code> mesh with a bottom-centre <code>(0,0,0)</code> origin, 11 solid-color materials and no image textures.<br />
+      <strong style="color:#f5a623">Earlier — interior rooms:</strong> the 11 buildings are no longer one empty shell.
       Each floor is now divided by <strong>0.10 m interior partition walls</strong> — 2×2 blocks get a 15 m wall down the
       middle plus a jog wall (living room, hallway, bedroom), 3×2 blocks get a <strong>5 m central hallway</strong> with three
       rooms either side, 1×1 huts get a front room + bedroom. Every partition has a <strong>1.5 m doorway</strong>, and the build
@@ -289,12 +290,13 @@
       plus <strong>Terrain</strong> (1000m ground, mountains, plateaus, valleys),
       <strong>Water &amp; Bridges</strong> (ocean, river, beach, dam, bridges),
       <strong>Nature</strong> (trees, rocks, bushes), and <strong>Phase 1 Buildings</strong>.
-      All props use 1K/2K PBR textures & solid Principled BSDF with bottom-center <code>(0,0,0)</code> origins.
+      Textured environment props use 1K/2K PBR maps; the Elite Cargo Plane intentionally uses solid-color Principled/emissive materials only. All assets keep bottom-center <code>(0,0,0)</code> origins.
     </p>
     <nav class="category-nav" aria-label="Asset categories" id="category-nav">
-      <button class="cat-btn active" data-cat="all">All Categories (63)</button>
+      <button class="cat-btn active" data-cat="all">All Categories (64)</button>
       <button class="cat-btn" data-cat="Battle Royale Buildings">🧱 Battle Royale Buildings — Rooms (11)</button>
       <button class="cat-btn" data-cat="Building Modules">📦 Building Modules — 15 m Kit + Partitions (16)</button>
+      <button class="cat-btn" data-cat="Vehicles">✈️ Vehicles — Elite Drop Ship (1)</button>
       <button class="cat-btn" data-cat="Mahal Mega Assembly">🏯 Mahal Mega — Assembly (1)</button>
       <button class="cat-btn" data-cat="Mahal Rooms">🏛 Mahal Rooms — Modular (4)</button>
       <button class="cat-btn" data-cat="Mahal Palace">🏰 Mahal Palace — Hot Drop (1)</button>
@@ -311,7 +313,8 @@
   <main id="main-content"></main>
 
   <footer>
-    <strong>Palette update:</strong> Mahal walls regenerated in golden sandstone <code>#D9C089</code>
+    <strong style="color:#00e5ff">Elite drop ship:</strong> <code>tools/generate_plane_cargo_elite.py</code> exports <code>models/vehicles/plane_cargo_elite.glb</code> — 35 m long × 45 m span, bottom-centre origin, 3,130 triangles, 11 solid-color materials, zero image textures, Boolean cargo ramp and cyan/orange emissive thrusters.
+    <br /><strong>Palette update:</strong> Mahal walls regenerated in golden sandstone <code>#D9C089</code>
     (cream <code>#EDDBB3</code> / tan <code>#B39466</code> shades) across <code>generate_mahal_rooms.py</code>,
     <code>generate_mahal_master.py</code>, <code>generate_mahal_vibrant.py</code> and <code>generate_modular.py</code>;
     gold, teal and deep-blue accents unchanged.
@@ -327,6 +330,27 @@
 
   <script>
     const CATEGORIES = [
+      {
+        id: "Vehicles",
+        title: "✈️ Vehicles — Elite Cargo Plane / Battle Royale Drop Ship",
+        subtitle: "A cinematic but mobile-conscious next-gen stealth transport generated entirely with Blender bpy: faceted geometry, broad clean silhouettes and targeted greebling rather than image textures. The plane is one mesh, flat-shaded, with a bottom-centre (0,0,0) origin so it lands reliably in-engine.",
+        assets: [
+          {
+            id: "plane_cargo_elite",
+            file: "models/vehicles/plane_cargo_elite.glb",
+            name: "Elite Cargo Plane — Modern Advanced Stealth Dropship",
+            alt: "35 metre long, 45 metre wingspan dark gunmetal stealth cargo plane with four octagonal cyan and orange glowing engines, blue cockpit, swept wings, raised winglets, twin tail and open rear cargo ramp",
+            desc: "Battle Royale drop-sequence hero vehicle: an angular blended-wing stealth fuselage in matte gunmetal #2C2E33, layered raised dark-grey panel seams, light-grey access hatches, twin six-slot side vent banks and three low-profile avionics blades. The blue-tinted metallic cockpit is flanked by cyan sensor pods. Swept wings terminate in upturned winglets and carry two streamlined drop tanks. Four separate octagonal nacelles have intake rings, mechanical ridge strips, black-chrome nozzles, orange ion halos and cyan emissive exhaust cores. The rear volume is cut with an EXACT Boolean to create a broad cargo portal; a lowered ramp, cargo floor, guide rails and red/green bay lamps finish the drop-ready look.",
+            dims: "35.0 m long × 45.0 m wingspan × 10.18 m high",
+            material: "Matte Gunmetal #2C2E33 · glossy deep-blue cockpit · cyan/orange/red/green emissive accents · 3,130 tris · 11 mats",
+            orbit: "38deg 64deg 76m",
+            fov: "36deg",
+            hero: true,
+            eager: true,
+            assetTag: ".glb · solid-color PBR · no textures · origin (0,0,0)"
+          }
+        ]
+      },
       {
         id: "Battle Royale Buildings",
         title: "🧱 Battle Royale Buildings — 11 Distinct 15 m-Grid Blocks with Real Interior Rooms",
@@ -1220,7 +1244,7 @@
         <p class="chips">
           <span class="chip">${spec.dims}</span>
           <span class="chip">${spec.material}</span>
-          <span class="chip gold">.glb · 1K PBR · origin (0,0,0)</span>
+          <span class="chip gold">${spec.assetTag || ".glb · 1K PBR · origin (0,0,0)"}</span>
         </p>`;
 
       card.appendChild(shell);
