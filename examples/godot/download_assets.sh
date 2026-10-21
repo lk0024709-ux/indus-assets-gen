@@ -1,38 +1,34 @@
 #!/usr/bin/env bash
-# download_assets.sh — TASK 1 helper for Godot project (Linux/macOS)
-# Fetches rajasthani_mahal.glb + modular blocks from the asset repo's GitHub Pages
-# Usage: copy this file to your Godot project root, then:  chmod +x download_assets.sh && ./download_assets.sh
+# download_assets.sh — fetch the production assets from the GitHub Pages site
+# Usage: copy this file to your Godot project root, then: chmod +x download_assets.sh && ./download_assets.sh
 set -euo pipefail
 
 BASE_URL="https://lk0024709-ux.github.io/indus-assets-gen/models"
 DEST="assets/downloaded_models"
-MODULAR_DEST="$DEST/modular"
 
 echo "→ Creating $DEST …"
-mkdir -p "$DEST" "$MODULAR_DEST"
+mkdir -p "$DEST/terrain"
 
-echo "→ Downloading rajasthani_mahal.glb (alias of mahal_palace_master.glb, 4.2 MB) …"
-curl -L --fail -o "$DEST/rajasthani_mahal.glb" "$BASE_URL/buildings/rajasthani_mahal.glb"
-# Also keep fallback name some scripts expect
-cp "$DEST/rajasthani_mahal.glb" "$DEST/mahal_palace_master.glb" 2>/dev/null || true
-ls -lh "$DEST/rajasthani_mahal.glb"
+echo "→ Downloading the Grand Mahal (docs/models/mahal/rajasthani_mahal_mega.glb, 4.0 MB) …"
+curl -L --fail -o "$DEST/rajasthani_mahal_mega.glb" \
+  "$BASE_URL/mahal/rajasthani_mahal_mega.glb"
+ls -lh "$DEST/rajasthani_mahal_mega.glb"
 
-echo "→ Downloading modular blocks (4) …"
-for f in wall_block arch_block dome pillar; do
+echo "→ Downloading the 11 Modular Buildings …"
+for f in house_blue school_yellow apartment_green warehouse_metal cabin_wood \
+         ruined_building shop_row villa_white farmhouse_stone bunker_military tower_sniper; do
   echo "  - $f.glb"
-  curl -L --fail -o "$MODULAR_DEST/${f}.glb" "$BASE_URL/modular/${f}.glb"
-  # Create _module alias (some GDScript expects dome_module.glb etc.)
-  cp "$MODULAR_DEST/${f}.glb" "$MODULAR_DEST/${f%_block*}_module.glb" 2>/dev/null || cp "$MODULAR_DEST/${f}.glb" "$MODULAR_DEST/${f%.glb}_module.glb" || true
+  curl -L --fail -o "$DEST/$f.glb" "$BASE_URL/buildings_modular/$f.glb"
 done
 
-# Explicit alias copies (ensures exact names task 3 mentions)
-cp "$MODULAR_DEST/wall_block.glb" "$MODULAR_DEST/wall_module.glb" 2>/dev/null || true
-cp "$MODULAR_DEST/arch_block.glb" "$MODULAR_DEST/arch_module.glb" 2>/dev/null || true
-cp "$MODULAR_DEST/dome.glb" "$MODULAR_DEST/dome_module.glb" 2>/dev/null || true
-cp "$MODULAR_DEST/pillar.glb" "$MODULAR_DEST/pillar_module.glb" 2>/dev/null || true
+echo "→ Downloading the 4 Terrain tiles …"
+for f in terrain_ground terrain_hill_large terrain_plateau terrain_valley; do
+  echo "  - $f.glb"
+  curl -L --fail -o "$DEST/terrain/$f.glb" "$BASE_URL/terrain/$f.glb"
+done
 
 echo "→ Done. Verifying:"
-ls -lh "$DEST/" "$MODULAR_DEST/"
+ls -lh "$DEST/" "$DEST/terrain/"
 echo ""
 echo "Place: res://assets/downloaded_models/  (Godot will see these as res://assets/downloaded_models/ …)"
-echo "Next: Replace old procedural Mahal in main.gd — see GODOT_INTEGRATION.md Task 2 + examples/godot/main_mahal_godot.gd"
+echo "Next: attach examples/godot/main_mahal_godot.gd to your map root — see GODOT_INTEGRATION.md"
