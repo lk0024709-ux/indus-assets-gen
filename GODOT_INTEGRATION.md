@@ -15,7 +15,9 @@ URLs below.
 | Grand Mahal (assembled palace) | `models/mahal/rajasthani_mahal_mega.glb` | ~4.0 MB |
 | Mahal rooms (4 walk-in blocks) | `models/mahal/rooms/room_*.glb` | 0.2–0.7 MB each |
 | 11 Modular Buildings | `models/buildings_modular/<name>.glb` | 0.08–0.45 MB each |
-| 4 Terrain tiles | `models/terrain/terrain_*.glb` | 0.45–0.92 MB each |
+| 4 Terrain tiles | `models/terrain/terrain_*.glb` | 0.45–2.1 MB each |
+| Mount Abu hill station | `models/terrain/terrain_mount_abu.glb` | 2.1 MB (visual) |
+| Mount Abu collider | `models/terrain/terrain_mount_abu_collision.glb` | 0.53 MB (concave, no vegetation) |
 | Elite Cargo Dropship (drop sequence) | `models/vehicles/plane_cargo_elite.glb` | 1.2 MB |
 
 Base URL: `https://lk0024709-ux.github.io/indus-assets-gen/models/`
