@@ -57,6 +57,10 @@ jobs:
       - name: Generate Terrain tiles — ground, hill, plateau, valley
         run: python tools/generate_terrain.py
 
+      # ---- 1b. Mount Abu hill station (150 m mesa, corniche, lake) ----------
+      - name: Generate Mount Abu — 150 m hill station + corniche road + Nakki Lake
+        run: python tools/generate_mount_abu.py
+
       # ---- 2. The Grand Mahal (4 walk-in rooms -> one assembled palace) -----
       - name: Generate Grand Mahal — 4 walk-in rooms + mega assembly (50×40 m)
         run: python tools/generate_mahal_rooms.py

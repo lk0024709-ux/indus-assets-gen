@@ -14,7 +14,7 @@ The gallery is deliberately small — it ships **only the production asset sets*
 | 1 | 🛩 **Vehicles** | 1 Elite Cargo Dropship (45 m span) | `tools/generate_plane_cargo_elite.py` | `docs/models/vehicles/` |
 | 2 | 🏯 **The Grand Mahal** | 1 assembled palace (+ 4 room blocks used to build it) | `tools/generate_mahal_rooms.py` | `docs/models/mahal/` |
 | 3 | 🧱 **Modular Buildings** | 11 coloured blocks with real interior rooms | `tools/generate_building_modules.py` + `tools/assemble_buildings.py` | `docs/models/buildings_modular/` |
-| 4 | 🌍 **Terrain** | 4 tiles — ground, hill, plateau, valley | `tools/generate_terrain.py` | `docs/models/terrain/` |
+| 4 | 🌍 **Terrain** | 5 tiles — Mount Abu hill station + ground, hill, plateau, valley | `tools/generate_mount_abu.py`, `tools/generate_terrain.py` | `docs/models/terrain/` |
 
 > **Note on folder names:** the brief calls these sets `buildings_final/` and `terrain_modules/`. In this repository they
 > are the long-standing canonical paths **`docs/models/buildings_modular/`** and **`docs/models/terrain/`** — the 11 modular
@@ -45,6 +45,7 @@ zero textures — see the [Dropship section](#-vehicles--elite-cargo-dropship-do
 ```
 tools/
   generate_terrain.py          # 4 terrain tiles (1000 m ground, hill, plateau, valley)
+  generate_mount_abu.py        # 150 m hill station: mesa + corniche road + Nakki Lake + collision
   generate_mahal_rooms.py      # 4 walk-in rooms + assemble_mahal() -> rajasthani_mahal_mega.glb
   generate_building_modules.py # 15 m modular kit (walls, partitions, slabs, roofs, stairs, furniture)
   assemble_buildings.py        # 11 building recipes -> one joined mesh each
@@ -54,7 +55,7 @@ docs/                          # GitHub Pages site (viewer + models)
   index.html                   # 4-category gallery
   models/mahal/                # Grand Mahal (mega assembly + rooms/)
   models/buildings_modular/    # the 11 modular buildings
-  models/terrain/              # the 4 terrain tiles
+  models/terrain/              # Mount Abu (+ collision proxy) and the 4 tiles
   models/vehicles/             # plane_cargo_elite.glb
   textures/                    # grass_1k.png + rock_stone_1k.png (terrain only)
 ```
@@ -77,6 +78,49 @@ mesh. **45.00 m wingspan × 35.00 m length × 10.33 m tall**, origin bottom-cent
 
 The generator asserts its own output — dimensions, `minZ == 0`, ≤ 120k tris, ≥ 10 materials, **zero images in the GLB**,
 and a clear ray through the cargo opening.
+
+## ⛰ Mount Abu — `docs/models/terrain/terrain_mount_abu.glb`
+
+A Battle Royale hill station on a 150 × 150 m tile, generated from maths only (`generate_mount_abu.py`).
+It ships as **two files**: the visual `terrain_mount_abu.glb` and a concordant concave collider
+`terrain_mount_abu_collision.glb`.
+
+| Constraint | Implementation | Measured |
+|---|---|---|
+| Footprint | 151 × 151 vertex grid, 1 m cells, 150 quads | **150.000 × 150.000 m** |
+| Flat top | `Z = 25` for `r ≤ 30 m`, forced after displacement | **0.000 m deviation** |
+| Cliff | C1 three-segment drop, `30 → 70 m` band (25 → 0 m) | **77.5°** steep core, mean 62° |
+| Flat border | `|x|, |y| ≥ 70 m` is exactly `Z = 0` | **0.000 m deviation** |
+| Road grade | 570° Bezier corniche, height taken from the profile | **13.5° max** (limit 15°) |
+| Road length | ghat spiral + apron approach + plateau run-in | **508 m** |
+| Lane | 8 m asphalt ribbon + dashed centre line | 8.0 m |
+| Barriers | concrete blocks on the outer edge wherever it drops ≥ 2 m | 78 blocks |
+| Lake | 128-gon Boolean cutout, `r = 15 m`, 2 m deep | floor `Z = 23`, water `Z = 24` |
+| Vegetation | 15 trees + 6 boulders on the plateau rim | centre `Ø 30 m` left clear |
+| Collision | decimated terrain + road, vegetation excluded | 5.9k tris, separate GLB |
+
+### The maths
+
+The radial profile is a sum of smoothsteps, which is `C¹` at every knot — that is why the plateau
+and the apron are *exactly* flat rather than merely level-ish:
+
+```
+r 30 → 40 m : 0.16 of the drop   (shoulder, eases in)
+r 40 → 46 m : 0.72 of the drop   (core: dz/dr = 1.5·18/6 = 4.5 → 77.5°)
+r 46 → 70 m : 0.12 of the drop   (talus, eases out to the tile seam)
+z(r) = 25 · (1 − Σ drop(r))
+```
+
+Displacement (3-octave value noise, radial ribs, rock strata) is weighted by the **local
+`|dz/dr|`** of that profile, so noise mathematically cannot touch the flat top or the apron.
+The road is a spiral in polar coordinates; its height is read off the same profile, which gives
+`dz/ds ≈ (dz/dr)·(dr/ds) ≈ 4.5 × 0.06 ≈ 13°` — steep enough to be a real climb, shallow enough for
+vehicles. The bench is carved into the height field (flat shelf + adaptive cut batter), the ribbon
+is projected onto it, and each cross-section is forced dead level so the road never rolls.
+
+**Verified:** 20,481 tris, 11 materials, 2 packed 1K textures, 2.1 MB (+ 0.53 MB collider).
+The generator asserts footprint, plateau/border flatness, cliff angle, road length, road grade,
+lake depth and water height, and fails the build if any of them regress.
 
 ## 🏯 The Grand Mahal — `docs/models/mahal/`
 
