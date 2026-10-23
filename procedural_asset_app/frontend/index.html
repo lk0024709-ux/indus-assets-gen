@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10141d"><title>Procedural 3D Asset Generator</title>
+<link rel="stylesheet" href="/style.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/"}}</script>
+</head>
+<body>
+<header class="topbar"><div class="brand-mark">◈</div><div><div class="eyebrow">INDUS TOOLKIT</div><h1>Procedural Asset Generator</h1></div><div class="top-status"><span id="healthDot"></span><span id="healthText">Connecting…</span></div></header>
+<main class="layout">
+<aside class="panel controls">
+<div class="section-head"><div><div class="eyebrow">BUILD WORKSPACE</div><h2>Asset recipe</h2></div><span class="step">01</span></div>
+<label class="field-label" for="recipeSelect">Choose asset</label><select id="recipeSelect"></select>
+<p id="recipeDescription" class="muted">Choose a recipe to configure your model.</p>
+<div class="divider"></div><div class="section-head compact"><h3>Parameters</h3><button id="randomize" class="quiet">↻ Randomize</button></div>
+<form id="paramsForm"><div id="paramFields"></div><button class="primary" type="submit"><span>✦</span> Generate 3D asset</button></form>
+<div id="message" class="message" role="status">Ready when you are.</div>
+<div class="divider"></div><div class="microcopy">GLB export · Deterministic cache · Mobile-friendly geometry</div>
+</aside>
+<section class="viewer-column">
+<div class="viewer panel"><div class="viewer-toolbar"><div><span class="live-dot"></span> <span id="viewerLabel">3D VIEWPORT</span></div><div class="toolbar-actions"><button id="resetView" class="icon-btn" title="Reset view">⟲</button><button id="download" class="icon-btn" title="Download GLB" disabled>↓</button></div></div>
+<div id="viewport"><div class="empty-state" id="emptyState"><div class="empty-icon">◈</div><h3>Your next asset starts here</h3><p>Choose a recipe and generate a model to inspect it in 3D.</p></div><div class="loader hidden" id="loader"><span></span>Building geometry…</div></div>
+<div class="viewer-footer"><span id="assetStatus">No asset generated</span><span>DRAG to orbit · SCROLL to zoom</span></div></div>
+<div class="info-grid"><div class="info-card panel"><span class="eyebrow">OUTPUT FORMAT</span><strong>GLB / glTF 2.0</strong><span class="muted">Ready for Godot 4 and Three.js</span></div><div class="info-card panel"><span class="eyebrow">GENERATION</span><strong id="generationMode">On demand</strong><span class="muted">Blender headless worker</span></div><div class="info-card panel"><span class="eyebrow">CACHE KEY</span><strong id="cacheKey">—</strong><span class="muted">Same settings reuse output</span></div></div>
+</section></main>
+<footer>PROCEDURAL ASSET GENERATOR <span>Built for the Indus asset workflow</span></footer>
+<script type="module" src="/app.js"></script>
+</body></html>

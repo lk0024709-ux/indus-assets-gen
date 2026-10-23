@@ -1,0 +1,42 @@
+name: Procedural Asset App Checks
+on:
+  push:
+    paths:
+      - 'procedural_asset_app/**'
+      - '.github/workflows/procedural-asset-app-check.yml'
+  pull_request:
+    paths:
+      - 'procedural_asset_app/**'
+      - '.github/workflows/procedural-asset-app-check.yml'
+  workflow_dispatch:
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Python syntax check
+        run: python -m compileall -q procedural_asset_app/backend
+      - name: Validate static assets and recipe coverage
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          root = Path("procedural_asset_app")
+          required = [
+              "backend/main.py", "backend/registry.py", "backend/blender_worker.py",
+              "backend/recipes/chair.py", "backend/recipes/table.py",
+              "backend/recipes/lamp.py", "backend/recipes/rock.py",
+              "backend/recipes/barrel.py", "frontend/index.html",
+              "frontend/app.js", "frontend/style.css", "README.md", "run.sh"
+          ]
+          missing = [p for p in required if not (root / p).is_file()]
+          if missing:
+              raise SystemExit("Missing required files: " + ", ".join(missing))
+          text = (root / "backend/registry.py").read_text()
+          for recipe in ("chair", "table", "lamp", "rock", "barrel"):
+              assert recipe in text, f"Recipe not registered: {recipe}"
+          assert "timeout=60" in (root / "backend/main.py").read_text()
+          print("Required app files and five recipe registrations verified.")
+          PY
