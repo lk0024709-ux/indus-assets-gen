@@ -11,6 +11,7 @@ The gallery is deliberately small — it ships **only the production asset sets*
 
 | # | Category | Assets | Source | Where |
 |---|---|---|---|---|
+| 0 | 🧑 **Characters** | 1 Player Tactical (1.80 m, solid colours, **0 textures**) | `tools/convert_character_obj.py` | `docs/models/characters/` |
 | 1 | 🛩 **Vehicles** | 1 Elite Cargo Dropship (45 m span) | `tools/generate_plane_cargo_elite.py` | `docs/models/vehicles/` |
 | 2 | 🏯 **The Grand Mahal** | 1 assembled palace (+ 4 room blocks used to build it) | `tools/generate_mahal_rooms.py` | `docs/models/mahal/` |
 | 3 | 🧱 **Modular Buildings** | 11 coloured blocks with real interior rooms | `tools/generate_building_modules.py` + `tools/assemble_buildings.py` | `docs/models/buildings_modular/` |
@@ -35,7 +36,7 @@ zero textures — see the [Dropship section](#-vehicles--elite-cargo-dropship-do
    in the GLB.
 3. **Export** — every asset is joined into **one flat-shaded mesh**, normalised to its real size, and given a
    **bottom-centre `(0, 0, 0)`** origin so it drops onto the ground plane in Godot/Unity/the browser.
-4. **CI/CD** — `.github/workflows/deploy.yml` installs `bpy`, runs the four generator steps, drops the intermediate
+4. **CI/CD** — `.github/workflows/deploy.yml` installs `bpy`, runs the five generator steps, drops the intermediate
    module kit from the published site and deploys `docs/` to GitHub Pages on every push to `main`.
 5. **Viewer** — `docs/index.html` is a small, dependency-light Google `<model-viewer>` gallery built from a JS array of
    categories, with a category filter and a hero card for the palace.
@@ -44,6 +45,7 @@ zero textures — see the [Dropship section](#-vehicles--elite-cargo-dropship-do
 
 ```
 tools/
+  convert_character_obj.py     # Male_Suit.obj -> solid-colour player_tactical.glb (imports the OBJ, recolours, joins, exports)
   generate_terrain.py          # 4 terrain tiles (1000 m ground, hill, plateau, valley)
   generate_mount_abu.py        # 150 m hill station: mesa + corniche road + Nakki Lake + collision
   generate_mahal_rooms.py      # 4 walk-in rooms + assemble_mahal() -> rajasthani_mahal_mega.glb
@@ -52,6 +54,7 @@ tools/
   generate_plane_cargo_elite.py# Elite Cargo Dropship (Vehicles category)
 
 docs/                          # GitHub Pages site (viewer + models)
+  models/characters/           # player_tactical.glb (solid colours, zero textures)
   index.html                   # 4-category gallery
   models/mahal/                # Grand Mahal (mega assembly + rooms/)
   models/buildings_modular/    # the 11 modular buildings
@@ -78,6 +81,39 @@ mesh. **45.00 m wingspan × 35.00 m length × 10.33 m tall**, origin bottom-cent
 
 The generator asserts its own output — dimensions, `minZ == 0`, ≤ 120k tris, ≥ 10 materials, **zero images in the GLB**,
 and a clear ray through the cargo opening.
+
+## 🧑 Characters — Player Tactical (`docs/models/characters/`)
+
+`convert_character_obj.py` turns the raw Quaternius `Male_Suit.obj` into the playable character. The OBJ itself was the
+bug: its `.mtl` points at an external tie texture and nothing else, so Godot resolved six of seven materials to nothing
+and the mesh came in untextured with an arbitrary unit scale.
+
+```
+docs/models/Character/Male_Suit.obj     (1,044 verts · 1,165 faces · 7 OBJ groups, CC0)
+        │  bpy: import -> recolour -> join -> normalise -> export
+        ▼
+docs/models/characters/player_tactical.glb  (2,060 tris · 8 solid materials · 0 textures · 65 KB)
+```
+
+| OBJ group | Body part | Solid colour |
+|---|---|---|
+| `Skin` | head, neck, hands | `#D2A679` skin tone |
+| `Shirt` | torso + arms | `#2C3E50` dark tactical shirt |
+| `Pants` | legs | `#1A1A1A` pants |
+| `Hair` / `Eyes` / `Details` / `TieTexture` | hair, eyes, belt+glasses, tie | `#241A18` / `#F2F0EA` / `#5A616B` / `#16202B` |
+| `Eyes` below 15 % height | shoe soles | `#101112` (the soles hide in the `Eyes` group) |
+
+* **Import:** `bpy.ops.import_scene.obj(...)` on Blender 2.8–3.6; Blender 4.x removed that operator, so the tool
+  falls back to `bpy.ops.wm.obj_import(...)` and prints which one it used.
+* **Materials:** every slot is rebuilt as a **solid Principled BSDF** (`metallic`/`roughness` per part, `Alpha=1`,
+  no emission) and the imported MTL materials are deleted so Godot shows clean names. Colours go through
+  **sRGB → linear** before they hit the shader, so the hex in the code is the hex in the GLB.
+* **Join:** the OBJ imports as a single object; the tool joins anyway so a multi-part source still exports one mesh.
+* **Shading:** the OBJ bakes 1,105 split normals that fight any shading choice, so they are dropped. **Smooth by
+  angle (40°) ships** — flat shading exposed the torso triangulation, smooth-by-angle keeps the arms and legs round
+  and the belt/boot edges crisp (and halves the file: 65 KB vs 157 KB).
+* **Export:** 1.80 m tall, origin at the feet `(0, 0, 0)`, Y-up, no UVs, no images. The tool re-parses the GLB and
+  asserts the height, the zero origin, the exact `baseColorFactor` per material and that `images` is empty.
 
 ## ⛰ Mount Abu — `docs/models/terrain/terrain_mount_abu.glb`
 
