@@ -81,6 +81,12 @@ jobs:
       - name: Generate Elite Cargo Dropship — Battle Royale drop sequence (45 m span × 35 m)
         run: python tools/generate_plane_cargo_elite.py
 
+      # ---- 5. Characters (OBJ -> solid-colour GLB, no textures) --------------
+      # The raw Male_Suit.obj ships an .mtl that Godot cannot resolve; this
+      # step rebuilds every material as a solid Principled BSDF colour.
+      - name: Convert Player Tactical character — Male_Suit.obj → solid-colour GLB
+        run: python tools/convert_character_obj.py --shading smooth
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:
