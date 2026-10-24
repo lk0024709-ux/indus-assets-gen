@@ -89,7 +89,7 @@ bug: its `.mtl` points at an external tie texture and nothing else, so Godot res
 and the mesh came in untextured with an arbitrary unit scale.
 
 ```
-downloaded_obj/characters/Male_Suit.obj   (1,044 verts · 1,165 faces · 7 OBJ groups, CC0)
+docs/models/Character/Male_Suit.obj     (1,044 verts · 1,165 faces · 7 OBJ groups, CC0)
         │  bpy: import -> recolour -> join -> normalise -> export
         ▼
 docs/models/characters/player_tactical.glb  (2,060 tris · 8 solid materials · 0 textures · 65 KB)

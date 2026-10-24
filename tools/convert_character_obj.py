@@ -11,7 +11,8 @@ joins the mesh, and exports one game-ready character:
 
 Source
 ------
-``downloaded_obj/characters/Male_Suit.obj`` — Quaternius "Animated Men
+``docs/models/Character/Male_Suit.obj`` (or ``downloaded_obj/characters/``)
+— Quaternius "Animated Men
 Characters" pack (CC0). Low-poly male in business suit / tactical build:
 1,044 verts, 1,165 faces, 7 OBJ material groups.
 
@@ -53,7 +54,15 @@ import bpy
 from mathutils import Matrix
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OBJ_PATH = os.path.join(REPO_ROOT, "downloaded_obj", "characters", "Male_Suit.obj")
+
+# Where the raw character OBJ can live. The repo keeps the upload in
+# docs/models/Character/; downloaded_obj/characters/ is kept as a fallback for
+# a local drop of the same Quaternius file (the two are byte-identical).
+OBJ_CANDIDATES = (
+    os.path.join(REPO_ROOT, "downloaded_obj", "characters", "Male_Suit.obj"),
+    os.path.join(REPO_ROOT, "docs", "models", "Character", "Male_Suit.obj"),
+)
+OBJ_PATH = next((p for p in OBJ_CANDIDATES if os.path.isfile(p)), OBJ_CANDIDATES[0])
 OUT_DIR = os.path.join(REPO_ROOT, "docs", "models", "characters")
 OUT_PATH = os.path.join(OUT_DIR, "player_tactical.glb")
 
@@ -564,7 +573,7 @@ def build(shading: str = "smooth"):
 
     obj["asset"] = ASSET_NAME
     obj["role"] = "Player character — Battle Royale tactical build"
-    obj["source"] = "downloaded_obj/characters/Male_Suit.obj (Quaternius, CC0)"
+    obj["source"] = f"{os.path.relpath(OBJ_PATH, REPO_ROOT)} (Quaternius, CC0)"
     obj["height_m"] = TARGET_HEIGHT_M
     obj["origin"] = "bottom-centre (0,0,0)"
     obj["textures"] = "none — solid Principled BSDF colours only"
