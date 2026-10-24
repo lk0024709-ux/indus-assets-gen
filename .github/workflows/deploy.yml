@@ -87,6 +87,11 @@ jobs:
       - name: Convert Player Tactical character — Male_Suit.obj → solid-colour GLB
         run: python tools/convert_character_obj.py --shading smooth
 
+      # Every other raw .obj becomes a solid-colour GLB of its own, plus the
+      # characters.json manifest and gallery.js the viewer reads.
+      - name: Convert the full character roster — docs/models/Character/*.obj → solid-colour GLBs
+        run: python tools/convert_characters_batch.py --shading smooth
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:

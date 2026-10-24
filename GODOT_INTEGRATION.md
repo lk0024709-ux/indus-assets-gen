@@ -18,7 +18,8 @@ URLs below.
 | 4 Terrain tiles | `models/terrain/terrain_*.glb` | 0.45–2.1 MB each |
 | Mount Abu hill station | `models/terrain/terrain_mount_abu.glb` | 2.1 MB (visual) |
 | Mount Abu collider | `models/terrain/terrain_mount_abu_collision.glb` | 0.53 MB (concave, no vegetation) |
-| **Player Tactical character** | `models/characters/player_tactical.glb` | 65 KB |
+| **Character pool (15)** | `models/characters/<name>.glb` — `female_casual`, `male_shirt`, `smooth_female_dress`, … | 51–183 KB each |
+| Player Tactical character | `models/characters/player_tactical.glb` | 65 KB |
 | Elite Cargo Dropship (drop sequence) | `models/vehicles/plane_cargo_elite.glb` | 1.2 MB |
 
 Base URL: `https://lk0024709-ux.github.io/indus-assets-gen/models/`

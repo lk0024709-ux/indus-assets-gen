@@ -11,7 +11,7 @@ The gallery is deliberately small — it ships **only the production asset sets*
 
 | # | Category | Assets | Source | Where |
 |---|---|---|---|---|
-| 0 | 🧑 **Characters** | 1 Player Tactical (1.80 m, solid colours, **0 textures**) | `tools/convert_character_obj.py` | `docs/models/characters/` |
+| 0 | 🧑 **Characters** | **16 playable** — Player Tactical + a 15-strong pool (1.80 m, solid colours, **0 textures**) | `tools/convert_character_obj.py` + `tools/convert_characters_batch.py` | `docs/models/characters/` |
 | 1 | 🛩 **Vehicles** | 1 Elite Cargo Dropship (45 m span) | `tools/generate_plane_cargo_elite.py` | `docs/models/vehicles/` |
 | 2 | 🏯 **The Grand Mahal** | 1 assembled palace (+ 4 room blocks used to build it) | `tools/generate_mahal_rooms.py` | `docs/models/mahal/` |
 | 3 | 🧱 **Modular Buildings** | 11 coloured blocks with real interior rooms | `tools/generate_building_modules.py` + `tools/assemble_buildings.py` | `docs/models/buildings_modular/` |
@@ -36,7 +36,7 @@ zero textures — see the [Dropship section](#-vehicles--elite-cargo-dropship-do
    in the GLB.
 3. **Export** — every asset is joined into **one flat-shaded mesh**, normalised to its real size, and given a
    **bottom-centre `(0, 0, 0)`** origin so it drops onto the ground plane in Godot/Unity/the browser.
-4. **CI/CD** — `.github/workflows/deploy.yml` installs `bpy`, runs the five generator steps, drops the intermediate
+4. **CI/CD** — `.github/workflows/deploy.yml` installs `bpy`, runs the six generator steps, drops the intermediate
    module kit from the published site and deploys `docs/` to GitHub Pages on every push to `main`.
 5. **Viewer** — `docs/index.html` is a small, dependency-light Google `<model-viewer>` gallery built from a JS array of
    categories, with a category filter and a hero card for the palace.
@@ -46,6 +46,8 @@ zero textures — see the [Dropship section](#-vehicles--elite-cargo-dropship-do
 ```
 tools/
   convert_character_obj.py     # Male_Suit.obj -> solid-colour player_tactical.glb (imports the OBJ, recolours, joins, exports)
+  convert_characters_batch.py  # every other docs/models/Character/*.obj -> solid-colour GLBs + manifest + gallery.js
+  character_lib.py             # shared import/recolour/shade/export/verify helpers for both character tools
   generate_terrain.py          # 4 terrain tiles (1000 m ground, hill, plateau, valley)
   generate_mount_abu.py        # 150 m hill station: mesa + corniche road + Nakki Lake + collision
   generate_mahal_rooms.py      # 4 walk-in rooms + assemble_mahal() -> rajasthani_mahal_mega.glb
@@ -54,7 +56,7 @@ tools/
   generate_plane_cargo_elite.py# Elite Cargo Dropship (Vehicles category)
 
 docs/                          # GitHub Pages site (viewer + models)
-  models/characters/           # player_tactical.glb (solid colours, zero textures)
+  models/characters/           # 16 character GLBs + characters.json + gallery.js (solid colours, zero textures)
   index.html                   # 4-category gallery
   models/mahal/                # Grand Mahal (mega assembly + rooms/)
   models/buildings_modular/    # the 11 modular buildings
@@ -114,6 +116,37 @@ docs/models/characters/player_tactical.glb  (2,060 tris · 8 solid materials · 
   and the belt/boot edges crisp (and halves the file: 65 KB vs 157 KB).
 * **Export:** 1.80 m tall, origin at the feet `(0, 0, 0)`, Y-up, no UVs, no images. The tool re-parses the GLB and
   asserts the height, the zero origin, the exact `baseColorFactor` per material and that `images` is empty.
+
+### The rest of the pool — `convert_characters_batch.py`
+
+`convert_character_obj.py` builds the hand-tuned player. Every other raw OBJ in `docs/models/Character/` goes through
+`convert_characters_batch.py`, which applies the same import -> recolour -> join -> normalise -> export pipeline:
+
+```
+docs/models/Character/*.obj   ->   docs/models/characters/<name>.glb   (15 files)
+                              ->   docs/models/characters/characters.json   (manifest)
+                              ->   docs/models/characters/gallery.js        (viewer entries)
+```
+
+| Role | Applied to | Colour |
+|---|---|---|
+| skin | head, neck, hands, bare arms/legs | `#D2A679` |
+| shirt | torso + arms + dress | **per-character tactical colour** |
+| shirt accent | collar / shirt trim / light jacket panels | shirt colour, lightened 18 % |
+| pants | legs, shorts, socks | `#1A1A1A` |
+| shoes | shoes (and soles hidden in the `Eyes` group) | `#101112` |
+| hair | hair, hair base, eyebrows | `#241A18` |
+| eyes / details / tie | eyeballs, belt + glasses, tie | `#F2F0EA` / `#5A616B` / `#16202B` |
+
+**The shirt colour is seeded, not random.** `random.random()` would repaint every character on every deploy, so the
+palette (Dark Blue, Forest Green, Grey, Brown, Navy, Olive, Maroon, Slate Blue) is shuffled once with a fixed seed and
+dealt down the sorted file list. Deploys are byte-identical, and because the list is sorted each `Smooth_*` high-poly
+twin is exactly 7 slots from its low-poly sibling, so the two never share a shirt colour (the tool asserts this).
+
+`Male_Suit.obj` is skipped here — it is already `player_tactical.glb` with its fixed `#2C3E50` shirt, so the player is
+not duplicated. Other robustness handled by the tool: `Eyebrows` / `HairBase` / `Hair2` / `Jacket` / `LightJacket` /
+`Shirt2` / `Socks` / `Dress` groups all map to sensible roles, `Female_Dress` has no `Pants` group at all (bare legs),
+and any unknown group falls back to neutral grey instead of failing.
 
 ## ⛰ Mount Abu — `docs/models/terrain/terrain_mount_abu.glb`
 
