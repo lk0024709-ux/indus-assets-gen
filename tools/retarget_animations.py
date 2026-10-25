@@ -89,6 +89,7 @@ import json
 import math
 import os
 import shutil
+import struct
 import sys
 import time
 from pathlib import Path
@@ -1315,6 +1316,62 @@ def build_garment(body, arm, key: str, cfg: dict, weights: np.ndarray,
 # ===========================================================================
 # 7. Export
 # ===========================================================================
+GLB_QUAT: dict[str, dict] = {}
+
+
+def fix_glb_quaternion_continuity(path: Path) -> tuple[int, float]:
+    """Re-apply hemisphere continuity to rotation tracks *in the exported file*.
+
+    Blender's glTF exporter canonicalises every exported quaternion into the
+    ``w >= 0`` hemisphere. That is pose-identical, but it throws away the sign
+    bookkeeping ``make_continuous`` did on the curves: wherever ``w`` crosses
+    zero -- HIP_R passes ~180 deg at frame 30 of Toss Grenade -- two
+    consecutive keys come out antipodal (measured dot -0.99995). A runtime that
+    lerps rather than slerps, and every naive blend tree, then whips that limb
+    the long way round on a single frame.
+
+    ``q`` and ``-q`` are the same orientation, so flipping the sign back is
+    lossless; only the interpolation path changes. Keys are rewritten in place,
+    so no buffer offset, length or alignment moves.
+    """
+    raw = bytearray(path.read_bytes())
+    json_len = struct.unpack_from("<I", raw, 12)[0]
+    doc = json.loads(bytes(raw[20:20 + json_len]))
+    bin_off = 20 + json_len + 8          # GLB header + JSON chunk + BIN header
+    fixed, worst = 0, 1.0
+    for anim in doc.get("animations", []):
+        for ch in anim.get("channels", []):
+            if ch["target"]["path"] != "rotation":
+                continue
+            sampler = anim["samplers"][ch["sampler"]]
+            acc = doc["accessors"][sampler["output"]]
+            if acc["componentType"] != 5126 or acc["type"] != "VEC4":
+                continue                 # quantised rotations: not what we emit
+            view = doc["bufferViews"][acc["bufferView"]]
+            stride = view.get("byteStride") or 16
+            start = bin_off + view.get("byteOffset", 0) + acc.get("byteOffset", 0)
+            # CUBICSPLINE stores in-tangent, value, out-tangent per key.
+            step = 3 if sampler.get("interpolation") == "CUBICSPLINE" else 1
+            prev = None
+            for k in range(acc["count"] // step):
+                value_at = start + (k * step + (1 if step == 3 else 0)) * stride
+                q = struct.unpack_from("<4f", raw, value_at)
+                if prev is not None and sum(a * b for a, b in zip(prev, q)) < 0.0:
+                    for part in range(step):
+                        off = start + (k * step + part) * stride
+                        v = struct.unpack_from("<4f", raw, off)
+                        struct.pack_into("<4f", raw, off,
+                                         -v[0], -v[1], -v[2], -v[3])
+                    q = tuple(-v for v in q)
+                    fixed += 1
+                if prev is not None:
+                    worst = min(worst, sum(a * b for a, b in zip(prev, q)))
+                prev = q
+    if fixed:
+        path.write_bytes(bytes(raw))
+    return fixed, worst
+
+
 def export_glb(path: Path, objects: list, extra: dict | None = None) -> int:
     path.parent.mkdir(parents=True, exist_ok=True)
     bpy.ops.object.select_all(action="DESELECT")
@@ -1337,6 +1394,11 @@ def export_glb(path: Path, objects: list, extra: dict | None = None) -> int:
     if extra:
         kwargs.update(extra)
     bpy.ops.export_scene.gltf(**kwargs)
+    flips, worst = fix_glb_quaternion_continuity(path)
+    GLB_QUAT[path.name] = dict(flips_repaired=flips, min_quaternion_dot=round(worst, 6))
+    if flips:
+        log(f"  {path.name}: repaired {flips} exporter quaternion sign flips "
+            f"(worst dot now {worst:+.4f})")
     return path.stat().st_size
 
 
@@ -1712,6 +1774,7 @@ def run(args) -> dict:
         skinning=weight_info,
         deformation=deform,
         clips=clip_stats,
+        exported_animation_continuity=GLB_QUAT,
         clothing=garment_stats,
         outputs=summary,
         limits=dict(body_stretch=BODY_STRETCH_LIMIT, edge_squash=EDGE_SQUASH_LIMIT,
@@ -1758,6 +1821,10 @@ def verify(report: dict) -> None:
     d = report["deformation"]
     if not d.get("skipped"):
         problems += deform_problems(d)
+    for fname, q in report["exported_animation_continuity"].items():
+        if q["min_quaternion_dot"] < 0.0:
+            problems.append(f"{fname}: quaternion flip survives in the exported "
+                            f"GLB (dot {q['min_quaternion_dot']})")
     s = report["skinning"]
     if s["unweighted_vertices"]:
         problems.append(f"{s['unweighted_vertices']} unweighted vertices")
