@@ -1,3 +1,8 @@
+> **Current Pages catalog:** Only `body_base_midpoly.glb` is published. Legacy
+> character, building, terrain, vehicle, and OBJ assets have been removed from
+> `docs/models/`. Older pipeline sections below are historical documentation,
+> not the current hosted catalog. See [the mid-poly catalog](docs/CHARACTER_CATALOG.md).
+
 # 🎨 Indus : Battle Royale — 3D Asset Generator
 
 Production asset pipeline for **Indus : Battle Royale**. Every model in this repository is generated procedurally with
