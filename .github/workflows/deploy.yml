@@ -1,129 +1,65 @@
-# ============================================================
-# 3D Asset Pipeline: generate the production sets with bpy, deploy to Pages
-#
-# The gallery ships exactly three asset sets:
-#   1. The Grand Mahal          docs/models/mahal/
-#   2. Modular Buildings (11)   docs/models/buildings_modular/
-#   3. Terrain tiles (4)        docs/models/terrain/
-# plus the Elite Cargo Dropship GLB kept for the Battle Royale drop sequence.
-# ============================================================
-name: Generate & Deploy 3D Assets
+name: Validate & Deploy Mid-Poly Viewer
 
 on:
   push:
     branches: [main]
-  # Allow manual re-runs (e.g. after enabling Pages in settings)
+  pull_request:
   workflow_dispatch:
 
-# Least-privilege token permissions for the Pages deployment
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
-# One deployment at a time; do not cancel an in-flight deploy
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
-    name: Generate assets & deploy to GitHub Pages
+  validate:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate published asset allowlist and GLB
+        run: |
+          python tools/validate_character_site.py
+          python -m unittest discover -s tools -p test_body_base_midpoly.py -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test tooling
+        run: |
+          npm ci --prefix tools/viewer-tests
+          cd tools/viewer-tests
+          npx playwright install --with-deps chromium
+      - name: Test viewer and Idle/Walk playback in Chromium
+        run: npm test --prefix tools/viewer-tests
+      - name: Stage only public runtime files
+        run: |
+          mkdir -p _site/models/characters _site/vendor
+          cp docs/index.html docs/viewer.js _site/
+          cp docs/vendor/model-viewer.min.js docs/vendor/model-viewer.LICENSE _site/vendor/
+          cp docs/models/characters/body_base_midpoly.glb _site/models/characters/
+      - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main'
+        with:
+          path: _site
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/configure-pages@v5
         with:
-          python-version: "3.11"
-
-      - name: Install headless rendering libraries
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            libgl1 libxrender1 libxi6 libxkbcommon0 libsm6 libxext6 libxfixes3
-
-      - name: Install bpy (Blender as a Python module) + texture tooling
-        run: |
-          python -m pip install --upgrade pip
-          pip install bpy pillow numpy
-
-      # ---- 1. Terrain tiles (1000 m ground, hill, plateau, valley) ----------
-      - name: Generate Terrain tiles — ground, hill, plateau, valley
-        run: python tools/generate_terrain.py
-
-      # ---- 1b. Mount Abu hill station (150 m mesa, corniche, lake) ----------
-      - name: Generate Mount Abu — 150 m hill station + corniche road + Nakki Lake
-        run: python tools/generate_mount_abu.py
-
-      # ---- 2. The Grand Mahal (4 walk-in rooms -> one assembled palace) -----
-      - name: Generate Grand Mahal — 4 walk-in rooms + mega assembly (50×40 m)
-        run: python tools/generate_mahal_rooms.py
-
-      # ---- 3. Modular Buildings (15 m kit -> 11 coloured buildings) ---------
-      - name: Generate 15 m Modular Building kit — walls, partitions, floors, roofs, stairs, furniture
-        run: python tools/generate_building_modules.py
-
-      - name: Assemble 11 Modular Buildings with interior rooms + furniture
-        run: python tools/assemble_buildings.py
-
-      # The 15 m kit is an intermediate build product: the assembler needs it,
-      # the gallery does not. Keep it out of the published site.
-      - name: Drop the intermediate module kit from the published site
-        run: rm -rf docs/models/modules
-
-      # ---- 4. Elite Cargo Dropship (kept for the drop sequence) -------------
-      - name: Generate Elite Cargo Dropship — Battle Royale drop sequence (45 m span × 35 m)
-        run: python tools/generate_plane_cargo_elite.py
-
-      # ---- 5. Characters (OBJ -> solid-colour GLB, no textures) --------------
-      # The raw Male_Suit.obj ships an .mtl that Godot cannot resolve; this
-      # step rebuilds every material as a solid Principled BSDF colour.
-      - name: Convert Player Tactical character — Male_Suit.obj → solid-colour GLB
-        run: python tools/convert_character_obj.py --shading smooth
-
-      # Every other raw .obj becomes a solid-colour GLB of its own, plus the
-      # characters.json manifest and gallery.js the viewer reads.
-      - name: Convert the full character roster — docs/models/Character/*.obj → solid-colour GLBs
-        run: python tools/convert_characters_batch.py --shading smooth
-
-      # ---- 5b. Rig + animate the player (armature, skin, Idle + Walk) ------
-      # No add-ons: plain bpy armature creation, deterministic skinning and
-      # sin/cos-driven actions. Runs after the roster so player_tactical.glb
-      # definitely exists.
-      - name: Rig & animate the player — armature + skin + Idle & Walk clips
-        run: python tools/rig_character.py
-
-      # ---- 5b. Modular character: nude body + swappable garments ------------
-      # Cuts the same .obj into a template body and two garments, each with its
-      # own copy of the 17-bone rig and both clips. The script fails the build
-      # if any garment folds through itself, covers under 85% of the body it
-      # replaces, or has inconsistent winding — so the deploy cannot ship a
-      # garment that lets skin show through.
-      - name: Modular character — body_base + swappable clothing meshes
-        run: python tools/generate_modular_character.py
-
-      # ---- 6. Nature (low-poly trees, solid colours) -------------------------
-      - name: Generate low-poly trees — pine, oak, palm (9 m / 9 m / 12 m)
-        run: python tools/generate_trees.py
-
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-        with:
-          # First run on a fresh repo: create the Pages site (build_type=workflow)
-          # if it does not exist yet. Uses the workflow GITHUB_TOKEN (pages: write).
           enablement: true
-
-      - name: Upload docs/ as Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs
-
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

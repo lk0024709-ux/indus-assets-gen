@@ -78,3 +78,6 @@ yarn-error.log*
 # tools/generate_building_modules.py, consumed by tools/assemble_buildings.py,
 # and removed again before the site is published (see deploy.yml).
 docs/models/modules/
+
+# Local validation/browser tooling cache
+.cache/
