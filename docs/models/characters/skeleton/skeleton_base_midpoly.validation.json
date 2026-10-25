@@ -1,0 +1,2269 @@
+{
+  "triangles": 24816,
+  "vertices": 13158,
+  "faces": 12675,
+  "quads": 10272,
+  "rig_bones": 151,
+  "pieces": 375,
+  "vertebrae": 24,
+  "rib_pairs": 12,
+  "teeth": 28,
+  "finger_phalanges": 28,
+  "toe_phalanges": 28,
+  "material": "Ivory_Bone",
+  "roughness": 0.4,
+  "rigid_weight": 1.0,
+  "blender": "4.5.3 LTS",
+  "parts": [
+    {
+      "name": "L5_body",
+      "bone": "L5",
+      "start": 0,
+      "count": 40
+    },
+    {
+      "name": "L5_neural_arch",
+      "bone": "L5",
+      "start": 40,
+      "count": 30
+    },
+    {
+      "name": "L5_spinous",
+      "bone": "L5",
+      "start": 70,
+      "count": 12
+    },
+    {
+      "name": "L5_transverse-1",
+      "bone": "L5",
+      "start": 82,
+      "count": 12
+    },
+    {
+      "name": "L5_transverse1",
+      "bone": "L5",
+      "start": 94,
+      "count": 12
+    },
+    {
+      "name": "L4_body",
+      "bone": "L4",
+      "start": 106,
+      "count": 40
+    },
+    {
+      "name": "L4_neural_arch",
+      "bone": "L4",
+      "start": 146,
+      "count": 30
+    },
+    {
+      "name": "L4_spinous",
+      "bone": "L4",
+      "start": 176,
+      "count": 12
+    },
+    {
+      "name": "L4_transverse-1",
+      "bone": "L4",
+      "start": 188,
+      "count": 12
+    },
+    {
+      "name": "L4_transverse1",
+      "bone": "L4",
+      "start": 200,
+      "count": 12
+    },
+    {
+      "name": "L3_body",
+      "bone": "L3",
+      "start": 212,
+      "count": 40
+    },
+    {
+      "name": "L3_neural_arch",
+      "bone": "L3",
+      "start": 252,
+      "count": 30
+    },
+    {
+      "name": "L3_spinous",
+      "bone": "L3",
+      "start": 282,
+      "count": 12
+    },
+    {
+      "name": "L3_transverse-1",
+      "bone": "L3",
+      "start": 294,
+      "count": 12
+    },
+    {
+      "name": "L3_transverse1",
+      "bone": "L3",
+      "start": 306,
+      "count": 12
+    },
+    {
+      "name": "L2_body",
+      "bone": "L2",
+      "start": 318,
+      "count": 40
+    },
+    {
+      "name": "L2_neural_arch",
+      "bone": "L2",
+      "start": 358,
+      "count": 30
+    },
+    {
+      "name": "L2_spinous",
+      "bone": "L2",
+      "start": 388,
+      "count": 12
+    },
+    {
+      "name": "L2_transverse-1",
+      "bone": "L2",
+      "start": 400,
+      "count": 12
+    },
+    {
+      "name": "L2_transverse1",
+      "bone": "L2",
+      "start": 412,
+      "count": 12
+    },
+    {
+      "name": "L1_body",
+      "bone": "L1",
+      "start": 424,
+      "count": 40
+    },
+    {
+      "name": "L1_neural_arch",
+      "bone": "L1",
+      "start": 464,
+      "count": 30
+    },
+    {
+      "name": "L1_spinous",
+      "bone": "L1",
+      "start": 494,
+      "count": 12
+    },
+    {
+      "name": "L1_transverse-1",
+      "bone": "L1",
+      "start": 506,
+      "count": 12
+    },
+    {
+      "name": "L1_transverse1",
+      "bone": "L1",
+      "start": 518,
+      "count": 12
+    },
+    {
+      "name": "T12_body",
+      "bone": "T12",
+      "start": 530,
+      "count": 40
+    },
+    {
+      "name": "T12_neural_arch",
+      "bone": "T12",
+      "start": 570,
+      "count": 30
+    },
+    {
+      "name": "T12_spinous",
+      "bone": "T12",
+      "start": 600,
+      "count": 12
+    },
+    {
+      "name": "T12_transverse-1",
+      "bone": "T12",
+      "start": 612,
+      "count": 12
+    },
+    {
+      "name": "T12_transverse1",
+      "bone": "T12",
+      "start": 624,
+      "count": 12
+    },
+    {
+      "name": "T11_body",
+      "bone": "T11",
+      "start": 636,
+      "count": 40
+    },
+    {
+      "name": "T11_neural_arch",
+      "bone": "T11",
+      "start": 676,
+      "count": 30
+    },
+    {
+      "name": "T11_spinous",
+      "bone": "T11",
+      "start": 706,
+      "count": 12
+    },
+    {
+      "name": "T11_transverse-1",
+      "bone": "T11",
+      "start": 718,
+      "count": 12
+    },
+    {
+      "name": "T11_transverse1",
+      "bone": "T11",
+      "start": 730,
+      "count": 12
+    },
+    {
+      "name": "T10_body",
+      "bone": "T10",
+      "start": 742,
+      "count": 40
+    },
+    {
+      "name": "T10_neural_arch",
+      "bone": "T10",
+      "start": 782,
+      "count": 30
+    },
+    {
+      "name": "T10_spinous",
+      "bone": "T10",
+      "start": 812,
+      "count": 12
+    },
+    {
+      "name": "T10_transverse-1",
+      "bone": "T10",
+      "start": 824,
+      "count": 12
+    },
+    {
+      "name": "T10_transverse1",
+      "bone": "T10",
+      "start": 836,
+      "count": 12
+    },
+    {
+      "name": "T9_body",
+      "bone": "T9",
+      "start": 848,
+      "count": 40
+    },
+    {
+      "name": "T9_neural_arch",
+      "bone": "T9",
+      "start": 888,
+      "count": 30
+    },
+    {
+      "name": "T9_spinous",
+      "bone": "T9",
+      "start": 918,
+      "count": 12
+    },
+    {
+      "name": "T9_transverse-1",
+      "bone": "T9",
+      "start": 930,
+      "count": 12
+    },
+    {
+      "name": "T9_transverse1",
+      "bone": "T9",
+      "start": 942,
+      "count": 12
+    },
+    {
+      "name": "T8_body",
+      "bone": "T8",
+      "start": 954,
+      "count": 40
+    },
+    {
+      "name": "T8_neural_arch",
+      "bone": "T8",
+      "start": 994,
+      "count": 30
+    },
+    {
+      "name": "T8_spinous",
+      "bone": "T8",
+      "start": 1024,
+      "count": 12
+    },
+    {
+      "name": "T8_transverse-1",
+      "bone": "T8",
+      "start": 1036,
+      "count": 12
+    },
+    {
+      "name": "T8_transverse1",
+      "bone": "T8",
+      "start": 1048,
+      "count": 12
+    },
+    {
+      "name": "T7_body",
+      "bone": "T7",
+      "start": 1060,
+      "count": 40
+    },
+    {
+      "name": "T7_neural_arch",
+      "bone": "T7",
+      "start": 1100,
+      "count": 30
+    },
+    {
+      "name": "T7_spinous",
+      "bone": "T7",
+      "start": 1130,
+      "count": 12
+    },
+    {
+      "name": "T7_transverse-1",
+      "bone": "T7",
+      "start": 1142,
+      "count": 12
+    },
+    {
+      "name": "T7_transverse1",
+      "bone": "T7",
+      "start": 1154,
+      "count": 12
+    },
+    {
+      "name": "T6_body",
+      "bone": "T6",
+      "start": 1166,
+      "count": 40
+    },
+    {
+      "name": "T6_neural_arch",
+      "bone": "T6",
+      "start": 1206,
+      "count": 30
+    },
+    {
+      "name": "T6_spinous",
+      "bone": "T6",
+      "start": 1236,
+      "count": 12
+    },
+    {
+      "name": "T6_transverse-1",
+      "bone": "T6",
+      "start": 1248,
+      "count": 12
+    },
+    {
+      "name": "T6_transverse1",
+      "bone": "T6",
+      "start": 1260,
+      "count": 12
+    },
+    {
+      "name": "T5_body",
+      "bone": "T5",
+      "start": 1272,
+      "count": 40
+    },
+    {
+      "name": "T5_neural_arch",
+      "bone": "T5",
+      "start": 1312,
+      "count": 30
+    },
+    {
+      "name": "T5_spinous",
+      "bone": "T5",
+      "start": 1342,
+      "count": 12
+    },
+    {
+      "name": "T5_transverse-1",
+      "bone": "T5",
+      "start": 1354,
+      "count": 12
+    },
+    {
+      "name": "T5_transverse1",
+      "bone": "T5",
+      "start": 1366,
+      "count": 12
+    },
+    {
+      "name": "T4_body",
+      "bone": "T4",
+      "start": 1378,
+      "count": 40
+    },
+    {
+      "name": "T4_neural_arch",
+      "bone": "T4",
+      "start": 1418,
+      "count": 30
+    },
+    {
+      "name": "T4_spinous",
+      "bone": "T4",
+      "start": 1448,
+      "count": 12
+    },
+    {
+      "name": "T4_transverse-1",
+      "bone": "T4",
+      "start": 1460,
+      "count": 12
+    },
+    {
+      "name": "T4_transverse1",
+      "bone": "T4",
+      "start": 1472,
+      "count": 12
+    },
+    {
+      "name": "T3_body",
+      "bone": "T3",
+      "start": 1484,
+      "count": 40
+    },
+    {
+      "name": "T3_neural_arch",
+      "bone": "T3",
+      "start": 1524,
+      "count": 30
+    },
+    {
+      "name": "T3_spinous",
+      "bone": "T3",
+      "start": 1554,
+      "count": 12
+    },
+    {
+      "name": "T3_transverse-1",
+      "bone": "T3",
+      "start": 1566,
+      "count": 12
+    },
+    {
+      "name": "T3_transverse1",
+      "bone": "T3",
+      "start": 1578,
+      "count": 12
+    },
+    {
+      "name": "T2_body",
+      "bone": "T2",
+      "start": 1590,
+      "count": 40
+    },
+    {
+      "name": "T2_neural_arch",
+      "bone": "T2",
+      "start": 1630,
+      "count": 30
+    },
+    {
+      "name": "T2_spinous",
+      "bone": "T2",
+      "start": 1660,
+      "count": 12
+    },
+    {
+      "name": "T2_transverse-1",
+      "bone": "T2",
+      "start": 1672,
+      "count": 12
+    },
+    {
+      "name": "T2_transverse1",
+      "bone": "T2",
+      "start": 1684,
+      "count": 12
+    },
+    {
+      "name": "T1_body",
+      "bone": "T1",
+      "start": 1696,
+      "count": 40
+    },
+    {
+      "name": "T1_neural_arch",
+      "bone": "T1",
+      "start": 1736,
+      "count": 30
+    },
+    {
+      "name": "T1_spinous",
+      "bone": "T1",
+      "start": 1766,
+      "count": 12
+    },
+    {
+      "name": "T1_transverse-1",
+      "bone": "T1",
+      "start": 1778,
+      "count": 12
+    },
+    {
+      "name": "T1_transverse1",
+      "bone": "T1",
+      "start": 1790,
+      "count": 12
+    },
+    {
+      "name": "C7_body",
+      "bone": "C7",
+      "start": 1802,
+      "count": 40
+    },
+    {
+      "name": "C7_neural_arch",
+      "bone": "C7",
+      "start": 1842,
+      "count": 30
+    },
+    {
+      "name": "C7_spinous",
+      "bone": "C7",
+      "start": 1872,
+      "count": 12
+    },
+    {
+      "name": "C7_transverse-1",
+      "bone": "C7",
+      "start": 1884,
+      "count": 12
+    },
+    {
+      "name": "C7_transverse1",
+      "bone": "C7",
+      "start": 1896,
+      "count": 12
+    },
+    {
+      "name": "C6_body",
+      "bone": "C6",
+      "start": 1908,
+      "count": 40
+    },
+    {
+      "name": "C6_neural_arch",
+      "bone": "C6",
+      "start": 1948,
+      "count": 30
+    },
+    {
+      "name": "C6_spinous",
+      "bone": "C6",
+      "start": 1978,
+      "count": 12
+    },
+    {
+      "name": "C6_transverse-1",
+      "bone": "C6",
+      "start": 1990,
+      "count": 12
+    },
+    {
+      "name": "C6_transverse1",
+      "bone": "C6",
+      "start": 2002,
+      "count": 12
+    },
+    {
+      "name": "C5_body",
+      "bone": "C5",
+      "start": 2014,
+      "count": 40
+    },
+    {
+      "name": "C5_neural_arch",
+      "bone": "C5",
+      "start": 2054,
+      "count": 30
+    },
+    {
+      "name": "C5_spinous",
+      "bone": "C5",
+      "start": 2084,
+      "count": 12
+    },
+    {
+      "name": "C5_transverse-1",
+      "bone": "C5",
+      "start": 2096,
+      "count": 12
+    },
+    {
+      "name": "C5_transverse1",
+      "bone": "C5",
+      "start": 2108,
+      "count": 12
+    },
+    {
+      "name": "C4_body",
+      "bone": "C4",
+      "start": 2120,
+      "count": 40
+    },
+    {
+      "name": "C4_neural_arch",
+      "bone": "C4",
+      "start": 2160,
+      "count": 30
+    },
+    {
+      "name": "C4_spinous",
+      "bone": "C4",
+      "start": 2190,
+      "count": 12
+    },
+    {
+      "name": "C4_transverse-1",
+      "bone": "C4",
+      "start": 2202,
+      "count": 12
+    },
+    {
+      "name": "C4_transverse1",
+      "bone": "C4",
+      "start": 2214,
+      "count": 12
+    },
+    {
+      "name": "C3_body",
+      "bone": "C3",
+      "start": 2226,
+      "count": 40
+    },
+    {
+      "name": "C3_neural_arch",
+      "bone": "C3",
+      "start": 2266,
+      "count": 30
+    },
+    {
+      "name": "C3_spinous",
+      "bone": "C3",
+      "start": 2296,
+      "count": 12
+    },
+    {
+      "name": "C3_transverse-1",
+      "bone": "C3",
+      "start": 2308,
+      "count": 12
+    },
+    {
+      "name": "C3_transverse1",
+      "bone": "C3",
+      "start": 2320,
+      "count": 12
+    },
+    {
+      "name": "C2_body",
+      "bone": "C2",
+      "start": 2332,
+      "count": 40
+    },
+    {
+      "name": "C2_neural_arch",
+      "bone": "C2",
+      "start": 2372,
+      "count": 30
+    },
+    {
+      "name": "C2_spinous",
+      "bone": "C2",
+      "start": 2402,
+      "count": 12
+    },
+    {
+      "name": "C2_transverse-1",
+      "bone": "C2",
+      "start": 2414,
+      "count": 12
+    },
+    {
+      "name": "C2_transverse1",
+      "bone": "C2",
+      "start": 2426,
+      "count": 12
+    },
+    {
+      "name": "C1_body",
+      "bone": "C1",
+      "start": 2438,
+      "count": 40
+    },
+    {
+      "name": "C1_neural_arch",
+      "bone": "C1",
+      "start": 2478,
+      "count": 30
+    },
+    {
+      "name": "C1_spinous",
+      "bone": "C1",
+      "start": 2508,
+      "count": 12
+    },
+    {
+      "name": "C1_transverse-1",
+      "bone": "C1",
+      "start": 2520,
+      "count": 12
+    },
+    {
+      "name": "C1_transverse1",
+      "bone": "C1",
+      "start": 2532,
+      "count": 12
+    },
+    {
+      "name": "Sacral_segment_1",
+      "bone": "Sacrum",
+      "start": 2544,
+      "count": 32
+    },
+    {
+      "name": "Sacral_segment_2",
+      "bone": "Sacrum",
+      "start": 2576,
+      "count": 32
+    },
+    {
+      "name": "Sacral_segment_3",
+      "bone": "Sacrum",
+      "start": 2608,
+      "count": 32
+    },
+    {
+      "name": "Sacral_segment_4",
+      "bone": "Sacrum",
+      "start": 2640,
+      "count": 32
+    },
+    {
+      "name": "Sacral_segment_5",
+      "bone": "Sacrum",
+      "start": 2672,
+      "count": 32
+    },
+    {
+      "name": "Coccyx",
+      "bone": "Sacrum",
+      "start": 2704,
+      "count": 18
+    },
+    {
+      "name": "Manubrium",
+      "bone": "Sternum",
+      "start": 2722,
+      "count": 12
+    },
+    {
+      "name": "Sternal_body",
+      "bone": "Sternum",
+      "start": 2734,
+      "count": 24
+    },
+    {
+      "name": "Xiphoid",
+      "bone": "Sternum",
+      "start": 2758,
+      "count": 12
+    },
+    {
+      "name": "Rib_01.L",
+      "bone": "Rib_01.L",
+      "start": 2770,
+      "count": 114
+    },
+    {
+      "name": "Rib_01.R",
+      "bone": "Rib_01.R",
+      "start": 2884,
+      "count": 114
+    },
+    {
+      "name": "Rib_02.L",
+      "bone": "Rib_02.L",
+      "start": 2998,
+      "count": 114
+    },
+    {
+      "name": "Rib_02.R",
+      "bone": "Rib_02.R",
+      "start": 3112,
+      "count": 114
+    },
+    {
+      "name": "Rib_03.L",
+      "bone": "Rib_03.L",
+      "start": 3226,
+      "count": 114
+    },
+    {
+      "name": "Rib_03.R",
+      "bone": "Rib_03.R",
+      "start": 3340,
+      "count": 114
+    },
+    {
+      "name": "Rib_04.L",
+      "bone": "Rib_04.L",
+      "start": 3454,
+      "count": 114
+    },
+    {
+      "name": "Rib_04.R",
+      "bone": "Rib_04.R",
+      "start": 3568,
+      "count": 114
+    },
+    {
+      "name": "Rib_05.L",
+      "bone": "Rib_05.L",
+      "start": 3682,
+      "count": 114
+    },
+    {
+      "name": "Rib_05.R",
+      "bone": "Rib_05.R",
+      "start": 3796,
+      "count": 114
+    },
+    {
+      "name": "Rib_06.L",
+      "bone": "Rib_06.L",
+      "start": 3910,
+      "count": 114
+    },
+    {
+      "name": "Rib_06.R",
+      "bone": "Rib_06.R",
+      "start": 4024,
+      "count": 114
+    },
+    {
+      "name": "Rib_07.L",
+      "bone": "Rib_07.L",
+      "start": 4138,
+      "count": 114
+    },
+    {
+      "name": "Rib_07.R",
+      "bone": "Rib_07.R",
+      "start": 4252,
+      "count": 114
+    },
+    {
+      "name": "Rib_08.L",
+      "bone": "Rib_08.L",
+      "start": 4366,
+      "count": 114
+    },
+    {
+      "name": "Rib_08.R",
+      "bone": "Rib_08.R",
+      "start": 4480,
+      "count": 114
+    },
+    {
+      "name": "Rib_09.L",
+      "bone": "Rib_09.L",
+      "start": 4594,
+      "count": 114
+    },
+    {
+      "name": "Rib_09.R",
+      "bone": "Rib_09.R",
+      "start": 4708,
+      "count": 114
+    },
+    {
+      "name": "Rib_10.L",
+      "bone": "Rib_10.L",
+      "start": 4822,
+      "count": 114
+    },
+    {
+      "name": "Rib_10.R",
+      "bone": "Rib_10.R",
+      "start": 4936,
+      "count": 114
+    },
+    {
+      "name": "Rib_11.L",
+      "bone": "Rib_11.L",
+      "start": 5050,
+      "count": 114
+    },
+    {
+      "name": "Rib_11.R",
+      "bone": "Rib_11.R",
+      "start": 5164,
+      "count": 114
+    },
+    {
+      "name": "Rib_12.L",
+      "bone": "Rib_12.L",
+      "start": 5278,
+      "count": 114
+    },
+    {
+      "name": "Rib_12.R",
+      "bone": "Rib_12.R",
+      "start": 5392,
+      "count": 114
+    },
+    {
+      "name": "Cranium_with_orbital_and_nasal_cavities",
+      "bone": "Skull",
+      "start": 5506,
+      "count": 1024
+    },
+    {
+      "name": "Zygomatic_-1",
+      "bone": "Skull",
+      "start": 6530,
+      "count": 24
+    },
+    {
+      "name": "Zygomatic_1",
+      "bone": "Skull",
+      "start": 6554,
+      "count": 24
+    },
+    {
+      "name": "Maxilla",
+      "bone": "Skull",
+      "start": 6578,
+      "count": 104
+    },
+    {
+      "name": "Mandible",
+      "bone": "Mandible",
+      "start": 6682,
+      "count": 56
+    },
+    {
+      "name": "Upper_tooth_1",
+      "bone": "Skull",
+      "start": 6738,
+      "count": 26
+    },
+    {
+      "name": "Upper_tooth_2",
+      "bone": "Skull",
+      "start": 6764,
+      "count": 26
+    },
+    {
+      "name": "Upper_tooth_3",
+      "bone": "Skull",
+      "start": 6790,
+      "count": 26
+    },
+    {
+      "name": "Upper_tooth_4",
+      "bone": "Skull",
+      "start": 6816,
+      "count": 26
+    },
+    {
+      "name": "Upper_tooth_5",
+      "bone": "Skull",
+      "start": 6842,
+      "count": 26
+    },
+    {
+      "name": "Upper_tooth_6",
+      "bone": "Skull",
+      "start": 6868,
+      "count": 26
+    },
+    {
+      "name": "Upper_tooth_7",
+      "bone": "Skull",
+      "start": 6894,
+      "count": 26
+    },
+    {
+      "name": "Upper_tooth_8",
+      "bone": "Skull",
+      "start": 6920,
+      "count": 26
+    },
+    {
+      "name": "Upper_tooth_9",
+      "bone": "Skull",
+      "start": 6946,
+      "count": 26
+    },
+    {
+      "name": "Upper_tooth_10",
+      "bone": "Skull",
+      "start": 6972,
+      "count": 26
+    },
+    {
+      "name": "Upper_tooth_11",
+      "bone": "Skull",
+      "start": 6998,
+      "count": 26
+    },
+    {
+      "name": "Upper_tooth_12",
+      "bone": "Skull",
+      "start": 7024,
+      "count": 26
+    },
+    {
+      "name": "Upper_tooth_13",
+      "bone": "Skull",
+      "start": 7050,
+      "count": 26
+    },
+    {
+      "name": "Upper_tooth_14",
+      "bone": "Skull",
+      "start": 7076,
+      "count": 26
+    },
+    {
+      "name": "Lower_tooth_1",
+      "bone": "Mandible",
+      "start": 7102,
+      "count": 26
+    },
+    {
+      "name": "Lower_tooth_2",
+      "bone": "Mandible",
+      "start": 7128,
+      "count": 26
+    },
+    {
+      "name": "Lower_tooth_3",
+      "bone": "Mandible",
+      "start": 7154,
+      "count": 26
+    },
+    {
+      "name": "Lower_tooth_4",
+      "bone": "Mandible",
+      "start": 7180,
+      "count": 26
+    },
+    {
+      "name": "Lower_tooth_5",
+      "bone": "Mandible",
+      "start": 7206,
+      "count": 26
+    },
+    {
+      "name": "Lower_tooth_6",
+      "bone": "Mandible",
+      "start": 7232,
+      "count": 26
+    },
+    {
+      "name": "Lower_tooth_7",
+      "bone": "Mandible",
+      "start": 7258,
+      "count": 26
+    },
+    {
+      "name": "Lower_tooth_8",
+      "bone": "Mandible",
+      "start": 7284,
+      "count": 26
+    },
+    {
+      "name": "Lower_tooth_9",
+      "bone": "Mandible",
+      "start": 7310,
+      "count": 26
+    },
+    {
+      "name": "Lower_tooth_10",
+      "bone": "Mandible",
+      "start": 7336,
+      "count": 26
+    },
+    {
+      "name": "Lower_tooth_11",
+      "bone": "Mandible",
+      "start": 7362,
+      "count": 26
+    },
+    {
+      "name": "Lower_tooth_12",
+      "bone": "Mandible",
+      "start": 7388,
+      "count": 26
+    },
+    {
+      "name": "Lower_tooth_13",
+      "bone": "Mandible",
+      "start": 7414,
+      "count": 26
+    },
+    {
+      "name": "Lower_tooth_14",
+      "bone": "Mandible",
+      "start": 7440,
+      "count": 26
+    },
+    {
+      "name": "Ilium.L",
+      "bone": "Ilium.L",
+      "start": 7466,
+      "count": 104
+    },
+    {
+      "name": "Pubis_Ischium.L",
+      "bone": "Ilium.L",
+      "start": 7570,
+      "count": 56
+    },
+    {
+      "name": "Acetabulum.L",
+      "bone": "Ilium.L",
+      "start": 7626,
+      "count": 42
+    },
+    {
+      "name": "Ilium.R",
+      "bone": "Ilium.R",
+      "start": 7668,
+      "count": 104
+    },
+    {
+      "name": "Pubis_Ischium.R",
+      "bone": "Ilium.R",
+      "start": 7772,
+      "count": 56
+    },
+    {
+      "name": "Acetabulum.R",
+      "bone": "Ilium.R",
+      "start": 7828,
+      "count": 42
+    },
+    {
+      "name": "Pubic_symphysis",
+      "bone": "Sacrum",
+      "start": 7870,
+      "count": 16
+    },
+    {
+      "name": "Clavicle.L",
+      "bone": "Clavicle.L",
+      "start": 7886,
+      "count": 32
+    },
+    {
+      "name": "Scapula.L",
+      "bone": "Clavicle.L",
+      "start": 7918,
+      "count": 6
+    },
+    {
+      "name": "Scapular_spine.L",
+      "bone": "Clavicle.L",
+      "start": 7924,
+      "count": 18
+    },
+    {
+      "name": "Humerus.L",
+      "bone": "Humerus.L",
+      "start": 7942,
+      "count": 72
+    },
+    {
+      "name": "Humerus.L_condyle0_-1",
+      "bone": "Humerus.L",
+      "start": 8014,
+      "count": 26
+    },
+    {
+      "name": "Humerus.L_condyle0_1",
+      "bone": "Humerus.L",
+      "start": 8040,
+      "count": 26
+    },
+    {
+      "name": "Humerus.L_condyle1_-1",
+      "bone": "Humerus.L",
+      "start": 8066,
+      "count": 26
+    },
+    {
+      "name": "Humerus.L_condyle1_1",
+      "bone": "Humerus.L",
+      "start": 8092,
+      "count": 26
+    },
+    {
+      "name": "Radius.L",
+      "bone": "Radius.L",
+      "start": 8118,
+      "count": 72
+    },
+    {
+      "name": "Ulna.L",
+      "bone": "Ulna.L",
+      "start": 8190,
+      "count": 72
+    },
+    {
+      "name": "Olecranon.L",
+      "bone": "Ulna.L",
+      "start": 8262,
+      "count": 26
+    },
+    {
+      "name": "Carpal_0_0.L",
+      "bone": "Carpals.L",
+      "start": 8288,
+      "count": 26
+    },
+    {
+      "name": "Carpal_0_1.L",
+      "bone": "Carpals.L",
+      "start": 8314,
+      "count": 26
+    },
+    {
+      "name": "Carpal_0_2.L",
+      "bone": "Carpals.L",
+      "start": 8340,
+      "count": 26
+    },
+    {
+      "name": "Carpal_0_3.L",
+      "bone": "Carpals.L",
+      "start": 8366,
+      "count": 26
+    },
+    {
+      "name": "Carpal_1_0.L",
+      "bone": "Carpals.L",
+      "start": 8392,
+      "count": 26
+    },
+    {
+      "name": "Carpal_1_1.L",
+      "bone": "Carpals.L",
+      "start": 8418,
+      "count": 26
+    },
+    {
+      "name": "Carpal_1_2.L",
+      "bone": "Carpals.L",
+      "start": 8444,
+      "count": 26
+    },
+    {
+      "name": "Carpal_1_3.L",
+      "bone": "Carpals.L",
+      "start": 8470,
+      "count": 26
+    },
+    {
+      "name": "Metacarpal_1.L",
+      "bone": "Metacarpal_1.L",
+      "start": 8496,
+      "count": 30
+    },
+    {
+      "name": "Finger_1_Phalanx_1.L",
+      "bone": "Finger_1_Phalanx_1.L",
+      "start": 8526,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_1_1.L",
+      "bone": "Finger_1_Phalanx_1.L",
+      "start": 8556,
+      "count": 14
+    },
+    {
+      "name": "Finger_1_Phalanx_2.L",
+      "bone": "Finger_1_Phalanx_2.L",
+      "start": 8570,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_1_2.L",
+      "bone": "Finger_1_Phalanx_2.L",
+      "start": 8600,
+      "count": 14
+    },
+    {
+      "name": "Metacarpal_2.L",
+      "bone": "Metacarpal_2.L",
+      "start": 8614,
+      "count": 30
+    },
+    {
+      "name": "Finger_2_Phalanx_1.L",
+      "bone": "Finger_2_Phalanx_1.L",
+      "start": 8644,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_2_1.L",
+      "bone": "Finger_2_Phalanx_1.L",
+      "start": 8674,
+      "count": 14
+    },
+    {
+      "name": "Finger_2_Phalanx_2.L",
+      "bone": "Finger_2_Phalanx_2.L",
+      "start": 8688,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_2_2.L",
+      "bone": "Finger_2_Phalanx_2.L",
+      "start": 8718,
+      "count": 14
+    },
+    {
+      "name": "Finger_2_Phalanx_3.L",
+      "bone": "Finger_2_Phalanx_3.L",
+      "start": 8732,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_2_3.L",
+      "bone": "Finger_2_Phalanx_3.L",
+      "start": 8762,
+      "count": 14
+    },
+    {
+      "name": "Metacarpal_3.L",
+      "bone": "Metacarpal_3.L",
+      "start": 8776,
+      "count": 30
+    },
+    {
+      "name": "Finger_3_Phalanx_1.L",
+      "bone": "Finger_3_Phalanx_1.L",
+      "start": 8806,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_3_1.L",
+      "bone": "Finger_3_Phalanx_1.L",
+      "start": 8836,
+      "count": 14
+    },
+    {
+      "name": "Finger_3_Phalanx_2.L",
+      "bone": "Finger_3_Phalanx_2.L",
+      "start": 8850,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_3_2.L",
+      "bone": "Finger_3_Phalanx_2.L",
+      "start": 8880,
+      "count": 14
+    },
+    {
+      "name": "Finger_3_Phalanx_3.L",
+      "bone": "Finger_3_Phalanx_3.L",
+      "start": 8894,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_3_3.L",
+      "bone": "Finger_3_Phalanx_3.L",
+      "start": 8924,
+      "count": 14
+    },
+    {
+      "name": "Metacarpal_4.L",
+      "bone": "Metacarpal_4.L",
+      "start": 8938,
+      "count": 30
+    },
+    {
+      "name": "Finger_4_Phalanx_1.L",
+      "bone": "Finger_4_Phalanx_1.L",
+      "start": 8968,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_4_1.L",
+      "bone": "Finger_4_Phalanx_1.L",
+      "start": 8998,
+      "count": 14
+    },
+    {
+      "name": "Finger_4_Phalanx_2.L",
+      "bone": "Finger_4_Phalanx_2.L",
+      "start": 9012,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_4_2.L",
+      "bone": "Finger_4_Phalanx_2.L",
+      "start": 9042,
+      "count": 14
+    },
+    {
+      "name": "Finger_4_Phalanx_3.L",
+      "bone": "Finger_4_Phalanx_3.L",
+      "start": 9056,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_4_3.L",
+      "bone": "Finger_4_Phalanx_3.L",
+      "start": 9086,
+      "count": 14
+    },
+    {
+      "name": "Metacarpal_5.L",
+      "bone": "Metacarpal_5.L",
+      "start": 9100,
+      "count": 30
+    },
+    {
+      "name": "Finger_5_Phalanx_1.L",
+      "bone": "Finger_5_Phalanx_1.L",
+      "start": 9130,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_5_1.L",
+      "bone": "Finger_5_Phalanx_1.L",
+      "start": 9160,
+      "count": 14
+    },
+    {
+      "name": "Finger_5_Phalanx_2.L",
+      "bone": "Finger_5_Phalanx_2.L",
+      "start": 9174,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_5_2.L",
+      "bone": "Finger_5_Phalanx_2.L",
+      "start": 9204,
+      "count": 14
+    },
+    {
+      "name": "Finger_5_Phalanx_3.L",
+      "bone": "Finger_5_Phalanx_3.L",
+      "start": 9218,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_5_3.L",
+      "bone": "Finger_5_Phalanx_3.L",
+      "start": 9248,
+      "count": 14
+    },
+    {
+      "name": "Femur.L",
+      "bone": "Femur.L",
+      "start": 9262,
+      "count": 72
+    },
+    {
+      "name": "Femur.L_condyle0_-1",
+      "bone": "Femur.L",
+      "start": 9334,
+      "count": 26
+    },
+    {
+      "name": "Femur.L_condyle0_1",
+      "bone": "Femur.L",
+      "start": 9360,
+      "count": 26
+    },
+    {
+      "name": "Femur.L_condyle1_-1",
+      "bone": "Femur.L",
+      "start": 9386,
+      "count": 26
+    },
+    {
+      "name": "Femur.L_condyle1_1",
+      "bone": "Femur.L",
+      "start": 9412,
+      "count": 26
+    },
+    {
+      "name": "Femoral_head.L",
+      "bone": "Femur.L",
+      "start": 9438,
+      "count": 42
+    },
+    {
+      "name": "Patella.L",
+      "bone": "Patella.L",
+      "start": 9480,
+      "count": 42
+    },
+    {
+      "name": "Tibia.L",
+      "bone": "Tibia.L",
+      "start": 9522,
+      "count": 72
+    },
+    {
+      "name": "Tibia.L_condyle0_-1",
+      "bone": "Tibia.L",
+      "start": 9594,
+      "count": 26
+    },
+    {
+      "name": "Tibia.L_condyle0_1",
+      "bone": "Tibia.L",
+      "start": 9620,
+      "count": 26
+    },
+    {
+      "name": "Tibia.L_condyle1_-1",
+      "bone": "Tibia.L",
+      "start": 9646,
+      "count": 26
+    },
+    {
+      "name": "Tibia.L_condyle1_1",
+      "bone": "Tibia.L",
+      "start": 9672,
+      "count": 26
+    },
+    {
+      "name": "Fibula.L",
+      "bone": "Fibula.L",
+      "start": 9698,
+      "count": 72
+    },
+    {
+      "name": "Tarsal_1.L",
+      "bone": "Tarsals.L",
+      "start": 9770,
+      "count": 26
+    },
+    {
+      "name": "Tarsal_2.L",
+      "bone": "Tarsals.L",
+      "start": 9796,
+      "count": 26
+    },
+    {
+      "name": "Tarsal_3.L",
+      "bone": "Tarsals.L",
+      "start": 9822,
+      "count": 26
+    },
+    {
+      "name": "Tarsal_4.L",
+      "bone": "Tarsals.L",
+      "start": 9848,
+      "count": 26
+    },
+    {
+      "name": "Tarsal_5.L",
+      "bone": "Tarsals.L",
+      "start": 9874,
+      "count": 26
+    },
+    {
+      "name": "Tarsal_6.L",
+      "bone": "Tarsals.L",
+      "start": 9900,
+      "count": 26
+    },
+    {
+      "name": "Tarsal_7.L",
+      "bone": "Tarsals.L",
+      "start": 9926,
+      "count": 26
+    },
+    {
+      "name": "Metatarsal_1.L",
+      "bone": "Metatarsal_1.L",
+      "start": 9952,
+      "count": 30
+    },
+    {
+      "name": "Toe_1_Phalanx_1.L",
+      "bone": "Toe_1_Phalanx_1.L",
+      "start": 9982,
+      "count": 30
+    },
+    {
+      "name": "Toe_1_Phalanx_2.L",
+      "bone": "Toe_1_Phalanx_2.L",
+      "start": 10012,
+      "count": 30
+    },
+    {
+      "name": "Metatarsal_2.L",
+      "bone": "Metatarsal_2.L",
+      "start": 10042,
+      "count": 30
+    },
+    {
+      "name": "Toe_2_Phalanx_1.L",
+      "bone": "Toe_2_Phalanx_1.L",
+      "start": 10072,
+      "count": 30
+    },
+    {
+      "name": "Toe_2_Phalanx_2.L",
+      "bone": "Toe_2_Phalanx_2.L",
+      "start": 10102,
+      "count": 30
+    },
+    {
+      "name": "Toe_2_Phalanx_3.L",
+      "bone": "Toe_2_Phalanx_3.L",
+      "start": 10132,
+      "count": 30
+    },
+    {
+      "name": "Metatarsal_3.L",
+      "bone": "Metatarsal_3.L",
+      "start": 10162,
+      "count": 30
+    },
+    {
+      "name": "Toe_3_Phalanx_1.L",
+      "bone": "Toe_3_Phalanx_1.L",
+      "start": 10192,
+      "count": 30
+    },
+    {
+      "name": "Toe_3_Phalanx_2.L",
+      "bone": "Toe_3_Phalanx_2.L",
+      "start": 10222,
+      "count": 30
+    },
+    {
+      "name": "Toe_3_Phalanx_3.L",
+      "bone": "Toe_3_Phalanx_3.L",
+      "start": 10252,
+      "count": 30
+    },
+    {
+      "name": "Metatarsal_4.L",
+      "bone": "Metatarsal_4.L",
+      "start": 10282,
+      "count": 30
+    },
+    {
+      "name": "Toe_4_Phalanx_1.L",
+      "bone": "Toe_4_Phalanx_1.L",
+      "start": 10312,
+      "count": 30
+    },
+    {
+      "name": "Toe_4_Phalanx_2.L",
+      "bone": "Toe_4_Phalanx_2.L",
+      "start": 10342,
+      "count": 30
+    },
+    {
+      "name": "Toe_4_Phalanx_3.L",
+      "bone": "Toe_4_Phalanx_3.L",
+      "start": 10372,
+      "count": 30
+    },
+    {
+      "name": "Metatarsal_5.L",
+      "bone": "Metatarsal_5.L",
+      "start": 10402,
+      "count": 30
+    },
+    {
+      "name": "Toe_5_Phalanx_1.L",
+      "bone": "Toe_5_Phalanx_1.L",
+      "start": 10432,
+      "count": 30
+    },
+    {
+      "name": "Toe_5_Phalanx_2.L",
+      "bone": "Toe_5_Phalanx_2.L",
+      "start": 10462,
+      "count": 30
+    },
+    {
+      "name": "Toe_5_Phalanx_3.L",
+      "bone": "Toe_5_Phalanx_3.L",
+      "start": 10492,
+      "count": 30
+    },
+    {
+      "name": "Clavicle.R",
+      "bone": "Clavicle.R",
+      "start": 10522,
+      "count": 32
+    },
+    {
+      "name": "Scapula.R",
+      "bone": "Clavicle.R",
+      "start": 10554,
+      "count": 6
+    },
+    {
+      "name": "Scapular_spine.R",
+      "bone": "Clavicle.R",
+      "start": 10560,
+      "count": 18
+    },
+    {
+      "name": "Humerus.R",
+      "bone": "Humerus.R",
+      "start": 10578,
+      "count": 72
+    },
+    {
+      "name": "Humerus.R_condyle0_-1",
+      "bone": "Humerus.R",
+      "start": 10650,
+      "count": 26
+    },
+    {
+      "name": "Humerus.R_condyle0_1",
+      "bone": "Humerus.R",
+      "start": 10676,
+      "count": 26
+    },
+    {
+      "name": "Humerus.R_condyle1_-1",
+      "bone": "Humerus.R",
+      "start": 10702,
+      "count": 26
+    },
+    {
+      "name": "Humerus.R_condyle1_1",
+      "bone": "Humerus.R",
+      "start": 10728,
+      "count": 26
+    },
+    {
+      "name": "Radius.R",
+      "bone": "Radius.R",
+      "start": 10754,
+      "count": 72
+    },
+    {
+      "name": "Ulna.R",
+      "bone": "Ulna.R",
+      "start": 10826,
+      "count": 72
+    },
+    {
+      "name": "Olecranon.R",
+      "bone": "Ulna.R",
+      "start": 10898,
+      "count": 26
+    },
+    {
+      "name": "Carpal_0_0.R",
+      "bone": "Carpals.R",
+      "start": 10924,
+      "count": 26
+    },
+    {
+      "name": "Carpal_0_1.R",
+      "bone": "Carpals.R",
+      "start": 10950,
+      "count": 26
+    },
+    {
+      "name": "Carpal_0_2.R",
+      "bone": "Carpals.R",
+      "start": 10976,
+      "count": 26
+    },
+    {
+      "name": "Carpal_0_3.R",
+      "bone": "Carpals.R",
+      "start": 11002,
+      "count": 26
+    },
+    {
+      "name": "Carpal_1_0.R",
+      "bone": "Carpals.R",
+      "start": 11028,
+      "count": 26
+    },
+    {
+      "name": "Carpal_1_1.R",
+      "bone": "Carpals.R",
+      "start": 11054,
+      "count": 26
+    },
+    {
+      "name": "Carpal_1_2.R",
+      "bone": "Carpals.R",
+      "start": 11080,
+      "count": 26
+    },
+    {
+      "name": "Carpal_1_3.R",
+      "bone": "Carpals.R",
+      "start": 11106,
+      "count": 26
+    },
+    {
+      "name": "Metacarpal_1.R",
+      "bone": "Metacarpal_1.R",
+      "start": 11132,
+      "count": 30
+    },
+    {
+      "name": "Finger_1_Phalanx_1.R",
+      "bone": "Finger_1_Phalanx_1.R",
+      "start": 11162,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_1_1.R",
+      "bone": "Finger_1_Phalanx_1.R",
+      "start": 11192,
+      "count": 14
+    },
+    {
+      "name": "Finger_1_Phalanx_2.R",
+      "bone": "Finger_1_Phalanx_2.R",
+      "start": 11206,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_1_2.R",
+      "bone": "Finger_1_Phalanx_2.R",
+      "start": 11236,
+      "count": 14
+    },
+    {
+      "name": "Metacarpal_2.R",
+      "bone": "Metacarpal_2.R",
+      "start": 11250,
+      "count": 30
+    },
+    {
+      "name": "Finger_2_Phalanx_1.R",
+      "bone": "Finger_2_Phalanx_1.R",
+      "start": 11280,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_2_1.R",
+      "bone": "Finger_2_Phalanx_1.R",
+      "start": 11310,
+      "count": 14
+    },
+    {
+      "name": "Finger_2_Phalanx_2.R",
+      "bone": "Finger_2_Phalanx_2.R",
+      "start": 11324,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_2_2.R",
+      "bone": "Finger_2_Phalanx_2.R",
+      "start": 11354,
+      "count": 14
+    },
+    {
+      "name": "Finger_2_Phalanx_3.R",
+      "bone": "Finger_2_Phalanx_3.R",
+      "start": 11368,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_2_3.R",
+      "bone": "Finger_2_Phalanx_3.R",
+      "start": 11398,
+      "count": 14
+    },
+    {
+      "name": "Metacarpal_3.R",
+      "bone": "Metacarpal_3.R",
+      "start": 11412,
+      "count": 30
+    },
+    {
+      "name": "Finger_3_Phalanx_1.R",
+      "bone": "Finger_3_Phalanx_1.R",
+      "start": 11442,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_3_1.R",
+      "bone": "Finger_3_Phalanx_1.R",
+      "start": 11472,
+      "count": 14
+    },
+    {
+      "name": "Finger_3_Phalanx_2.R",
+      "bone": "Finger_3_Phalanx_2.R",
+      "start": 11486,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_3_2.R",
+      "bone": "Finger_3_Phalanx_2.R",
+      "start": 11516,
+      "count": 14
+    },
+    {
+      "name": "Finger_3_Phalanx_3.R",
+      "bone": "Finger_3_Phalanx_3.R",
+      "start": 11530,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_3_3.R",
+      "bone": "Finger_3_Phalanx_3.R",
+      "start": 11560,
+      "count": 14
+    },
+    {
+      "name": "Metacarpal_4.R",
+      "bone": "Metacarpal_4.R",
+      "start": 11574,
+      "count": 30
+    },
+    {
+      "name": "Finger_4_Phalanx_1.R",
+      "bone": "Finger_4_Phalanx_1.R",
+      "start": 11604,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_4_1.R",
+      "bone": "Finger_4_Phalanx_1.R",
+      "start": 11634,
+      "count": 14
+    },
+    {
+      "name": "Finger_4_Phalanx_2.R",
+      "bone": "Finger_4_Phalanx_2.R",
+      "start": 11648,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_4_2.R",
+      "bone": "Finger_4_Phalanx_2.R",
+      "start": 11678,
+      "count": 14
+    },
+    {
+      "name": "Finger_4_Phalanx_3.R",
+      "bone": "Finger_4_Phalanx_3.R",
+      "start": 11692,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_4_3.R",
+      "bone": "Finger_4_Phalanx_3.R",
+      "start": 11722,
+      "count": 14
+    },
+    {
+      "name": "Metacarpal_5.R",
+      "bone": "Metacarpal_5.R",
+      "start": 11736,
+      "count": 30
+    },
+    {
+      "name": "Finger_5_Phalanx_1.R",
+      "bone": "Finger_5_Phalanx_1.R",
+      "start": 11766,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_5_1.R",
+      "bone": "Finger_5_Phalanx_1.R",
+      "start": 11796,
+      "count": 14
+    },
+    {
+      "name": "Finger_5_Phalanx_2.R",
+      "bone": "Finger_5_Phalanx_2.R",
+      "start": 11810,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_5_2.R",
+      "bone": "Finger_5_Phalanx_2.R",
+      "start": 11840,
+      "count": 14
+    },
+    {
+      "name": "Finger_5_Phalanx_3.R",
+      "bone": "Finger_5_Phalanx_3.R",
+      "start": 11854,
+      "count": 30
+    },
+    {
+      "name": "Finger_joint_5_3.R",
+      "bone": "Finger_5_Phalanx_3.R",
+      "start": 11884,
+      "count": 14
+    },
+    {
+      "name": "Femur.R",
+      "bone": "Femur.R",
+      "start": 11898,
+      "count": 72
+    },
+    {
+      "name": "Femur.R_condyle0_-1",
+      "bone": "Femur.R",
+      "start": 11970,
+      "count": 26
+    },
+    {
+      "name": "Femur.R_condyle0_1",
+      "bone": "Femur.R",
+      "start": 11996,
+      "count": 26
+    },
+    {
+      "name": "Femur.R_condyle1_-1",
+      "bone": "Femur.R",
+      "start": 12022,
+      "count": 26
+    },
+    {
+      "name": "Femur.R_condyle1_1",
+      "bone": "Femur.R",
+      "start": 12048,
+      "count": 26
+    },
+    {
+      "name": "Femoral_head.R",
+      "bone": "Femur.R",
+      "start": 12074,
+      "count": 42
+    },
+    {
+      "name": "Patella.R",
+      "bone": "Patella.R",
+      "start": 12116,
+      "count": 42
+    },
+    {
+      "name": "Tibia.R",
+      "bone": "Tibia.R",
+      "start": 12158,
+      "count": 72
+    },
+    {
+      "name": "Tibia.R_condyle0_-1",
+      "bone": "Tibia.R",
+      "start": 12230,
+      "count": 26
+    },
+    {
+      "name": "Tibia.R_condyle0_1",
+      "bone": "Tibia.R",
+      "start": 12256,
+      "count": 26
+    },
+    {
+      "name": "Tibia.R_condyle1_-1",
+      "bone": "Tibia.R",
+      "start": 12282,
+      "count": 26
+    },
+    {
+      "name": "Tibia.R_condyle1_1",
+      "bone": "Tibia.R",
+      "start": 12308,
+      "count": 26
+    },
+    {
+      "name": "Fibula.R",
+      "bone": "Fibula.R",
+      "start": 12334,
+      "count": 72
+    },
+    {
+      "name": "Tarsal_1.R",
+      "bone": "Tarsals.R",
+      "start": 12406,
+      "count": 26
+    },
+    {
+      "name": "Tarsal_2.R",
+      "bone": "Tarsals.R",
+      "start": 12432,
+      "count": 26
+    },
+    {
+      "name": "Tarsal_3.R",
+      "bone": "Tarsals.R",
+      "start": 12458,
+      "count": 26
+    },
+    {
+      "name": "Tarsal_4.R",
+      "bone": "Tarsals.R",
+      "start": 12484,
+      "count": 26
+    },
+    {
+      "name": "Tarsal_5.R",
+      "bone": "Tarsals.R",
+      "start": 12510,
+      "count": 26
+    },
+    {
+      "name": "Tarsal_6.R",
+      "bone": "Tarsals.R",
+      "start": 12536,
+      "count": 26
+    },
+    {
+      "name": "Tarsal_7.R",
+      "bone": "Tarsals.R",
+      "start": 12562,
+      "count": 26
+    },
+    {
+      "name": "Metatarsal_1.R",
+      "bone": "Metatarsal_1.R",
+      "start": 12588,
+      "count": 30
+    },
+    {
+      "name": "Toe_1_Phalanx_1.R",
+      "bone": "Toe_1_Phalanx_1.R",
+      "start": 12618,
+      "count": 30
+    },
+    {
+      "name": "Toe_1_Phalanx_2.R",
+      "bone": "Toe_1_Phalanx_2.R",
+      "start": 12648,
+      "count": 30
+    },
+    {
+      "name": "Metatarsal_2.R",
+      "bone": "Metatarsal_2.R",
+      "start": 12678,
+      "count": 30
+    },
+    {
+      "name": "Toe_2_Phalanx_1.R",
+      "bone": "Toe_2_Phalanx_1.R",
+      "start": 12708,
+      "count": 30
+    },
+    {
+      "name": "Toe_2_Phalanx_2.R",
+      "bone": "Toe_2_Phalanx_2.R",
+      "start": 12738,
+      "count": 30
+    },
+    {
+      "name": "Toe_2_Phalanx_3.R",
+      "bone": "Toe_2_Phalanx_3.R",
+      "start": 12768,
+      "count": 30
+    },
+    {
+      "name": "Metatarsal_3.R",
+      "bone": "Metatarsal_3.R",
+      "start": 12798,
+      "count": 30
+    },
+    {
+      "name": "Toe_3_Phalanx_1.R",
+      "bone": "Toe_3_Phalanx_1.R",
+      "start": 12828,
+      "count": 30
+    },
+    {
+      "name": "Toe_3_Phalanx_2.R",
+      "bone": "Toe_3_Phalanx_2.R",
+      "start": 12858,
+      "count": 30
+    },
+    {
+      "name": "Toe_3_Phalanx_3.R",
+      "bone": "Toe_3_Phalanx_3.R",
+      "start": 12888,
+      "count": 30
+    },
+    {
+      "name": "Metatarsal_4.R",
+      "bone": "Metatarsal_4.R",
+      "start": 12918,
+      "count": 30
+    },
+    {
+      "name": "Toe_4_Phalanx_1.R",
+      "bone": "Toe_4_Phalanx_1.R",
+      "start": 12948,
+      "count": 30
+    },
+    {
+      "name": "Toe_4_Phalanx_2.R",
+      "bone": "Toe_4_Phalanx_2.R",
+      "start": 12978,
+      "count": 30
+    },
+    {
+      "name": "Toe_4_Phalanx_3.R",
+      "bone": "Toe_4_Phalanx_3.R",
+      "start": 13008,
+      "count": 30
+    },
+    {
+      "name": "Metatarsal_5.R",
+      "bone": "Metatarsal_5.R",
+      "start": 13038,
+      "count": 30
+    },
+    {
+      "name": "Toe_5_Phalanx_1.R",
+      "bone": "Toe_5_Phalanx_1.R",
+      "start": 13068,
+      "count": 30
+    },
+    {
+      "name": "Toe_5_Phalanx_2.R",
+      "bone": "Toe_5_Phalanx_2.R",
+      "start": 13098,
+      "count": 30
+    },
+    {
+      "name": "Toe_5_Phalanx_3.R",
+      "bone": "Toe_5_Phalanx_3.R",
+      "start": 13128,
+      "count": 30
+    }
+  ]
+}

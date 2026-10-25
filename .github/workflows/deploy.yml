@@ -24,7 +24,7 @@ jobs:
       - name: Validate published asset allowlist and GLB
         run: |
           python tools/validate_character_site.py
-          python -m unittest discover -s tools -p test_body_base_midpoly.py -v
+          python -m unittest discover -s tools -p 'test_*midpoly.py' -v
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -37,10 +37,11 @@ jobs:
         run: npm test --prefix tools/viewer-tests
       - name: Stage only public runtime files
         run: |
-          mkdir -p _site/models/characters _site/vendor
+          mkdir -p _site/models/characters/skeleton _site/vendor
           cp docs/index.html docs/viewer.js _site/
           cp docs/vendor/model-viewer.min.js docs/vendor/model-viewer.LICENSE _site/vendor/
           cp docs/models/characters/body_base_midpoly.glb _site/models/characters/
+          cp docs/models/characters/skeleton/skeleton_base_midpoly.glb _site/models/characters/skeleton/
       - uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/main'
         with:

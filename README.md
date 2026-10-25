@@ -1,4 +1,4 @@
-> **Current Pages catalog:** Only `body_base_midpoly.glb` is published. Legacy
+> **Current Pages catalog:** `body_base_midpoly.glb` and the anatomical `skeleton/skeleton_base_midpoly.glb` are published. Legacy
 > character, building, terrain, vehicle, and OBJ assets have been removed from
 > `docs/models/`. Older pipeline sections below are historical documentation,
 > not the current hosted catalog. See [the mid-poly catalog](docs/CHARACTER_CATALOG.md).
