@@ -14,17 +14,36 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Retarget the Mixamo motion set onto the 27-bone rig. Runs first so the
+  # animated GLB can be validated and published with the rest of the site.
+  animated-character:
+    uses: ./.github/workflows/build-animated-character.yml
+
   validate:
+    needs: animated-character
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Collect the animated character build
+        uses: actions/download-artifact@v4
+        with:
+          name: animated-character
+          path: characters
+      - name: Mirror the animated character into the Pages tree
+        # The build products are gitignored, so the mirror the pipeline makes
+        # locally does not exist on a fresh checkout -- recreate it here.
+        run: |
+          mkdir -p docs/models/characters/clothing
+          cp characters/player_animated.glb characters/player_animated.report.json docs/models/characters/
+          cp characters/clothing/*.glb docs/models/characters/clothing/
       - name: Validate published asset allowlist and GLB
         run: |
           python tools/validate_character_site.py
           python -m unittest discover -s tools -p 'test_*midpoly.py' -v
+          REQUIRE_ANIMATED=1 python -m unittest tools.test_player_animated -v
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -43,6 +62,11 @@ jobs:
           cp docs/models/characters/body_base_midpoly.glb _site/models/characters/
           cp docs/models/characters/body_base_female_midpoly.glb _site/models/characters/
           cp docs/models/characters/skeleton_base_midpoly.glb _site/models/characters/
+          # Animated player + clothing: what the Godot repo syncs from Pages.
+          mkdir -p _site/models/characters/clothing
+          cp docs/models/characters/player_animated.glb _site/models/characters/
+          cp docs/models/characters/player_animated.report.json _site/models/characters/
+          cp docs/models/characters/clothing/*.glb _site/models/characters/clothing/
       - uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/main'
         with:
