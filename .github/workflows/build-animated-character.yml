@@ -1,0 +1,102 @@
+name: Build Animated Character
+
+# Retargets the Mixamo motion set in docs/Motions/ onto the repo's 27-bone rig
+# and publishes characters/player_animated.glb (+ clothing) as a workflow
+# artifact. Nothing is committed back: the Godot side syncs the GLB either from
+# this artifact or from GitHub Pages (see GODOT_INTEGRATION.md).
+
+on:
+  # Called by deploy.yml, which already triggers on every push to main and
+  # every pull request -- so no push/pull_request trigger here, or the whole
+  # retarget would run twice per commit. workflow_dispatch stays for producing
+  # an artifact on demand without a deploy.
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          # bpy 4.5 LTS ships wheels for CPython 3.11 only -- Blender pins the
+          # interpreter its own modules were built against.
+          python-version: '3.11'
+
+      - name: Install Blender's runtime shared libraries
+        # The bpy wheel links against the X/GL stack even when it never opens a
+        # window; without these `import bpy` dies on libXrender.so.1.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libgl1 libxrender1 libxi6 libxxf86vm1 libxfixes3 \
+            libxkbcommon0 libsm6 libice6
+
+      - name: Install bpy
+        run: |
+          python -m pip install --upgrade pip
+          pip install 'bpy==4.5.3'
+          python -c "import bpy; print('bpy', bpy.app.version_string, 'background', bpy.app.background)"
+
+      - name: Report which base mesh will be used
+        # characters/base_mesh/ is where an artist drops an AI-generated body.
+        # When it is empty the pipeline falls back to the committed 27-bone rig,
+        # so a missing upload must never fail the build.
+        run: |
+          if compgen -G 'characters/base_mesh/*' > /dev/null; then
+            echo "Using uploaded base mesh:"; ls -la characters/base_mesh/
+          else
+            echo "characters/base_mesh/ is empty -- falling back to the committed 27-bone rig."
+          fi
+
+      - name: Retarget the Mixamo motion set onto the 27-bone rig
+        run: python tools/retarget_animations.py
+
+      - name: Audit the exported GLB
+        # REQUIRE_ANIMATED turns the "not built yet" skip into a hard failure.
+        env:
+          REQUIRE_ANIMATED: '1'
+        run: python -m unittest tools.test_player_animated -v
+
+      - name: Validate the published model set
+        run: python tools/validate_character_site.py
+
+      - name: Summarise the build
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, pathlib
+          p = pathlib.Path('characters/player_animated.report.json')
+          if not p.exists():
+              print('## Animated character\n\nBuild produced no report.'); raise SystemExit
+          r = json.loads(p.read_text())
+          clips = r['clips']
+          body = r['deformation']['body_shell']
+          print('## Animated character\n')
+          print(f"- Base mesh: `{r['base_mesh']['path']}` ({r['base_mesh']['origin']})")
+          print(f"- Rig: {r['rig']['bones']} bones | {len(clips)} animations")
+          print(f"- Worst planted-foot float: **{max(c['contact_float_m'] for c in clips) * 1000:.1f} mm**")
+          print(f"- Worst floor penetration: **{-min(c['min_z'] for c in clips) * 1000:.2f} mm**")
+          print(f"- Min inter-key quaternion dot: **{min(c['min_quaternion_dot'] for c in clips):.3f}** (negative = flip)")
+          print(f"- Body max edge stretch: **{body['max_edge_stretch']:.3f}x** / {body['max_edge_growth_mm']:.1f} mm")
+          print(f"- Deformation sampled over {body['edges']:,} edges x {r['deformation']['poses_sampled']} poses\n")
+          print('| Output | Size |\n| --- | --- |')
+          for name, info in r['outputs'].items():
+              print(f"| `{name}` | {info['bytes'] / 1024:,.0f} KB |")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: animated-character
+          path: |
+            characters/player_animated.glb
+            characters/player_animated.report.json
+            characters/clothing/*.glb
+          if-no-files-found: error
+          retention-days: 30

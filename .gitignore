@@ -86,7 +86,11 @@ docs/models/modules/
 # characters/ and mirrors into docs/models/characters/. CI publishes them as a
 # workflow artifact and stages them into _site for Pages -- they are never
 # committed back (the base mesh itself, body_base_female_midpoly.*, IS tracked).
-/characters/
+# (characters/base_mesh/ stays tracked -- that is where an artist uploads the
+# AI-generated body the pipeline prefers over the committed fallback rig.)
+/characters/player_animated.glb
+/characters/player_animated.report.json
+/characters/clothing/
 docs/models/characters/player_animated.glb
 docs/models/characters/player_animated.report.json
 docs/models/characters/clothing/
