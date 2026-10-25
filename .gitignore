@@ -81,3 +81,12 @@ docs/models/modules/
 
 # Local validation/browser tooling cache
 .cache/
+
+# Animated player build products: tools/retarget_animations.py regenerates
+# characters/ and mirrors into docs/models/characters/. CI publishes them as a
+# workflow artifact and stages them into _site for Pages -- they are never
+# committed back (the base mesh itself, body_base_female_midpoly.*, IS tracked).
+/characters/
+docs/models/characters/player_animated.glb
+docs/models/characters/player_animated.report.json
+docs/models/characters/clothing/
