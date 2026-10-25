@@ -3,8 +3,8 @@ const status = document.querySelector('#status');
 const buttons = [...document.querySelectorAll('[data-animation]')];
 const playback = document.querySelector('#playback');
 const assets = {
-  body: { name: 'Base Body', src: './models/characters/body_base_midpoly.glb', triangles: '15,408', bones: 20, animated: true },
-  skeleton: { name: 'Skeleton', src: './models/characters/skeleton/skeleton_base_midpoly.glb', triangles: '24,816', bones: 151, animated: false },
+  body: { name: 'Base Body', src: './models/characters/body_base_midpoly.glb', triangles: '15,408', bones: 20, height: '1.80 m', animated: true },
+  skeleton: { name: 'Skeleton', src: './models/characters/skeleton_base_midpoly.glb', triangles: '24,970', bones: 65, height: '1.84 m', animated: false },
 };
 let selected = 'skeleton';
 let ready = false;
@@ -12,7 +12,7 @@ let ready = false;
 function updateDetails() {
   const asset = assets[selected];
   document.querySelector('.download').href = asset.src;
-  document.querySelector('#facts').innerHTML = `<div><strong>${asset.triangles}</strong>triangles</div><div><strong>1.80 m</strong>height</div><div><strong>${asset.bones} bones</strong>articulated rig</div>`;
+  document.querySelector('#facts').innerHTML = `<div><strong>${asset.triangles}</strong>triangles</div><div><strong>${asset.height}</strong>height</div><div><strong>${asset.bones} bones</strong>articulated rig</div>`;
 }
 function disablePlayback() {
   for (const button of buttons) { button.disabled = true; button.setAttribute('aria-pressed', 'false'); }
@@ -33,6 +33,8 @@ function onLoad() {
   // Ignore a superseded load event when switching assets rapidly.
   if (!viewer.loaded || viewer.src !== asset.src) return;
   ready = true;
+  viewer.cameraOrbit = '0deg 90deg 4.5m';
+  viewer.jumpCameraToGoal();
   if (asset.animated) {
     const missing = ['Idle', 'Walk'].filter(name => !viewer.availableAnimations.includes(name));
     if (missing.length) {
@@ -46,7 +48,7 @@ function onLoad() {
   } else {
     viewer.pause();
     disablePlayback();
-    status.textContent = 'Skeleton · Rest pose · 24,816 triangles · 375 rigid bone pieces';
+    status.textContent = 'Skeleton · A-pose · 24,970 triangles · 65 deform joints · No animation clips';
   }
 }
 viewer.addEventListener('load', onLoad);

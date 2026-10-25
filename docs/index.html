@@ -20,10 +20,10 @@
       <button class="asset" data-asset="skeleton" type="button" aria-pressed="true" style="margin-top:8px">Skeleton</button>
       <div class="facts" id="facts"><div><strong>15,408</strong>triangles</div><div><strong>1.80 m</strong>height</div><div><strong>20 bones</strong>humanoid rig</div></div>
       <a class="download" href="./models/characters/body_base_midpoly.glb" download>Download GLB ↓</a>
-      <p class="note">Base Body and anatomical Skeleton are available. Skeleton has 375 bone pieces, including individual ribs, vertebrae, fingers and toes.</p>
+      <p class="note">Base Body and anatomical Skeleton are available. Skeleton is the inspected CGTrader A-pose asset: 24,970 triangles, an existing rig, and no character animation clips.</p>
     </aside>
     <section class="panel stage" aria-label="Interactive character preview">
-      <model-viewer id="character" src="./models/characters/skeleton/skeleton_base_midpoly.glb" alt="Stylized anatomical skeleton with individual bones" camera-controls touch-action="pan-y" camera-orbit="0deg 90deg 3.8m" camera-target="0m 0.9m 0m" field-of-view="35deg" shadow-intensity="1" exposure="1" animation-name="Idle" autoplay interaction-prompt="auto"></model-viewer>
+      <model-viewer id="character" src="./models/characters/skeleton_base_midpoly.glb" alt="Stylized anatomical skeleton with individual bones" camera-controls touch-action="pan-y" camera-orbit="0deg 90deg 4.5m" camera-target="auto auto auto" field-of-view="30deg" max-camera-orbit="auto auto 10m" shadow-intensity="1" exposure="1" animation-name="Idle" autoplay interaction-prompt="auto"></model-viewer>
       <div class="controls" role="group" aria-label="Animation controls"><span>Animation</span><button type="button" data-animation="Idle" aria-pressed="true" disabled>Idle</button><button type="button" data-animation="Walk" aria-pressed="false" disabled>Walk</button><button id="playback" type="button" disabled>Pause</button></div>
       <p id="status" role="status" aria-live="polite">Loading skeleton…</p>
     </section>

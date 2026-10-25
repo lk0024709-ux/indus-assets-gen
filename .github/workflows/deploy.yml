@@ -41,7 +41,7 @@ jobs:
           cp docs/index.html docs/viewer.js _site/
           cp docs/vendor/model-viewer.min.js docs/vendor/model-viewer.LICENSE _site/vendor/
           cp docs/models/characters/body_base_midpoly.glb _site/models/characters/
-          cp docs/models/characters/skeleton/skeleton_base_midpoly.glb _site/models/characters/skeleton/
+          cp docs/models/characters/skeleton_base_midpoly.glb _site/models/characters/
       - uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/main'
         with:
