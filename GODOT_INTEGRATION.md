@@ -18,6 +18,7 @@ URLs below.
 | 4 Terrain tiles | `models/terrain/terrain_*.glb` | 0.45–2.1 MB each |
 | Mount Abu hill station | `models/terrain/terrain_mount_abu.glb` | 2.1 MB (visual) |
 | Mount Abu collider | `models/terrain/terrain_mount_abu_collision.glb` | 0.53 MB (concave, no vegetation) |
+| **Rigged player (Idle + Walk)** | `models/characters/player_animated.glb` | 161 KB |
 | **Character pool (15)** | `models/characters/<name>.glb` — `female_casual`, `male_shirt`, `smooth_female_dress`, … | 51–183 KB each |
 | Player Tactical character | `models/characters/player_tactical.glb` | 65 KB |
 | **Trees (3)** | `models/nature/tree_pine.glb`, `tree_oak.glb`, `tree_palm.glb` | 7–38 KB |
