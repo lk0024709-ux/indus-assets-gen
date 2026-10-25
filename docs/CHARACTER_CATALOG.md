@@ -1,8 +1,9 @@
 # Current published catalog
 
-The approved available asset is **Base Body**:
+The available assets are **Base Body** and **Skeleton**:
 
 - `models/characters/body_base_midpoly.glb`
+- `models/characters/skeleton/skeleton_base_midpoly.glb` — 24,816 triangles, 151 rigid rig bones, 375 anatomical pieces; static rest pose. See its [anatomy/rig documentation](models/characters/skeleton/README.md).
 - 15,408 triangles, 1.8 m, 20 bones, Idle and Walk animation clips.
 
 The four proposed clothing GLBs are not present and are not advertised or replaced by low-poly placeholders. No clothing overlay or Z-fighting validation is claimed for unavailable garments.
@@ -11,7 +12,7 @@ The previous OBJ roster, low-poly characters, clothing prototypes, buildings, te
 
 ## Publishing
 
-`.github/workflows/deploy.yml` validates the model allowlist and GLB tests, runs a real Chromium browser test, then stages **only** `index.html`, `viewer.js`, the vendored viewer runtime/license, and the one approved GLB. Editable `.blend` source and validation documentation remain in Git but are not uploaded in the Pages artifact.
+`.github/workflows/deploy.yml` validates the model allowlist and GLB tests, runs a real Chromium browser test, then stages **only** `index.html`, `viewer.js`, the vendored viewer runtime/license, and the two approved GLBs. Editable `.blend` source and validation documentation remain in Git but are not uploaded in the Pages artifact.
 
 Pages deploys from **main**, not a feature-branch push. Branch changes become live only after they are merged and the Pages workflow completes successfully.
 
@@ -21,7 +22,7 @@ Target site: https://lk0024709-ux.github.io/indus-assets-gen/
 
 ```sh
 python tools/validate_character_site.py
-python -m unittest discover -s tools -p test_body_base_midpoly.py -v
+python -m unittest discover -s tools -p 'test_*midpoly.py' -v
 npm ci --prefix tools/viewer-tests
 cd tools/viewer-tests
 npx playwright install --with-deps chromium

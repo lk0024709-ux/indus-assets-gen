@@ -18,8 +18,12 @@ let browser;
   page.on('pageerror', e => errors.push(String(e)));
   page.on('response', r => { if (r.status() >= 400) errors.push(`${r.status()} ${r.url()}`); });
   await page.goto('http://127.0.0.1:8765/');
+  await page.waitForFunction(() => document.querySelector('#status').textContent.includes('Skeleton · Rest pose'), null, { timeout: 60000 });
+  assert.equal(await page.locator('.asset').count(), 2);
+  assert.equal(await page.locator('#playback').isDisabled(), true);
+  assert.match(await page.locator('.download').getAttribute('href'), /skeleton_base_midpoly.glb$/);
+  await page.click('[data-asset="body"]');
   await page.waitForFunction(() => document.querySelector('#status').textContent.includes('Idle playing'), null, { timeout: 60000 });
-  assert.equal(await page.locator('.asset').count(), 1);
   const state = () => page.$eval('#character', m => ({ clips: m.availableAnimations, time: m.currentTime, paused: m.paused, name: m.animationName }));
   for (const name of ['Idle', 'Walk']) {
     await page.click(`[data-animation="${name}"]`);
@@ -40,6 +44,11 @@ let browser;
   assert.equal((await state()).paused, false);
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+  await page.click('[data-asset="skeleton"]');
+  await page.waitForFunction(() => document.querySelector('#status').textContent.includes('Skeleton · Rest pose'), null, { timeout: 60000 });
+  assert.equal(await page.locator('[data-animation="Idle"]').isDisabled(), true);
+  assert.equal(await page.locator('#playback').isDisabled(), true);
+  await page.screenshot({path: process.env.VIEWER_SCREENSHOT || '/tmp/indus-skeleton-viewer.png', fullPage:true});
   assert.deepEqual(errors, []);
   console.log('PASS: model loading, Idle/Walk playback, looping, pause/resume, mobile layout, HTTP/browser errors');
 })().catch(e => { console.error(e); process.exitCode = 1; }).finally(async () => {
