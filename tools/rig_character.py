@@ -605,10 +605,16 @@ def export_glb(arm, mesh, path: str) -> None:
 
     # The mesh stays parented to the armature: that is what the brief asks for,
     # and what Blender's exporter wants ("Armature must be the parent of skinned
-    # mesh"). Unparenting just before export makes the output a root node and
-    # silences the informational glTF warning NODE_SKINNED_MESH_NON_ROOT, but it
-    # made the deformation drift between runs (0-20 mm) and the exporter warns
-    # about it, so the parented -- correct -- configuration is used instead.
+    # mesh"). This does produce one informational glTF validator notice,
+    # NODE_SKINNED_MESH_NON_ROOT, because the skinned mesh node ends up under
+    # the armature node rather than at the scene root -- which is exactly what
+    # every stock Blender rigged export looks like, and what three.js, Godot,
+    # Unity and Unreal all expect. It is accepted deliberately:
+    #   * unparenting to silence it makes the exporter warn in the other
+    #     direction and previously caused non-deterministic deformation;
+    #   * export_hierarchy_flatten_objs does not change it (verified);
+    #   * no engine is affected, because the armature node has an identity
+    #     transform.
 
     kwargs = dict(
         filepath=path,
