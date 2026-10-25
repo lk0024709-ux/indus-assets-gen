@@ -33,7 +33,7 @@ let browser;
   assert.equal(await page.locator('.joint-marker:not([hidden])').count(), 27);
   assert.equal(await page.locator('.asset').count(), 3);
   assert.equal(await page.locator('#playback').isDisabled(), true);
-  assert.match(await page.locator('.download').getAttribute('href'), /body_base_female_midpoly.glb$/);
+  assert.match(await page.locator('.download').getAttribute('href'), /body_base_female_midpoly\.glb(?:\?|$)/);
   await page.click('[data-asset="body"]');
   await page.waitForFunction(() => document.querySelector('#status').textContent.includes('Idle playing'), null, { timeout: 60000 });
   const state = () => page.$eval('#character', m => ({ clips: m.availableAnimations, time: m.currentTime, paused: m.paused, name: m.animationName }));

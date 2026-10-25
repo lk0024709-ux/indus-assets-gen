@@ -3,6 +3,7 @@
 from html.parser import HTMLParser
 from pathlib import Path
 import json
+from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / 'docs'
@@ -24,9 +25,9 @@ class ViewerParser(HTMLParser):
         a = dict(attrs)
         for key in ('href', 'src'):
             if a.get(key, '').startswith('./'):
-                assert (DOCS / a[key][2:]).is_file(), a[key]
+                assert (DOCS / urlsplit(a[key]).path[2:]).is_file(), a[key]
         if tag == 'model-viewer':
-            self.sources.append(a.get('src'))
+            self.sources.append(urlsplit(a.get('src')).path)
         if tag == 'button' and a.get('class') == 'asset':
             self.assets += 1
         if 'data-animation' in a:
@@ -41,3 +42,8 @@ assert parser.animations == ['Idle', 'Walk']
 report = json.loads((DOCS / 'models/characters/body_base_midpoly.validation.json').read_text())
 assert 15000 <= report['triangles'] <= 25000
 print('Site valid: exactly three mid-poly GLBs, three asset selectors, Idle/Walk controls, no stale local links.')
+
+female = json.loads((DOCS / 'models/characters/body_base_female_midpoly.validation.json').read_text())
+assert female['anatomy_revision'] == 'athletic-sculpt-v2'
+assert f"{female['total_triangles']:,}" in (DOCS / 'viewer.js').read_text()
+assert 'v=athletic-sculpt-v2' in (DOCS / 'index.html').read_text()

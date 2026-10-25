@@ -90,6 +90,63 @@ class FemaleTests(unittest.TestCase):
         self.assertTrue(all(c < .02 for c in black[:3]))
         self.assertFalse(self.doc.get('textures'))
 
+    def body_surface(self):
+        node=next(n for n in self.doc['nodes'] if n.get('name')=='Athletic_Female_Body')
+        primitive=self.doc['meshes'][node['mesh']]['primitives'][0]
+        return self.accessor(primitive['attributes']['POSITION']), [i[0] for i in self.accessor(primitive['indices'])]
+
+    def test_connected_individual_digits_in_export_geometry(self):
+        positions,indices=self.body_surface()
+        shoulder=next(b for b in self.report['bones'] if b['name']=='SHOULDER_L')
+        scale=shoulder['head'][0]/.205
+        def crossings(axis,value,lateral,positive_x=False):
+            intervals=[]
+            for k in range(0,len(indices),3):
+                tri=[positions[i] for i in indices[k:k+3]]
+                if positive_x and max(v[0] for v in tri)<.02:continue
+                if min(v[axis] for v in tri)>value or max(v[axis] for v in tri)<value:continue
+                hits=[]
+                for a,b in zip(tri,tri[1:]+tri[:1]):
+                    if abs(b[axis]-a[axis])<1e-8:continue
+                    t=(value-a[axis])/(b[axis]-a[axis])
+                    if 0<=t<=1:hits.append(a[lateral]+t*(b[lateral]-a[lateral]))
+                if len(hits)>1:intervals.append((min(hits),max(hits)))
+            merged=[]
+            for lo,hi in sorted(intervals):
+                if merged and lo<=merged[-1][1]+.0001:merged[-1]=(merged[-1][0],max(hi,merged[-1][1]))
+                else:merged.append((lo,hi))
+            return merged
+        # Transverse cuts through the actual exported mesh must resolve four
+        # fingers (the thumb ends before this cut) and five separate toes.
+        self.assertEqual(len(crossings(0,.84*scale,2)),4)
+        self.assertEqual(len(crossings(2,.213*scale,0,True)),5)
+        self.assertEqual(self.report['hand_digits'],10)
+        self.assertEqual(self.report['foot_digits'],10)
+
+    def test_muscle_contours_and_anatomical_pivots(self):
+        positions,_=self.body_surface()
+        shoulder=next(b for b in self.report['bones'] if b['name']=='SHOULDER_L')
+        scale=shoulder['head'][0]/.205
+        arm_y=shoulder['head'][2]
+        def arm_radius(x):
+            selected=[math.hypot(p[1]-arm_y,p[2]) for p in positions if abs(p[0]-x*scale)<.014*scale]
+            self.assertTrue(selected)
+            return max(selected)
+        self.assertGreater(arm_radius(.34),arm_radius(.46)*1.3)
+        floor=arm_y-1.4*scale
+        def leg_radius(z):
+            selected=[math.hypot(p[0]-.12*scale,p[2]) for p in positions
+                      if .03*scale<p[0]<.23*scale and abs(p[1]-(z*scale+floor))<.022*scale]
+            self.assertTrue(selected)
+            return max(selected)
+        self.assertGreater(leg_radius(.355),leg_radius(.20)*1.3)
+        checks=self.report['anatomy_checks']
+        self.assertEqual(len(checks['joint_pivots']),12)
+        self.assertTrue(all(j['inside_clearance_m']>.005 for j in checks['joint_pivots']))
+        self.assertTrue(all(c['rest_samples']>1000 and c['minimum_signed_clearance_m']>=-1e-4 for c in checks['clothing']))
+        self.assertEqual(self.report['anatomy_revision'],'athletic-sculpt-v2')
+
+
 
 if __name__ == '__main__':
     unittest.main()

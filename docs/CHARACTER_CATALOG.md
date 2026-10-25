@@ -2,7 +2,7 @@
 
 The available assets are **Base Body**, **Skeleton**, and **Athletic Female**:
 
-- `models/characters/body_base_female_midpoly.glb` — 24,954 triangles, exact 27-joint custom hierarchy, black sports bra/shorts, T-pose. [Female asset notes](models/characters/body_base_female_midpoly.README.md).
+- `models/characters/body_base_female_midpoly.glb` — 24,238 triangles, athletic sculpt v2, connected fingers/toes, exact 27-joint custom hierarchy, black sports bra/shorts, T-pose. [Female asset notes](models/characters/body_base_female_midpoly.README.md).
 - `models/characters/body_base_midpoly.glb`
 - `models/characters/skeleton_base_midpoly.glb` — 24,970 triangles, 65 existing deform joints; rigged A-pose with no character clips. See its [inspection/export documentation](models/characters/skeleton_base_midpoly.README.md).
 - 15,408 triangles, 1.8 m, 20 bones, Idle and Walk animation clips.
