@@ -186,6 +186,39 @@
       --poster-color: transparent;
     }
 
+    .anim-bar {
+      position: absolute;
+      left: 50%;
+      bottom: 12px;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      padding: 5px;
+      border-radius: 999px;
+      background: rgba(8, 12, 18, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(6px);
+      z-index: 3;
+    }
+
+    .anim-btn {
+      font: inherit;
+      font-size: 0.72rem;
+      letter-spacing: 0.03em;
+      color: #c7d2e0;
+      background: transparent;
+      border: 0;
+      border-radius: 999px;
+      padding: 4px 12px;
+      cursor: pointer;
+    }
+
+    .anim-btn.active {
+      color: #0b1017;
+      background: #f5a623;
+      font-weight: 600;
+    }
+
     .status {
       position: absolute;
       inset: 0;
@@ -311,9 +344,26 @@
     const CATEGORIES = [
       {
         id: "Characters",
-        title: "\u{1F9D1} Characters \u2014 Battle Royale character pool (16 playable, 1.80 m, zero textures)",
-        subtitle: "Sixteen playable characters converted from the raw Quaternius OBJ pack (docs/models/Character/) into one game-ready GLB each. Every source OBJ ships a .mtl that Godot cannot resolve, so all materials are rebuilt as solid Principled BSDF colours keyed off the OBJ's own geometry groups \u2014 skin #D2A679 on head and hands, pants #1A1A1A on the legs, and a seeded tactical shirt colour (dark blue / forest green / grey / brown / navy / olive / maroon / slate) so the pool reads as individuals. Each mesh is joined, smooth-shaded by angle, normalised to exactly 1.80 m and given a bottom-centre (0,0,0) origin. Zero textures \u2014 that is what fixes them in Godot.",
+        title: "\u{1F9D1} Characters \u2014 rigged &amp; animated player + a 16-strong pool (1.80 m, zero textures)",
+        subtitle: "One fully rigged, animated player plus sixteen static pool characters, all converted from the raw Quaternius OBJ pack (docs/models/Character/) into one game-ready GLB each. Every source OBJ ships a .mtl that Godot cannot resolve, so all materials are rebuilt as solid Principled BSDF colours keyed off the OBJ's own geometry groups \u2014 skin #D2A679 on head and hands, pants #1A1A1A on the legs, and a seeded tactical shirt colour (dark blue / forest green / grey / brown / navy / olive / maroon / slate) so the pool reads as individuals. Each mesh is joined, smooth-shaded by angle, normalised to exactly 1.80 m and given a bottom-centre (0,0,0) origin. Zero textures \u2014 that is what fixes them in Godot.",
         assets: [
+          {
+            id: "player_animated",
+            file: "models/characters/player_animated.glb",
+            name: "\u{1F3AC} Player Tactical \u2014 RIGGED + ANIMATED (Idle + Walk)",
+            alt: "Rigged character mid-stride: dark tactical blue shirt, near-black trousers, skin-toned head and hands, one arm and the opposite leg swung forward",
+            desc: "The same Player Tactical mesh, now skinned to a 17-bone armature and shipped with two baked clips generated purely from maths. <strong>Idle</strong> lifts the chest 20 mm at frame 15 for breathing; <strong>Walk</strong> is a 30-frame loop with \u00B130\u00B0 arm and leg swing driven by cos(), a knee follow-through a quarter cycle behind, a 70 mm hip drop from sin() at the stride extremes so the planted foot stays on the ground, and an ankle counter-rotation that keeps the soles level. Every joint position is computed from the 1.80 m height. Blender's bone-heat weighting fails on this mesh (it is a set of disconnected shells), so the tool detects that and falls back to a material-aware inverse-distance solver \u2014 every one of the 1,965 vertices is weighted, max 4 influences. Use the buttons under the model to switch clips.",
+            dims: "1.80 m tall \u00B7 17 bones \u00B7 2 clips (1.25 s each)",
+            material: "17-bone skin + Idle + Walk \u00B7 2,060 tris \u00B7 8 solid mats \u00B7 0 textures",
+            orbit: "-22deg 78deg 165%",
+            fov: "30deg",
+            exposure: "1.1",
+            bg: "radial-gradient(circle at 50% 34%, #3d4f63 0%, #1b2430 62%, #0b1017 100%)",
+            chip: ".glb \u00B7 skinned + 2 animations \u00B7 0 textures",
+            animation: "Walk",
+            hero: true,
+            eager: true
+          },
           {
             id: "player_tactical",
             file: "models/characters/player_tactical.glb",
@@ -694,11 +744,43 @@
       viewer.setAttribute("interaction-prompt", "auto");
       viewer.setAttribute("loading", spec.eager ? "eager" : "lazy");
 
+      // Animated assets: start playing immediately on the requested clip.
+      if (spec.animation) {
+        viewer.setAttribute("autoplay", "");
+        viewer.setAttribute("animation-name", spec.animation);
+        viewer.setAttribute("animation-crossfade-duration", "220");
+      }
+
       const status = document.createElement("div");
       status.className = "status";
       status.textContent = "Loading 3D model\u2026";
 
-      viewer.addEventListener("load", () => { status.hidden = true; });
+      viewer.addEventListener("load", () => {
+        status.hidden = true;
+        // If the asset ships more than one clip, let the viewer pick between
+        // them instead of hard-coding which one autoplays.
+        const clips = viewer.availableAnimations || [];
+        if (clips.length > 1) {
+          const bar = document.createElement("div");
+          bar.className = "anim-bar";
+          for (const name of clips) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.textContent = name;
+            btn.className = "anim-btn" + (name === spec.animation ? " active" : "");
+            btn.addEventListener("click", (ev) => {
+              ev.preventDefault();
+              viewer.animationName = name;
+              viewer.play();
+              for (const other of bar.querySelectorAll(".anim-btn")) {
+                other.classList.toggle("active", other === btn);
+              }
+            });
+            bar.appendChild(btn);
+          }
+          shell.appendChild(bar);
+        }
+      });
       viewer.addEventListener("error", () => {
         status.textContent = `Failed to load ${spec.file} — is the asset deployed?`;
         status.classList.add("error");

@@ -11,7 +11,7 @@ The gallery is deliberately small — it ships **only the production asset sets*
 
 | # | Category | Assets | Source | Where |
 |---|---|---|---|---|
-| 0 | 🧑 **Characters** | **16 playable** — Player Tactical + a 15-strong pool (1.80 m, solid colours, **0 textures**) | `tools/convert_character_obj.py` + `tools/convert_characters_batch.py` | `docs/models/characters/` |
+| 0 | 🧑 **Characters** | **17 assets** — 1 rigged + animated player (Idle/Walk) plus a 16-strong pool (1.80 m, **0 textures**) | `tools/rig_character.py`, `tools/convert_character_obj.py`, `tools/convert_characters_batch.py` | `docs/models/characters/` |
 | 1 | 🛩 **Vehicles** | 1 Elite Cargo Dropship (45 m span) | `tools/generate_plane_cargo_elite.py` | `docs/models/vehicles/` |
 | 2 | 🏯 **The Grand Mahal** | 1 assembled palace (+ 4 room blocks used to build it) | `tools/generate_mahal_rooms.py` | `docs/models/mahal/` |
 | 3 | 🧱 **Modular Buildings** | 11 coloured blocks with real interior rooms | `tools/generate_building_modules.py` + `tools/assemble_buildings.py` | `docs/models/buildings_modular/` |
@@ -37,7 +37,7 @@ zero textures — see the [Dropship section](#-vehicles--elite-cargo-dropship-do
    in the GLB.
 3. **Export** — every asset is joined into **one flat-shaded mesh**, normalised to its real size, and given a
    **bottom-centre `(0, 0, 0)`** origin so it drops onto the ground plane in Godot/Unity/the browser.
-4. **CI/CD** — `.github/workflows/deploy.yml` installs `bpy`, runs the seven generator steps, drops the intermediate
+4. **CI/CD** — `.github/workflows/deploy.yml` installs `bpy`, runs the eight generator steps, drops the intermediate
    module kit from the published site and deploys `docs/` to GitHub Pages on every push to `main`.
 5. **Viewer** — `docs/index.html` is a small, dependency-light Google `<model-viewer>` gallery built from a JS array of
    categories, with a category filter and a hero card for the palace.
@@ -50,6 +50,7 @@ tools/
   convert_characters_batch.py  # every other docs/models/Character/*.obj -> solid-colour GLBs + manifest + gallery.js
   character_lib.py             # shared import/recolour/shade/export/verify helpers for both character tools
   generate_trees.py            # 3 low-poly trees: pine, oak, palm (solid colours, flat shaded)
+  rig_character.py             # 17-bone armature + skinning + Idle/Walk -> player_animated.glb
   generate_terrain.py          # 4 terrain tiles (1000 m ground, hill, plateau, valley)
   generate_mount_abu.py        # 150 m hill station: mesa + corniche road + Nakki Lake + collision
   generate_mahal_rooms.py      # 4 walk-in rooms + assemble_mahal() -> rajasthani_mahal_mega.glb
@@ -58,7 +59,7 @@ tools/
   generate_plane_cargo_elite.py# Elite Cargo Dropship (Vehicles category)
 
 docs/                          # GitHub Pages site (viewer + models)
-  models/characters/           # 16 character GLBs + characters.json + gallery.js (solid colours, zero textures)
+  models/characters/           # 16 static + player_animated.glb (rigged, Idle+Walk) + characters.json + gallery.js
   index.html                   # 4-category gallery
   models/mahal/                # Grand Mahal (mega assembly + rooms/)
   models/buildings_modular/    # the 11 modular buildings
@@ -119,6 +120,45 @@ docs/models/characters/player_tactical.glb  (2,060 tris · 8 solid materials · 
   and the belt/boot edges crisp (and halves the file: 65 KB vs 157 KB).
 * **Export:** 1.80 m tall, origin at the feet `(0, 0, 0)`, Y-up, no UVs, no images. The tool re-parses the GLB and
   asserts the height, the zero origin, the exact `baseColorFactor` per material and that `images` is empty.
+
+### Rigged & animated — `rig_character.py`
+
+`player_animated.glb` is the same 1.80 m mesh, skinned to a **17-bone armature** and shipped with two baked clips.
+Stock `bpy` only — no add-ons, no plugins. Every joint position is derived from the 1.80 m height.
+
+| Bone chain | Coordinates (Blender Z-up, metres) |
+|---|---|
+| `Hips` → `Spine` → `Chest` → `Neck` → `Head` | z = 0.9 → 1.0 → 1.2 → 1.4 → 1.5 → 1.8 |
+| `UpperArm.[LR]` → `LowerArm` → `Hand` | shoulder (±0.2, 0, 1.4) → elbow (±0.205, 0, 1.10) → wrist (±0.21, 0, 0.86) → fingertip (±0.20, 0, 0.62) |
+| `UpperLeg.[LR]` → `LowerLeg` → `Foot` | hip (±0.15, 0, 0.9) → knee (±0.15, 0, 0.48) → ankle (±0.16, 0, 0.10) → toe |
+
+**Clips (30 fps, 30 frames = 1.25 s each, both loop)**
+
+* `Idle` — chest rises **20 mm** at frame 15 and returns, plus a 2° arm settle.
+* `Walk` — **±30°** arm and leg swing from `cos()`, knee follow-through a quarter cycle behind, chest
+  counter-rotation, a **70 mm hip drop** from `sin()` at the stride extremes, and ankle counter-rotation to keep the
+  soles level. Frame 1 and frame 30 are identical, frame 15 is the exact reverse.
+
+#### Four things that needed real work
+
+1. **Bone-heat weighting silently fails here.** `parent_set(type='ARMATURE_AUTO')` returns `FINISHED` and creates the
+   vertex groups while assigning **zero weight** — the character is a set of disconnected shells (hands, shoes, hair are
+   separate islands). The tool measures total weight, detects the failure, and falls back to a deterministic
+   material-aware inverse-distance solver. Pure distance alone is not enough either: the hands hang at `|x| ≈ 0.21`
+   right beside the thigh bones at `|x| = 0.15`, so each vertex is restricted to an anatomically sane bone set keyed
+   off its material (shoes → feet, hair/eyes → head, low skin → hands, trousers → legs + hips).
+2. **`pose_bone.location.z` is not "up".** Bone-local space puts a bone's Y along head→tail, so for the vertical Chest
+   bone the breathing lift is `location = (0, 0.02, 0)`; setting `.z` would slide the chest forward instead.
+3. **The exporter can emit quaternion sign flips.** Neighbouring rotation keys ending up as `q` and `-q` are the same
+   orientation numerically, but a player that normalised-lerps instead of slerping spins the limb nearly 180° for one
+   frame. A post-export pass rewrites the binary chunk in place so consecutive keys share a hemisphere (84 keys fixed).
+4. **Leftover pose channels leak between clips.** Blender only overrides the channels an action actually animates, so
+   Idle's 20 mm chest lift stayed in the pose when Walk was applied — and because the exporter samples the evaluated
+   pose, it would have been baked into Walk as a permanent offset. The rig is reset before every action switch, and the
+   tool asserts 0 mm deformation drift across the export.
+
+The exported file is checked by re-parsing it: 1 skin, 17 joints, 8/8 primitives carrying `JOINTS_0`/`WEIGHTS_0`, every
+one of the 1,965 vertices weighted, both clips present, and zero images.
 
 ### The rest of the pool — `convert_characters_batch.py`
 

@@ -92,6 +92,13 @@ jobs:
       - name: Convert the full character roster — docs/models/Character/*.obj → solid-colour GLBs
         run: python tools/convert_characters_batch.py --shading smooth
 
+      # ---- 5b. Rig + animate the player (armature, skin, Idle + Walk) ------
+      # No add-ons: plain bpy armature creation, deterministic skinning and
+      # sin/cos-driven actions. Runs after the roster so player_tactical.glb
+      # definitely exists.
+      - name: Rig & animate the player — armature + skin + Idle & Walk clips
+        run: python tools/rig_character.py
+
       # ---- 6. Nature (low-poly trees, solid colours) -------------------------
       - name: Generate low-poly trees — pine, oak, palm (9 m / 9 m / 12 m)
         run: python tools/generate_trees.py
