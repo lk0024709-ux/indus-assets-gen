@@ -1,11 +1,11 @@
-import {loadRig, clearRig} from './rig-viewer.js';
+import {loadRig, clearRig} from './rig-viewer.js?v=athletic-sculpt-v2';
 const viewer = document.querySelector('#character');
 const status = document.querySelector('#status');
 const buttons = [...document.querySelectorAll('[data-animation]')];
 const playback = document.querySelector('#playback');
 let rigRequest = new AbortController();
 const assets = {
-  female: {name:'Athletic Female', src:'./models/characters/body_base_female_midpoly.glb', triangles:'24,954', bones:27, height:'1.80 m', animated:false, pose:'T-pose', detail:'Custom hierarchy · no motion clips'},
+  female: {name:'Athletic Female', src:'./models/characters/body_base_female_midpoly.glb?v=athletic-sculpt-v2', triangles:'24,238', bones:27, height:'1.80 m', animated:false, pose:'T-pose', detail:'Custom hierarchy · no motion clips'},
   body: { name: 'Base Body', src: './models/characters/body_base_midpoly.glb', triangles: '15,408', bones: 20, height: '1.80 m', animated: true },
   skeleton: { name: 'Skeleton', src: './models/characters/skeleton_base_midpoly.glb', triangles: '24,970', bones: 65, height: '1.84 m', animated: false },
 };
@@ -51,7 +51,7 @@ function onLoad() {
   } else {
     viewer.pause();
     disablePlayback();
-    status.textContent = selected === 'female' ? 'Athletic Female · T-pose · 24,954 triangles · 27 named joints' : 'Skeleton · A-pose · 24,970 triangles · 65 deform joints · No animation clips';
+    status.textContent = selected === 'female' ? 'Athletic Female · T-pose · 24,238 triangles · 27 named joints' : 'Skeleton · A-pose · 24,970 triangles · 65 deform joints · No animation clips';
   }
 }
 viewer.addEventListener('load', onLoad);
