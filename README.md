@@ -51,6 +51,7 @@ tools/
   character_lib.py             # shared import/recolour/shade/export/verify helpers for both character tools
   generate_trees.py            # 3 low-poly trees: pine, oak, palm (solid colours, flat shaded)
   rig_character.py             # 17-bone armature + skinning + Idle/Walk -> player_animated.glb
+  generate_modular_character.py # nude body_base.glb + clothing_shirt.glb + clothing_pants.glb (shared rig)
   generate_terrain.py          # 4 terrain tiles (1000 m ground, hill, plateau, valley)
   generate_mount_abu.py        # 150 m hill station: mesa + corniche road + Nakki Lake + collision
   generate_mahal_rooms.py      # 4 walk-in rooms + assemble_mahal() -> rajasthani_mahal_mega.glb
@@ -59,7 +60,8 @@ tools/
   generate_plane_cargo_elite.py# Elite Cargo Dropship (Vehicles category)
 
 docs/                          # GitHub Pages site (viewer + models)
-  models/characters/           # 16 static + player_animated.glb (rigged, Idle+Walk) + characters.json + gallery.js
+  models/characters/           # 16 static + player_animated.glb (rigged) + body_base/clothing_shirt/clothing_pants
+                               # + characters.json + gallery.js + modular_character.json
   index.html                   # 4-category gallery
   models/mahal/                # Grand Mahal (mega assembly + rooms/)
   models/buildings_modular/    # the 11 modular buildings
@@ -159,6 +161,62 @@ Stock `bpy` only — no add-ons, no plugins. Every joint position is derived fro
 
 The exported file is checked by re-parsing it: 1 skin, 17 joints, 8/8 primitives carrying `JOINTS_0`/`WEIGHTS_0`, every
 one of the 1,965 vertices weighted, both clips present, and zero images.
+
+### Modular character — `generate_modular_character.py`
+
+The baked character is also available as **three separate files** that share one rig:
+
+| File | Contents | Colour | Offset |
+|---|---|---|---|
+| `body_base.glb` | the whole body, every group collapsed to one material | `Body_Skin` `#D2A679` | — |
+| `clothing_shirt.glb` | torso + upper arms | `Cloth_Shirt` `#2F6FB5` | **18 mm** |
+| `clothing_pants.glb` | legs | `Cloth_Pants` `#141414` | **12 mm** |
+
+All three carry the **same 17-bone armature and the same `Idle` + `Walk` clips**, and every garment vertex inherits the
+body's own weights by source index, so any combination deforms in lockstep. Drop a new outfit in later by generating it
+the same way — nothing about the body changes. Tested by rendering the assembled character with the body coloured
+magenta: the only magenta left is head, hands and feet.
+
+#### Why the clothes are offset along normals, not scaled
+
+The brief asked for "scaled up by 1.05 on X and Z". In a Z-up frame that scales horizontal X and vertical Z but leaves
+**Y (depth) untouched**, so the chest and back sit *inside* the shirt — the exact bug the scaling was meant to prevent.
+It also moves a shoulder further than a wrist, because the displacement grows with distance from the origin. Offsetting
+each vertex along its own smooth normal instead, by a real distance in metres, is what actually clears the body:
+
+```
+                                  coverage of the body   clearance (min)
+brief's literal scale 1.05 X/Z      37% / 29%              0.17 / 0.23 mm   <- z-fighting
+this tool, 18 mm / 12 mm            95% / 91%              9.0 / 3.0 mm
+```
+
+(`--compare-scale` prints both. Coverage is measured by casting a ray from every body vertex this garment replaces,
+along that surface's own outward normal, and asking whether the cloth is there.)
+
+#### Five things that needed real work
+
+1. **The source is unwelded.** Every quad carries its own four vertices — the 240 jacket quads arrive as 940 vertices at
+   256 positions — so a per-vertex normal is just a per-face normal and the offset tears the panel at every crease.
+   Normals are averaged **per position** instead.
+2. **`recalc_face_normals` flips the trousers inside-out.** It can make an open shell *consistent* but has no way to
+   know which side is out, and on this asset it picks the wrong one for the whole `Pants` group: the trousers are then
+   displaced 18 mm into the legs and vanish inside the body. The authored winding is already correct — every material
+   group has **zero inconsistent edges** — so it is trusted as-is, and the build asserts it stays that way.
+3. **Orienting normals "away from the nearest bone" looks right and is wrong.** The hands hang level with the thighs,
+   so vertices on the outer thigh take `Hand.L` as their nearest bone and get flipped inwards — the same trap that
+   tears distance-only skinning.
+4. **The group names lie.** `Shirt` is only the suit *jacket*; the panel of shirt visible between its lapels is a
+   separate shell under `TieTexture`, and collar, cuffs and belt are under `Details`. Taking all three is what gives a
+   garment that actually covers the torso — the earlier build rendered as an open jacket with a bare chest.
+5. **The two hems meet exactly at the waist** (both at z = 0.915) and the trousers' waist dips into a V, so with equal
+   offsets the bare body shows through a wedge-shaped seam. Dragging the shirt hem down instead pushes it *into* the
+   seat, because the body bulges below the waist. The trousers are made the inner layer (12 mm, rims tucked, waistband
+   raised 48 mm up under the shirt) and the seam closes.
+
+The build fails on any folded face, any inconsistent edge, or any garment covering less than 85 % of the body it
+replaces, so a garment that would let skin show through cannot be deployed. Output verified with the Khronos
+glTF validator: **0 errors / 1 warning / 0 infos** per file — the warning is the deliberate
+`NODE_SKINNED_MESH_NON_ROOT` documented on `export_glb` — 1 skin, 17 joints, 0 images, 2 clips.
 
 ### The rest of the pool — `convert_characters_batch.py`
 
@@ -351,6 +409,8 @@ python tools/generate_mahal_rooms.py
 python tools/generate_building_modules.py
 python tools/assemble_buildings.py
 rm -rf docs/models/modules        # intermediate kit, not published
+
+python tools/generate_modular_character.py    # body_base + clothing_shirt + clothing_pants
 
 # 3. Serve the viewer locally
 python -m http.server 8000 --directory docs
