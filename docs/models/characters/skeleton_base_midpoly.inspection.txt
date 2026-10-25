@@ -1,0 +1,22 @@
+=== SKELETON SOURCE INSPECTION ===
+File: skeleton_A_pose.blend
+Armature objects: 2
+  metarig: 63 bones (63 deform)
+  rig: 388 bones (65 deform)
+Actions: 1
+  BézierCircleAction: type=CURVE, frames=0..0, F-curves=1, keyframes=0, paths=eval_time
+Character/armature Actions: 0
+Scene mesh objects: 158 (28 surface meshes, 130 zero-triangle widgets)
+Total source triangles: 112,361
+Total evaluated source triangles: 112,361
+Classification: rigged, no character animation clips
+=== OPTIMIZATION / EXPORT ===
+Decimation applied: True
+Decimate ratio: 0.222497130
+Final triangles: 24,970
+Exported armatures: rig
+Excluded template armatures: metarig
+Exported meshes: 28
+Exported skins: 1
+Exported animation clips: none
+Output: docs/models/characters/skeleton_base_midpoly.glb

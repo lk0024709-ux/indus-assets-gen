@@ -1,3 +1,5 @@
+> **Historical procedural source only.** The procedural GLB described below is no longer hosted. The active viewer now uses the supplied CGTrader A-pose file, processed to `../skeleton_base_midpoly.glb`. See [the current inspection and export report](../skeleton_base_midpoly.README.md). Do not apply the historical 151-bone/375-piece statistics below to the downloaded model.
+
 # Anatomical skeleton — stylized mid-poly
 
 ## Files
