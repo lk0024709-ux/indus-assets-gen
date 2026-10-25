@@ -38,9 +38,10 @@ jobs:
       - name: Stage only public runtime files
         run: |
           mkdir -p _site/models/characters/skeleton _site/vendor
-          cp docs/index.html docs/viewer.js _site/
+          cp docs/index.html docs/viewer.js docs/rig-viewer.js _site/
           cp docs/vendor/model-viewer.min.js docs/vendor/model-viewer.LICENSE _site/vendor/
           cp docs/models/characters/body_base_midpoly.glb _site/models/characters/
+          cp docs/models/characters/body_base_female_midpoly.glb _site/models/characters/
           cp docs/models/characters/skeleton_base_midpoly.glb _site/models/characters/
       - uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/main'

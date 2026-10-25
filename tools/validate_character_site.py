@@ -6,7 +6,7 @@ import json
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / 'docs'
-EXPECTED = {'characters/body_base_midpoly.glb', 'characters/skeleton_base_midpoly.glb'}
+EXPECTED = {'characters/body_base_midpoly.glb', 'characters/body_base_female_midpoly.glb', 'characters/skeleton_base_midpoly.glb'}
 models = {p.relative_to(DOCS / 'models').as_posix()
           for p in (DOCS / 'models').rglob('*')
           if p.is_file() and p.suffix.lower() in {'.glb', '.gltf', '.obj'}}
@@ -35,9 +35,9 @@ class ViewerParser(HTMLParser):
 
 parser = ViewerParser()
 parser.feed((DOCS / 'index.html').read_text())
-assert parser.sources == ['./models/characters/skeleton_base_midpoly.glb']
-assert parser.assets == 2
+assert parser.sources == ['./models/characters/body_base_female_midpoly.glb']
+assert parser.assets == 3
 assert parser.animations == ['Idle', 'Walk']
 report = json.loads((DOCS / 'models/characters/body_base_midpoly.validation.json').read_text())
 assert 15000 <= report['triangles'] <= 25000
-print('Site valid: exactly two mid-poly GLBs, two asset selectors, Idle/Walk controls, no stale local links.')
+print('Site valid: exactly three mid-poly GLBs, three asset selectors, Idle/Walk controls, no stale local links.')

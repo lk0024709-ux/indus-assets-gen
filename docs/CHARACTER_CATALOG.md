@@ -1,7 +1,8 @@
 # Current published catalog
 
-The available assets are **Base Body** and **Skeleton**:
+The available assets are **Base Body**, **Skeleton**, and **Athletic Female**:
 
+- `models/characters/body_base_female_midpoly.glb` — 24,954 triangles, exact 27-joint custom hierarchy, black sports bra/shorts, T-pose. [Female asset notes](models/characters/body_base_female_midpoly.README.md).
 - `models/characters/body_base_midpoly.glb`
 - `models/characters/skeleton_base_midpoly.glb` — 24,970 triangles, 65 existing deform joints; rigged A-pose with no character clips. See its [inspection/export documentation](models/characters/skeleton_base_midpoly.README.md).
 - 15,408 triangles, 1.8 m, 20 bones, Idle and Walk animation clips.
@@ -12,7 +13,7 @@ The previous OBJ roster, low-poly characters, clothing prototypes, buildings, te
 
 ## Publishing
 
-`.github/workflows/deploy.yml` validates the model allowlist and GLB tests, runs a real Chromium browser test, then stages **only** `index.html`, `viewer.js`, the vendored viewer runtime/license, and the two approved GLBs. Editable `.blend` source and validation documentation remain in Git but are not uploaded in the Pages artifact.
+`.github/workflows/deploy.yml` validates the model allowlist and GLB tests, runs a real Chromium browser test, then stages **only** `index.html`, `viewer.js`, the vendored viewer runtime/license, and the three approved GLBs. Editable `.blend` source and validation documentation remain in Git but are not uploaded in the Pages artifact.
 
 Pages deploys from **main**, not a feature-branch push. Branch changes become live only after they are merged and the Pages workflow completes successfully.
 
