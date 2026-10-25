@@ -99,6 +99,15 @@ jobs:
       - name: Rig & animate the player — armature + skin + Idle & Walk clips
         run: python tools/rig_character.py
 
+      # ---- 5b. Modular character: nude body + swappable garments ------------
+      # Cuts the same .obj into a template body and two garments, each with its
+      # own copy of the 17-bone rig and both clips. The script fails the build
+      # if any garment folds through itself, covers under 85% of the body it
+      # replaces, or has inconsistent winding — so the deploy cannot ship a
+      # garment that lets skin show through.
+      - name: Modular character — body_base + swappable clothing meshes
+        run: python tools/generate_modular_character.py
+
       # ---- 6. Nature (low-poly trees, solid colours) -------------------------
       - name: Generate low-poly trees — pine, oak, palm (9 m / 9 m / 12 m)
         run: python tools/generate_trees.py

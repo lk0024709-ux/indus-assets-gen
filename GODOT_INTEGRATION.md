@@ -19,10 +19,21 @@ URLs below.
 | Mount Abu hill station | `models/terrain/terrain_mount_abu.glb` | 2.1 MB (visual) |
 | Mount Abu collider | `models/terrain/terrain_mount_abu_collision.glb` | 0.53 MB (concave, no vegetation) |
 | **Rigged player (Idle + Walk)** | `models/characters/player_animated.glb` | 161 KB |
+| **Modular body (nude)** | `models/characters/body_base.glb` | 255 KB |
+| **Modular shirt** | `models/characters/clothing_shirt.glb` | 111 KB |
+| **Modular trousers** | `models/characters/clothing_pants.glb` | 85 KB |
 | **Character pool (15)** | `models/characters/<name>.glb` — `female_casual`, `male_shirt`, `smooth_female_dress`, … | 51–183 KB each |
 | Player Tactical character | `models/characters/player_tactical.glb` | 65 KB |
 | **Trees (3)** | `models/nature/tree_pine.glb`, `tree_oak.glb`, `tree_palm.glb` | 7–38 KB |
 | Elite Cargo Dropship (drop sequence) | `models/vehicles/plane_cargo_elite.glb` | 1.2 MB |
+
+**Modular outfits.** `body_base.glb`, `clothing_shirt.glb` and `clothing_pants.glb` each contain the *same* 17-bone
+armature and both clips, exported at the same origin. Drop them in as three imported scenes and, in the inspector, set
+each garment's `Skeleton3D` to reuse the body's (`Skeleton3D > skeleton = NodePath("../BodyBase/Skeleton3D")`), or
+simply instance the shirt and trousers as children of the body's `Skeleton3D` — every garment vertex carries the same
+weights as the body vertices it was cut from, so they follow the walk cycle with no retargeting. Swap outfits by
+changing which garment scenes are children; the body never changes. All three files use a single solid material and
+zero textures, so they cannot fall back to untextured grey in Godot.
 
 Base URL: `https://lk0024709-ux.github.io/indus-assets-gen/models/`
 

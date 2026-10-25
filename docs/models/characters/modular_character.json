@@ -1,0 +1,203 @@
+{
+  "generated_by": "tools/generate_modular_character.py",
+  "blender": "5.0.1",
+  "height_m": 1.8,
+  "cloth_thickness_m": {
+    "clothing_shirt": 0.018,
+    "clothing_pants": 0.012
+  },
+  "waistband_rise_m": 0.048,
+  "shared_rig": "17-bone PlayerRig (identical in all three files)",
+  "shared_animations": [
+    "Idle",
+    "Walk"
+  ],
+  "assets": {
+    "body_base": {
+      "asset": "body_base",
+      "verts": 1044,
+      "faces": 1165,
+      "tris": 2060,
+      "bytes": 261012,
+      "skins": 1,
+      "joints": 17,
+      "animations": [
+        {
+          "name": "Idle",
+          "channels": 51,
+          "duration_s": 1,
+          "paths": [
+            "rotation",
+            "scale",
+            "translation"
+          ]
+        },
+        {
+          "name": "Walk",
+          "channels": 51,
+          "duration_s": 1,
+          "paths": [
+            "rotation",
+            "scale",
+            "translation"
+          ]
+        }
+      ],
+      "primitives": 1,
+      "skinned_primitives": 1,
+      "vertices": 4335,
+      "images": 0,
+      "quaternion_fixes": 84
+    },
+    "clothing_shirt": {
+      "asset": "clothing_shirt",
+      "verts": 308,
+      "faces": 300,
+      "tris": 578,
+      "poke_through": {
+        "offset_min_mm": 9.0,
+        "offset_max_mm": 18.0,
+        "rim_vertices": 86,
+        "normals": 308,
+        "folded_faces": 0,
+        "inconsistent_edges": 0,
+        "waist_rise_mm": 0.0,
+        "covered": 1124,
+        "uncovered": 54,
+        "coverage_pct": 95.42,
+        "clearance_min_mm": 0.123792007798329,
+        "clearance_median_mm": 16.9999897480011,
+        "contacts_by_group": {
+          "Pants": 2,
+          "Shirt": 46,
+          "Skin": 8
+        }
+      },
+      "bytes": 113164,
+      "skins": 1,
+      "joints": 17,
+      "animations": [
+        {
+          "name": "Idle",
+          "channels": 51,
+          "duration_s": 1,
+          "paths": [
+            "rotation",
+            "scale",
+            "translation"
+          ]
+        },
+        {
+          "name": "Walk",
+          "channels": 51,
+          "duration_s": 1,
+          "paths": [
+            "rotation",
+            "scale",
+            "translation"
+          ]
+        }
+      ],
+      "primitives": 1,
+      "skinned_primitives": 1,
+      "vertices": 1178,
+      "images": 0,
+      "quaternion_fixes": 84
+    },
+    "clothing_pants": {
+      "asset": "clothing_pants",
+      "verts": 163,
+      "faces": 156,
+      "tris": 300,
+      "poke_through": {
+        "offset_min_mm": 3.0,
+        "offset_max_mm": 12.0,
+        "rim_vertices": 56,
+        "normals": 163,
+        "folded_faces": 0,
+        "inconsistent_edges": 0,
+        "waist_rise_mm": 48.0,
+        "covered": 558,
+        "uncovered": 54,
+        "coverage_pct": 91.18,
+        "clearance_min_mm": 0.4536885826382786,
+        "clearance_median_mm": 10.999993421137333,
+        "contacts_by_group": {
+          "Pants": 39,
+          "Shirt": 41,
+          "Skin": 4
+        }
+      },
+      "bytes": 86584,
+      "skins": 1,
+      "joints": 17,
+      "animations": [
+        {
+          "name": "Idle",
+          "channels": 51,
+          "duration_s": 1,
+          "paths": [
+            "rotation",
+            "scale",
+            "translation"
+          ]
+        },
+        {
+          "name": "Walk",
+          "channels": 51,
+          "duration_s": 1,
+          "paths": [
+            "rotation",
+            "scale",
+            "translation"
+          ]
+        }
+      ],
+      "primitives": 1,
+      "skinned_primitives": 1,
+      "vertices": 612,
+      "images": 0,
+      "quaternion_fixes": 84
+    }
+  },
+  "poke_through": {
+    "clothing_shirt": {
+      "offset_min_mm": 9.0,
+      "offset_max_mm": 18.0,
+      "rim_vertices": 86,
+      "normals": 308,
+      "folded_faces": 0,
+      "inconsistent_edges": 0,
+      "waist_rise_mm": 0.0,
+      "covered": 1124,
+      "uncovered": 54,
+      "coverage_pct": 95.42,
+      "clearance_min_mm": 0.123792007798329,
+      "clearance_median_mm": 16.9999897480011,
+      "contacts_by_group": {
+        "Pants": 2,
+        "Shirt": 46,
+        "Skin": 8
+      }
+    },
+    "clothing_pants": {
+      "offset_min_mm": 3.0,
+      "offset_max_mm": 12.0,
+      "rim_vertices": 56,
+      "normals": 163,
+      "folded_faces": 0,
+      "inconsistent_edges": 0,
+      "waist_rise_mm": 48.0,
+      "covered": 558,
+      "uncovered": 54,
+      "coverage_pct": 91.18,
+      "clearance_min_mm": 0.4536885826382786,
+      "clearance_median_mm": 10.999993421137333,
+      "contacts_by_group": {
+        "Pants": 39,
+        "Shirt": 41,
+        "Skin": 4
+      }
+    }
+  }
+}
