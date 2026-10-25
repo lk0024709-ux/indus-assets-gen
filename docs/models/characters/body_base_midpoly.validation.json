@@ -1,0 +1,22 @@
+{
+  "vertices": 7706,
+  "quads": 7704,
+  "faces": 7704,
+  "triangles": 15408,
+  "connected_components": 1,
+  "non_manifold_edges": 0,
+  "signed_volume": 0.07085541525933718,
+  "nonadjacent_triangle_intersections": 0,
+  "minimum_animated_face_area_m2": 4.87299075757619e-05,
+  "height_m": 1.8,
+  "bones": 20,
+  "binding": "ARMATURE_AUTO",
+  "unweighted_vertices": 0,
+  "max_influences": 4,
+  "animations": {
+    "Idle": 2.0,
+    "Walk": 1.0
+  },
+  "blender": "4.5.3 LTS",
+  "glb_bytes": 467684
+}
