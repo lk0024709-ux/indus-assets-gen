@@ -55,7 +55,9 @@ tools/
   convert_characters_batch.py  # every other docs/models/Character/*.obj -> solid-colour GLBs + manifest + gallery.js
   character_lib.py             # shared import/recolour/shade/export/verify helpers for both character tools
   generate_trees.py            # 3 low-poly trees: pine, oak, palm (solid colours, flat shaded)
-  rig_character.py             # 17-bone armature + skinning + Idle/Walk -> player_animated.glb
+  retarget_animations.py       # Mixamo FBX -> 27-bone rig: 35 retargeted clips -> characters/player_animated.glb + clothing
+  test_player_animated.py      # dependency-free audit of the exported animated GLB (rig, clips, weights, quaternions)
+  rig_character.py             # legacy 17-bone armature + skinning + Idle/Walk (superseded, no longer published)
   generate_modular_character.py # nude body_base.glb + clothing_shirt.glb + clothing_pants.glb (shared rig)
   generate_terrain.py          # 4 terrain tiles (1000 m ground, hill, plateau, valley)
   generate_mount_abu.py        # 150 m hill station: mesa + corniche road + Nakki Lake + collision
@@ -64,6 +66,13 @@ tools/
   assemble_buildings.py        # 11 building recipes -> one joined mesh each
   generate_plane_cargo_elite.py# Elite Cargo Dropship (Vehicles category)
 
+characters/                    # build products of retarget_animations.py (gitignored)
+  base_mesh/                   # <- drop an AI-generated 27-bone body here; falls back to the committed rig
+  player_animated.glb          # rigged body + all 35 clips embedded
+  player_animated.report.json  # every measured validation number for the build
+  clothing/clothing_*.glb      # garments on the identical 27-bone rig
+
+docs/Motions/                  # ~78 Mixamo .fbx source motions (the retarget inputs)
 docs/                          # GitHub Pages site (viewer + models)
   models/characters/           # 16 static + player_animated.glb (rigged) + body_base/clothing_shirt/clothing_pants
                                # + characters.json + gallery.js + modular_character.json
@@ -128,9 +137,96 @@ docs/models/characters/player_tactical.glb  (2,060 tris · 8 solid materials · 
 * **Export:** 1.80 m tall, origin at the feet `(0, 0, 0)`, Y-up, no UVs, no images. The tool re-parses the GLB and
   asserts the height, the zero origin, the exact `baseColorFactor` per material and that `images` is empty.
 
-### Rigged & animated — `rig_character.py`
+### Retargeted player — `retarget_animations.py`
 
-`player_animated.glb` is the same 1.80 m mesh, skinned to a **17-bone armature** and shipped with two baked clips.
+Imports the Mixamo FBX motion set in `docs/Motions/`, retargets **35 curated combat clips** onto the repo's own
+27-bone rig, and exports one `characters/player_animated.glb` with every clip embedded, plus clothing on the identical
+skeleton. Stock `bpy` 4.5 only — no add-ons, no Rigify, no constraint baking. All 35 clips build in **~20 s**.
+
+```
+docs/models/characters/body_base_female_midpoly.glb   27 bones · 41,229 verts   (or characters/base_mesh/*)
+docs/Motions/*.fbx                                    78 Mixamo takes · 65 mixamorig: bones
+        │  retarget (world-delta) → ground → leg IK → condition weights → export
+        ▼
+characters/player_animated.glb        2.87 MB · 27 bones · 35 animations
+characters/clothing/clothing_*.glb    1.25 / 1.14 MB · same 27 bones, same weights
+```
+
+The base mesh is auto-detected from `characters/base_mesh/` and falls back to the committed 27-bone body, so **CI never
+breaks waiting on an uploaded mesh.**
+
+#### Retargeting without constraints
+
+Mixamo's rig has 65 bones with different rest orientations and a 0.01 world scale. Rather than build a constraint stack
+and bake it, each frame is solved directly as a **world-space rotation delta**:
+
+```
+dq      = (world_pose_src · world_rest_src⁻¹)          # per source bone, 0.01 scale cancels out
+desired = dq · target_rest                             # applied to the matching target bone
+basis   = parent_rest⁻¹ · desired                      # back into Blender's pose-basis space
+```
+
+The pose composition was verified against Blender's own evaluation to **4.47 × 10⁻⁶** before anything was built on it.
+Hip height is mapped **absolutely** (`src_hip_z × leg_ratio`), not as a rest-relative delta — Mixamo stands with its
+toes on `z = 0`, so `hips.z` already *is* hip height above ground. Getting that wrong re-grounds every clip to our rest
+hip height and lifted the standing frames of Dive Roll **249 mm** into the air.
+
+#### Four things that needed real work
+
+1. **Absolute `z = 0` is the wrong grounding target.** Slamming every "planted" foot onto the floor fights the motion:
+   at frame 13 of Death From Front the character is genuinely airborne mid-knockback, and forcing the foot down
+   reported a 38 mm error that the IK then chased. Feet are matched against **the source clip's own foot clearance**
+   instead, so airborne frames stay airborne. This alone took Toss Grenade from 7.3 mm to 1.1 mm.
+2. **Leg IK is asymmetric, and that is the whole fix.** *Raising* a foot only bends the knee and always succeeds;
+   *lowering* one runs out of leg. Death From Front hangs the body 103 mm up at the knockback — with **zero** floor
+   penetration, so no ground lift was involved — and a fully straightened leg was still 38 mm short (16 frames
+   reported unreachable). The solver detects the unreachable frames, **drops the root** by the shortfall capped at the
+   clip's own floor clearance, and re-solves; the feet that were already correct simply bend their knees to stay put.
+   Worst float: Dive Roll **13.8 → 1.7 mm**, Death From Front **37.6 → 7.0 mm**.
+3. **Extra weight smoothing does not fix mesh stretch — and closest-point transfer makes it worse.** A controlled A/B
+   over all **55,763 edges** in 70 stress poses: leaving the base weights alone gives body `1.285×` / 5.4 mm and
+   accessories `4.032×` / 32.0 mm; re-binding the garment shells with BVH nearest-triangle transfer gives accessories
+   `8.669×` / 50.4 mm. A loose shell whose hem stands off the thigh *tears open* when the waist keeps hip weights and
+   the hem gains thigh weights, whereas a rigid shell merely intersects. The transfer was deleted. (It also exposed
+   that sub-sampling edges had been hiding the real numbers — every edge is measured now.)
+4. **The glTF exporter undoes quaternion continuity.** Blender canonicalises every exported quaternion into the
+   `w ≥ 0` hemisphere, which is pose-identical but silently discards the sign bookkeeping done on the curves: wherever
+   `w` crosses zero — `HIP_R` passes ~180° at frame 30 of Toss Grenade — two consecutive keys come out antipodal
+   (measured dot **−0.99995**). `tools/test_player_animated.py` caught this by auditing the *shipped bytes* rather
+   than the in-memory solve. A post-export pass rewrites the affected keys in place: **459 flips repaired per GLB**,
+   worst exported dot now **+0.487**, exactly matching the solver.
+
+#### Measured on every build
+
+The pipeline writes `player_animated.report.json` and **fails rather than publishing** if any limit regresses.
+
+| Property | Limit | Measured |
+|---|---|---|
+| Planted foot floats | ≤ 20 mm | **7.0 mm** worst (`DeathFront`); 33 of 35 clips ≤ 0.3 mm |
+| Mesh sinks through floor | ≤ 10 mm | **0.08 mm** |
+| Quaternion flips (exported GLB) | dot ≥ 0 | **+0.487** |
+| Body-shell edge stretch | ≤ 1.75× | **1.285×** / 5.4 mm over 46,980 edges × 70 poses |
+| Influences per vertex | ≤ 4 | 4 · 0 unweighted |
+
+Clothing is cut out of the body itself and inflated **away from the nearest bone axis by 5 % of the local limb
+radius** — which is what "scaled 1.05×" means in the only frame where it is well defined. A literal
+`object.scale = 1.05` is a scale about the *world origin*, so the clearance it produces grows with height above the
+floor. Measured, with `--clothing-mode scale`: the shirt stands off by **47.8–78.7 mm** and the trousers by
+**6.9–51.7 mm** — a 10× spread within one garment, the collar lifting through the chin while the ankles barely move.
+Inflating per-limb instead gives **6.0–8.6 mm** on the shirt and **4.0–8.3 mm** on the trousers: the same magnitude
+1.05× produces at the torso, but even over the whole garment. (`--clothing-mode scale` ships the literal reading if
+you want it.)
+
+Each garment vertex inherits its source vertex's weights **exactly** — asserted against the body array, not assumed —
+so garments deform identically to the body in all 35 clips, with no retargeting on the Godot side.
+
+### Legacy 17-bone rig — `rig_character.py`
+
+> **Superseded.** The published `player_animated.glb` is now the 27-bone, 35-clip build described above. This section
+> documents the earlier 17-bone tool, whose output is no longer part of the deployed model set. Its findings still
+> apply — point 3 below is the same exporter quaternion bug that `retarget_animations.py` has to defuse.
+
+The legacy `player_animated.glb` was the same 1.80 m mesh, skinned to a **17-bone armature** and shipped with two baked clips.
 Stock `bpy` only — no add-ons, no plugins. Every joint position is derived from the 1.80 m height.
 
 | Bone chain | Coordinates (Blender Z-up, metres) |
@@ -417,7 +513,13 @@ rm -rf docs/models/modules        # intermediate kit, not published
 
 python tools/generate_modular_character.py    # body_base + clothing_shirt + clothing_pants
 
-# 3. Serve the viewer locally
+# 3. Retarget the Mixamo motion set onto the 27-bone rig (~20 s for all 35 clips)
+pip install 'bpy==4.5.3'                      # Python 3.11 only; Blender pins the interpreter
+python tools/retarget_animations.py           # -> characters/player_animated.glb + clothing/
+python tools/retarget_animations.py --quick   # 4 clips, for a fast iteration loop
+REQUIRE_ANIMATED=1 python -m unittest tools.test_player_animated -v
+
+# 4. Serve the viewer locally
 python -m http.server 8000 --directory docs
 # → open http://localhost:8000 in a browser
 ```
