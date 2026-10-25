@@ -15,6 +15,7 @@ The gallery is deliberately small — it ships **only the production asset sets*
 | 1 | 🛩 **Vehicles** | 1 Elite Cargo Dropship (45 m span) | `tools/generate_plane_cargo_elite.py` | `docs/models/vehicles/` |
 | 2 | 🏯 **The Grand Mahal** | 1 assembled palace (+ 4 room blocks used to build it) | `tools/generate_mahal_rooms.py` | `docs/models/mahal/` |
 | 3 | 🧱 **Modular Buildings** | 11 coloured blocks with real interior rooms | `tools/generate_building_modules.py` + `tools/assemble_buildings.py` | `docs/models/buildings_modular/` |
+| 5 | 🌳 **Nature** | 3 low-poly trees — pine 9 m, oak 9 m, palm 12 m (solid colours) | `tools/generate_trees.py` | `docs/models/nature/` |
 | 4 | 🌍 **Terrain** | 5 tiles — Mount Abu hill station + ground, hill, plateau, valley | `tools/generate_mount_abu.py`, `tools/generate_terrain.py` | `docs/models/terrain/` |
 
 > **Note on folder names:** the brief calls these sets `buildings_final/` and `terrain_modules/`. In this repository they
@@ -36,7 +37,7 @@ zero textures — see the [Dropship section](#-vehicles--elite-cargo-dropship-do
    in the GLB.
 3. **Export** — every asset is joined into **one flat-shaded mesh**, normalised to its real size, and given a
    **bottom-centre `(0, 0, 0)`** origin so it drops onto the ground plane in Godot/Unity/the browser.
-4. **CI/CD** — `.github/workflows/deploy.yml` installs `bpy`, runs the six generator steps, drops the intermediate
+4. **CI/CD** — `.github/workflows/deploy.yml` installs `bpy`, runs the seven generator steps, drops the intermediate
    module kit from the published site and deploys `docs/` to GitHub Pages on every push to `main`.
 5. **Viewer** — `docs/index.html` is a small, dependency-light Google `<model-viewer>` gallery built from a JS array of
    categories, with a category filter and a hero card for the palace.
@@ -48,6 +49,7 @@ tools/
   convert_character_obj.py     # Male_Suit.obj -> solid-colour player_tactical.glb (imports the OBJ, recolours, joins, exports)
   convert_characters_batch.py  # every other docs/models/Character/*.obj -> solid-colour GLBs + manifest + gallery.js
   character_lib.py             # shared import/recolour/shade/export/verify helpers for both character tools
+  generate_trees.py            # 3 low-poly trees: pine, oak, palm (solid colours, flat shaded)
   generate_terrain.py          # 4 terrain tiles (1000 m ground, hill, plateau, valley)
   generate_mount_abu.py        # 150 m hill station: mesa + corniche road + Nakki Lake + collision
   generate_mahal_rooms.py      # 4 walk-in rooms + assemble_mahal() -> rajasthani_mahal_mega.glb
@@ -62,6 +64,7 @@ docs/                          # GitHub Pages site (viewer + models)
   models/buildings_modular/    # the 11 modular buildings
   models/terrain/              # Mount Abu (+ collision proxy) and the 4 tiles
   models/vehicles/             # plane_cargo_elite.glb
+  models/nature/               # tree_pine.glb, tree_oak.glb, tree_palm.glb
   textures/                    # grass_1k.png + rock_stone_1k.png (terrain only)
 ```
 
@@ -147,6 +150,29 @@ twin is exactly 7 slots from its low-poly sibling, so the two never share a shir
 not duplicated. Other robustness handled by the tool: `Eyebrows` / `HairBase` / `Hair2` / `Jacket` / `LightJacket` /
 `Shirt2` / `Socks` / `Dress` groups all map to sensible roles, `Female_Dress` has no `Pants` group at all (bare legs),
 and any unknown group falls back to neutral grey instead of failing.
+
+## 🌳 Nature — Low-poly Trees (`docs/models/nature/`)
+
+Three species for the map's biomes, all generated from maths by `generate_trees.py`, flat shaded, solid-coloured and
+texture-free. Every trunk is a swept ring frustum with real outward normals, every cone is a closed cap + tip fan, and
+each tree is one joined mesh with its origin at the bottom centre — so it drops onto terrain with no manual offset.
+
+| Tree | Height | Tris | Where | Build |
+|---|---|---|---|---|
+| `tree_pine.glb` | **9.0 m** | 70 | Aravalli foothills / mountains | brown 8-sided trunk (0.28 → 0.19 m) + 3 stacked dark-green cones (r 2.35 / 1.78 / 1.20 m) that overlap so no gap shows between tiers |
+| `tree_oak.glb` | **9.0 m** | 508 | forests / villages | thick brown trunk (0.62 → 0.42 m) → 4 tapered branches → one flattened icosphere canopy with 4 offset lobes, bright green `#4E8B2F` |
+| `tree_palm.glb` | **12.0 m** | 312 | beaches / lake shores | pale trunk swept along a 1.55 m arc, tapering 0.34 → 0.17 m, carrying 8 **ridged** fronds (raised centre spine, arch then droop) |
+
+Two build notes worth keeping:
+
+* The pine's three tiers step one shade lighter from `#1E4023` to `#2A582D` so the layers read as three distinct cones
+  rather than one flat mass.
+* The palm fronds are **ridged, not flat planes**. The first version used flat quads and they disappeared when viewed
+  edge-on — fatal for a game camera. Three vertices per station (left, raised centre, right) give each frond volume
+  for the cost of one extra quad per segment.
+
+The generator asserts its own output: `minZ == 0`, height inside each species' band (8–10 m pine/oak, 11–12.5 m palm),
+≤ 800 tris, and **zero images in the GLB**.
 
 ## ⛰ Mount Abu — `docs/models/terrain/terrain_mount_abu.glb`
 

@@ -92,6 +92,10 @@ jobs:
       - name: Convert the full character roster — docs/models/Character/*.obj → solid-colour GLBs
         run: python tools/convert_characters_batch.py --shading smooth
 
+      # ---- 6. Nature (low-poly trees, solid colours) -------------------------
+      - name: Generate low-poly trees — pine, oak, palm (9 m / 9 m / 12 m)
+        run: python tools/generate_trees.py
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:
