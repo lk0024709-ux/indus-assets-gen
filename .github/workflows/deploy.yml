@@ -25,10 +25,12 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Rebuild embedded superhero GLBs
-        run: python tools/build_superhero_characters.py
+      - name: Rebuild embedded superhero GLBs and motion manifest
+        run: |
+          python tools/build_superhero_characters.py
+          python tools/build_motion_manifest.py
 
-      - name: Test character packaging and source texture variants
+      - name: Test character packaging, motion manifest, and source texture variants
         run: python -m unittest discover -s tools -p 'test_*.py' -v
 
       - name: Check backend Python syntax
@@ -37,6 +39,7 @@ jobs:
       - name: Check viewer JavaScript syntax
         run: |
           node --check procedural_asset_app/frontend/character-viewer.js
+          node --check procedural_asset_app/frontend/motion-retarget.js
           python - <<'PY'
           from html.parser import HTMLParser
           from pathlib import Path
@@ -67,16 +70,25 @@ jobs:
           PY
           node --check /tmp/asset-viewer-inline.js
 
+      - name: Validate and retarget all 74 source FBX clips
+        run: |
+          npm install --prefix "$RUNNER_TEMP/three-validation" --no-save --no-package-lock three@0.166.1
+          THREE_PACKAGE="$RUNNER_TEMP/three-validation/node_modules/three" node tools/validate_motion_retarget.mjs
+
       - name: Stage static viewer site
         run: |
-          mkdir -p _site/assets
+          mkdir -p _site/assets/motions
           cp procedural_asset_app/frontend/asset-viewer.html _site/index.html
           cp procedural_asset_app/frontend/asset-viewer.html _site/asset-viewer.html
           cp procedural_asset_app/frontend/asset-viewer-source.md _site/
           cp procedural_asset_app/frontend/characters.html \
              procedural_asset_app/frontend/character-viewer.css \
-             procedural_asset_app/frontend/character-viewer.js _site/
+             procedural_asset_app/frontend/character-viewer.js \
+             procedural_asset_app/frontend/motion-retarget.js _site/
           cp -R procedural_asset_app/frontend/assets/characters _site/assets/
+          cp procedural_asset_app/frontend/assets/motion-manifest.json _site/assets/
+          cp "Base model /Motion/"*.fbx _site/assets/motions/
+          test "$(find _site/assets/motions -maxdepth 1 -name '*.fbx' | wc -l)" -eq 74
           test -s _site/index.html
           test -s _site/characters.html
           test -s _site/assets/characters/superhero_female_dark.glb

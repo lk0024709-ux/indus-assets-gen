@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+import { retargetMixamoClip } from './motion-retarget.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 const $ = id => document.getElementById(id);
@@ -16,10 +18,19 @@ const manifest = await fetch(assetUrl('characters.json')).then(response => {
   return response.json();
 });
 const models = new Map(manifest.models.map(model => [model.id, model]));
+const motionManifestResponse = await fetch(new URL('./assets/motion-manifest.json', document.baseURI)).catch(() => null);
+const motionManifest = motionManifestResponse?.ok ? await motionManifestResponse.json() : { motions: [], count: 0 };
+const motions = motionManifest.motions || [];
+const motionById = new Map(motions.map(motion => [motion.id, motion]));
 let renderer, scene, camera, controls, activeModel = null, activeId = '', frameSize = 1;
+let mixer = null, activeAction = null, bindPose = null, selectedMotionId = '';
+let motionRequest = 0;
+const motionCache = new Map();
 let autoRotate = true;
 const host = $('viewport');
 const loader = new GLTFLoader();
+const motionUrl = filename => new URL(`./assets/motions/${encodeURIComponent(filename)}`, document.baseURI).href;
+const clock = new THREE.Clock();
 
 function init() {
   scene = new THREE.Scene();
@@ -95,7 +106,10 @@ function init() {
   new ResizeObserver(resize).observe(host);
   window.addEventListener('resize', resize, { passive: true });
   renderer.setAnimationLoop(() => {
+    const delta = Math.min(clock.getDelta(), 0.05);
+    if (mixer) mixer.update(delta);
     if (controls) controls.update();
+    updateMotionTimeline();
     renderer.render(scene, camera);
   });
 }
@@ -143,10 +157,51 @@ function frameCharacter(model) {
   controls.update();
 }
 
+function captureBindPose() {
+  bindPose = new Map();
+  activeModel?.traverse(node => {
+    if (node.isBone) bindPose.set(node, {
+      position: node.position.clone(), quaternion: node.quaternion.clone(), scale: node.scale.clone()
+    });
+  });
+}
+function restoreBindPose() {
+  if (!bindPose) return;
+  for (const [bone, pose] of bindPose) {
+    bone.position.copy(pose.position);
+    bone.quaternion.copy(pose.quaternion);
+    bone.scale.copy(pose.scale);
+  }
+  activeModel?.updateMatrixWorld(true);
+}
+function formatTime(seconds) {
+  const value = Math.max(0, Math.floor(seconds || 0));
+  return `${Math.floor(value / 60)}:${String(value % 60).padStart(2, '0')}`;
+}
+function updateMotionTimeline() {
+  const seek = $('motionSeek');
+  if (!activeAction || !seek) return;
+  const duration = activeAction.getClip().duration || 0;
+  const time = Math.min(activeAction.time, duration);
+  if (!seek.matches(':active') && !seek.matches(':focus')) seek.value = String(Math.round(duration ? (time / duration) * 1000 : 0));
+  $('motionTime').textContent = `${formatTime(time)} / ${formatTime(duration)}`;
+}
 function setSelected(id) {
   const record = models.get(id);
   if (!record || id === activeId) return;
   activeId = id;
+  motionRequest++;
+  if (mixer) {
+    mixer.stopAllAction();
+    if (activeModel) mixer.uncacheRoot(activeModel);
+  }
+  mixer = null;
+  activeAction = null;
+  bindPose = null;
+  $('motionPlay').disabled = true;
+  $('motionStop').disabled = true;
+  $('motionSeek').disabled = true;
+  $('motionPlay').innerHTML = '▶ <span>Play</span>';
   $('errorBanner').classList.add('hidden');
   $('loading').classList.remove('done');
   $('loading').querySelector('span:last-child').textContent = 'Loading character…';
@@ -187,8 +242,21 @@ function setSelected(id) {
     });
     frameCharacter(activeModel);
     scene.add(activeModel);
+    mixer = new THREE.AnimationMixer(activeModel);
+    mixer.addEventListener('finished', event => {
+      if (event.action === activeAction) {
+        activeAction = null;
+        $('motionPlay').innerHTML = '▶ <span>Replay</span>';
+        $('motionStop').disabled = true;
+        $('motionStatus').textContent = 'Motion finished.';
+      }
+    });
+    captureBindPose();
+    $('motionPlay').disabled = !motions.length;
+    $('motionSelect').disabled = !motions.length;
     $('downloadModel').disabled = false;
     $('loading').classList.add('done');
+    if (selectedMotionId) playMotion(selectedMotionId);
   }, undefined, error => {
     console.error('Character model load failed:', error);
     if (id !== activeId) return;
@@ -206,8 +274,152 @@ function resetCamera() {
   controls.update();
 }
 
+function populateMotionLibrary() {
+  const select = $('motionSelect');
+  select.replaceChildren();
+  if (!motions.length) {
+    select.add(new Option('No source motions found', ''));
+    $('motionCount').textContent = 'Motion library unavailable';
+    $('motionStatus').textContent = 'The source FBX motion manifest could not be loaded.';
+    $('motionStatus').classList.add('error');
+    select.disabled = true;
+    $('motionPlay').disabled = true;
+    return;
+  }
+  for (const category of ['Movement', 'Stance', 'Combat', 'Special']) {
+    const group = document.createElement('optgroup');
+    group.label = category;
+    for (const motion of motions.filter(item => item.category === category)) {
+      group.append(new Option(motion.label, motion.id));
+    }
+    if (group.children.length) select.append(group);
+  }
+  const idle = motions.find(motion => motion.file.toLowerCase() === 'idle.fbx') || motions[0];
+  selectedMotionId = idle.id;
+  select.value = idle.id;
+  $('motionCount').textContent = `${motions.length} source clips · 65-joint rig`;
+  $('motionStatus').textContent = 'Select a motion to load and play it on the current character. The idle clip starts automatically.';
+  select.disabled = false;
+}
+
+function motionLoops(record) {
+  return !/(death|dying|dive roll|to stop|jump up|jump down|reload|firing|hit reaction|grab|toss grenade|turn 90|turning right)/i.test(record.label);
+}
+
+async function getRetargetedMotion(record, targetModel, targetBindPose, targetModelId) {
+  const cacheKey = `${targetModelId}:${record.id}`;
+  if (motionCache.has(cacheKey)) return motionCache.get(cacheKey);
+  const response = await fetch(motionUrl(record.file));
+  if (!response.ok) throw new Error(`Could not load ${record.file} (${response.status}).`);
+  const buffer = await response.arrayBuffer();
+  if (activeModel !== targetModel || bindPose !== targetBindPose || activeId !== targetModelId) throw new Error('Character changed while this motion was loading.');
+  const fbxLoader = new FBXLoader();
+  let source;
+  try {
+    try {
+      source = fbxLoader.parse(buffer, '');
+    } catch (firstError) {
+      // Two source FBX 7.7 files have one surplus footer-padding byte that trips
+      // Three.js's footer-size heuristic; dropping that byte leaves their motion intact.
+      source = fbxLoader.parse(buffer.slice(0, -1), '');
+    }
+    if (!source.animations?.length) throw new Error(`${record.file} contains no animation clip.`);
+    const clip = retargetMixamoClip(THREE, source, targetModel, targetBindPose, source.animations[0]);
+    clip.name = record.label;
+    motionCache.set(cacheKey, clip);
+    return clip;
+  } finally {
+    if (source) disposeModel(source);
+  }
+}
+
+async function playMotion(id) {
+  const record = motionById.get(id);
+  if (!record || !activeModel || !mixer) return;
+  const request = ++motionRequest;
+  const targetModel = activeModel;
+  const targetBindPose = bindPose;
+  const targetModelId = activeId;
+  mixer.stopAllAction();
+  activeAction = null;
+  restoreBindPose();
+  $('motionPlay').disabled = true;
+  $('motionStop').disabled = true;
+  $('motionSeek').disabled = true;
+  $('motionStatus').classList.remove('error');
+  $('motionStatus').textContent = `Loading and retargeting “${record.label}”…`;
+  try {
+    const clip = await getRetargetedMotion(record, targetModel, targetBindPose, targetModelId);
+    if (request !== motionRequest || activeModel !== targetModel || bindPose !== targetBindPose || activeId !== targetModelId || !mixer) return;
+    activeAction = mixer.clipAction(clip);
+    const looping = motionLoops(record);
+    activeAction.setLoop(looping ? THREE.LoopRepeat : THREE.LoopOnce, looping ? Infinity : 1);
+    activeAction.clampWhenFinished = !looping;
+    activeAction.timeScale = Number($('motionSpeed').value) || 1;
+    activeAction.reset().play();
+    $('motionPlay').disabled = false;
+    $('motionStop').disabled = false;
+    $('motionSeek').disabled = false;
+    $('motionPlay').innerHTML = 'Ⅱ <span>Pause</span>';
+    $('motionStatus').textContent = `${record.label} · ${clip.tracks.length} retargeted bone tracks · ${formatTime(clip.duration)}${looping ? ' · looping' : ' · one-shot'}`;
+    updateMotionTimeline();
+  } catch (error) {
+    if (request !== motionRequest) return;
+    $('motionPlay').disabled = !activeModel;
+    $('motionStop').disabled = true;
+    $('motionSeek').disabled = true;
+    $('motionStatus').textContent = error.message || `Could not play ${record.label}.`;
+    $('motionStatus').classList.add('error');
+  }
+}
+
+function stopMotion() {
+  motionRequest++;
+  if (mixer) mixer.stopAllAction();
+  activeAction = null;
+  restoreBindPose();
+  $('motionPlay').innerHTML = '▶ <span>Play</span>';
+  $('motionPlay').disabled = !activeModel || !motions.length;
+  $('motionStop').disabled = true;
+  $('motionSeek').disabled = true;
+  $('motionSeek').value = '0';
+  $('motionTime').textContent = '0:00 / 0:00';
+  $('motionStatus').textContent = 'Stopped · character returned to its source bind pose.';
+}
+
+populateMotionLibrary();
 document.querySelectorAll('.hero-option').forEach(button => {
   button.addEventListener('click', () => setSelected(button.dataset.model));
+});
+$('motionSelect').addEventListener('change', event => {
+  selectedMotionId = event.currentTarget.value;
+  if (activeModel) playMotion(selectedMotionId);
+});
+$('motionPlay').addEventListener('click', () => {
+  if (!activeModel) return;
+  if (activeAction?.paused) {
+    activeAction.paused = false;
+    $('motionPlay').innerHTML = 'Ⅱ <span>Pause</span>';
+    $('motionStatus').textContent = `Playing ${motionById.get(selectedMotionId)?.label || 'motion'}.`;
+  } else if (activeAction?.isRunning()) {
+    activeAction.paused = true;
+    $('motionPlay').innerHTML = '▶ <span>Resume</span>';
+    $('motionStatus').textContent = 'Motion paused.';
+  } else {
+    playMotion(selectedMotionId);
+  }
+});
+$('motionStop').addEventListener('click', stopMotion);
+$('motionSpeed').addEventListener('change', event => {
+  if (activeAction) activeAction.timeScale = Number(event.currentTarget.value) || 1;
+});
+$('motionSeek').addEventListener('input', event => {
+  if (!activeAction) return;
+  activeAction.paused = true;
+  activeAction.time = (Number(event.currentTarget.value) / 1000) * (activeAction.getClip().duration || 0);
+  mixer.update(0);
+  $('motionPlay').innerHTML = '▶ <span>Resume</span>';
+  updateMotionTimeline();
 });
 $('downloadModel').addEventListener('click', () => {
   const record = models.get(activeId);

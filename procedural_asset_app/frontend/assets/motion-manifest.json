@@ -1,0 +1,526 @@
+{
+  "source": "Base model /Motion",
+  "format": "FBX",
+  "rig": "Mixamo 65-bone skeleton; retargeted onto the existing 65-joint superhero rig in the browser",
+  "count": 74,
+  "motions": [
+    {
+      "id": "crouch-walking",
+      "label": "Crouch Walking",
+      "category": "Stance",
+      "file": "Crouch Walking.fbx",
+      "bytes": 356528
+    },
+    {
+      "id": "crouching-turn-90-left",
+      "label": "Crouching Turn 90 Left",
+      "category": "Stance",
+      "file": "crouching turn 90 left.fbx",
+      "bytes": 364801
+    },
+    {
+      "id": "crouching-turn-90-right",
+      "label": "Crouching Turn 90 Right",
+      "category": "Stance",
+      "file": "crouching turn 90 right.fbx",
+      "bytes": 364625
+    },
+    {
+      "id": "death-crouching-headshot-front",
+      "label": "Death Crouching Headshot Front",
+      "category": "Special",
+      "file": "death crouching headshot front.fbx",
+      "bytes": 445553
+    },
+    {
+      "id": "death-from-back-headshot",
+      "label": "Death From Back Headshot",
+      "category": "Special",
+      "file": "death from back headshot.fbx",
+      "bytes": 618465
+    },
+    {
+      "id": "death-from-front-headshot",
+      "label": "Death From Front Headshot",
+      "category": "Special",
+      "file": "death from front headshot.fbx",
+      "bytes": 537601
+    },
+    {
+      "id": "death-from-right",
+      "label": "Death From Right",
+      "category": "Special",
+      "file": "death from right.fbx",
+      "bytes": 583089
+    },
+    {
+      "id": "death-from-the-back",
+      "label": "Death From The Back",
+      "category": "Special",
+      "file": "death from the back.fbx",
+      "bytes": 554337
+    },
+    {
+      "id": "death-from-the-front",
+      "label": "Death From The Front",
+      "category": "Special",
+      "file": "death from the front.fbx",
+      "bytes": 589265
+    },
+    {
+      "id": "dive-roll",
+      "label": "Dive Roll",
+      "category": "Special",
+      "file": "Dive Roll.fbx",
+      "bytes": 530656
+    },
+    {
+      "id": "dying",
+      "label": "Dying",
+      "category": "Special",
+      "file": "Dying.fbx",
+      "bytes": 563104
+    },
+    {
+      "id": "firing-rifle",
+      "label": "Firing Rifle",
+      "category": "Combat",
+      "file": "firing rifle.fbx",
+      "bytes": 340177
+    },
+    {
+      "id": "grab-and-put-back-rifle",
+      "label": "Grab And Put Back Rifle",
+      "category": "Combat",
+      "file": "Grab And Put Back Rifle.fbx",
+      "bytes": 929872
+    },
+    {
+      "id": "hit-reaction",
+      "label": "Hit Reaction",
+      "category": "Combat",
+      "file": "hit reaction.fbx",
+      "bytes": 385281
+    },
+    {
+      "id": "idle",
+      "label": "Idle",
+      "category": "Stance",
+      "file": "idle.fbx",
+      "bytes": 427585
+    },
+    {
+      "id": "idle-aiming",
+      "label": "Idle Aiming",
+      "category": "Stance",
+      "file": "idle aiming.fbx",
+      "bytes": 425329
+    },
+    {
+      "id": "idle-crouching",
+      "label": "Idle Crouching",
+      "category": "Stance",
+      "file": "idle crouching.fbx",
+      "bytes": 427585
+    },
+    {
+      "id": "idle-crouching-aiming",
+      "label": "Idle Crouching Aiming",
+      "category": "Stance",
+      "file": "idle crouching aiming.fbx",
+      "bytes": 427585
+    },
+    {
+      "id": "jump-down",
+      "label": "Jump Down",
+      "category": "Movement",
+      "file": "jump down.fbx",
+      "bytes": 316273
+    },
+    {
+      "id": "jump-loop",
+      "label": "Jump Loop",
+      "category": "Movement",
+      "file": "jump loop.fbx",
+      "bytes": 338705
+    },
+    {
+      "id": "jump-up",
+      "label": "Jump Up",
+      "category": "Movement",
+      "file": "jump up.fbx",
+      "bytes": 305521
+    },
+    {
+      "id": "prone-idle",
+      "label": "Prone Idle",
+      "category": "Stance",
+      "file": "Prone Idle.fbx",
+      "bytes": 705088
+    },
+    {
+      "id": "reloading",
+      "label": "Reloading",
+      "category": "Combat",
+      "file": "reloading.fbx",
+      "bytes": 639313
+    },
+    {
+      "id": "rifle-aiming-idle",
+      "label": "Rifle Aiming Idle",
+      "category": "Combat",
+      "file": "rifle aiming idle.fbx",
+      "bytes": 597217
+    },
+    {
+      "id": "rifle-jump",
+      "label": "Rifle Jump",
+      "category": "Combat",
+      "file": "rifle jump.fbx",
+      "bytes": 324881
+    },
+    {
+      "id": "rifle-run",
+      "label": "Rifle Run",
+      "category": "Combat",
+      "file": "rifle run.fbx",
+      "bytes": 342401
+    },
+    {
+      "id": "run-backward",
+      "label": "Run Backward",
+      "category": "Movement",
+      "file": "run backward.fbx",
+      "bytes": 380977
+    },
+    {
+      "id": "run-backward-left",
+      "label": "Run Backward Left",
+      "category": "Movement",
+      "file": "run backward left.fbx",
+      "bytes": 382593
+    },
+    {
+      "id": "run-backward-right",
+      "label": "Run Backward Right",
+      "category": "Movement",
+      "file": "run backward right.fbx",
+      "bytes": 383521
+    },
+    {
+      "id": "run-backwards",
+      "label": "Run Backwards",
+      "category": "Movement",
+      "file": "run backwards.fbx",
+      "bytes": 319505
+    },
+    {
+      "id": "run-forward",
+      "label": "Run Forward",
+      "category": "Movement",
+      "file": "run forward.fbx",
+      "bytes": 382881
+    },
+    {
+      "id": "run-forward-left",
+      "label": "Run Forward Left",
+      "category": "Movement",
+      "file": "run forward left.fbx",
+      "bytes": 383521
+    },
+    {
+      "id": "run-forward-right",
+      "label": "Run Forward Right",
+      "category": "Movement",
+      "file": "run forward right.fbx",
+      "bytes": 382737
+    },
+    {
+      "id": "run-left",
+      "label": "Run Left",
+      "category": "Movement",
+      "file": "run left.fbx",
+      "bytes": 383521
+    },
+    {
+      "id": "run-right",
+      "label": "Run Right",
+      "category": "Movement",
+      "file": "run right.fbx",
+      "bytes": 382513
+    },
+    {
+      "id": "running",
+      "label": "Running",
+      "category": "Movement",
+      "file": "Running.fbx",
+      "bytes": 332720
+    },
+    {
+      "id": "running-to-stop",
+      "label": "Running To Stop",
+      "category": "Movement",
+      "file": "Running To Stop.fbx",
+      "bytes": 449328
+    },
+    {
+      "id": "skateboarding",
+      "label": "Skateboarding",
+      "category": "Special",
+      "file": "Skateboarding.fbx",
+      "bytes": 366096
+    },
+    {
+      "id": "sprint-backward",
+      "label": "Sprint Backward",
+      "category": "Movement",
+      "file": "sprint backward.fbx",
+      "bytes": 383521
+    },
+    {
+      "id": "sprint-backward-left",
+      "label": "Sprint Backward Left",
+      "category": "Movement",
+      "file": "sprint backward left.fbx",
+      "bytes": 383521
+    },
+    {
+      "id": "sprint-backward-right",
+      "label": "Sprint Backward Right",
+      "category": "Movement",
+      "file": "sprint backward right.fbx",
+      "bytes": 382993
+    },
+    {
+      "id": "sprint-forward",
+      "label": "Sprint Forward",
+      "category": "Movement",
+      "file": "sprint forward.fbx",
+      "bytes": 385729
+    },
+    {
+      "id": "sprint-forward-left",
+      "label": "Sprint Forward Left",
+      "category": "Movement",
+      "file": "sprint forward left.fbx",
+      "bytes": 383521
+    },
+    {
+      "id": "sprint-forward-right",
+      "label": "Sprint Forward Right",
+      "category": "Movement",
+      "file": "sprint forward right.fbx",
+      "bytes": 382881
+    },
+    {
+      "id": "sprint-left",
+      "label": "Sprint Left",
+      "category": "Movement",
+      "file": "sprint left.fbx",
+      "bytes": 383201
+    },
+    {
+      "id": "sprint-right",
+      "label": "Sprint Right",
+      "category": "Movement",
+      "file": "sprint right.fbx",
+      "bytes": 383809
+    },
+    {
+      "id": "strafe",
+      "label": "Strafe",
+      "category": "Movement",
+      "file": "strafe.fbx",
+      "bytes": 316417
+    },
+    {
+      "id": "strafe-2",
+      "label": "Strafe (2)",
+      "category": "Movement",
+      "file": "strafe (2).fbx",
+      "bytes": 313105
+    },
+    {
+      "id": "strafe-left",
+      "label": "Strafe Left",
+      "category": "Movement",
+      "file": "strafe left.fbx",
+      "bytes": 379601
+    },
+    {
+      "id": "strafe-right",
+      "label": "Strafe Right",
+      "category": "Movement",
+      "file": "strafe right.fbx",
+      "bytes": 423409
+    },
+    {
+      "id": "swimming",
+      "label": "Swimming",
+      "category": "Special",
+      "file": "Swimming.fbx",
+      "bytes": 663424
+    },
+    {
+      "id": "toss-grenade",
+      "label": "Toss Grenade",
+      "category": "Combat",
+      "file": "toss grenade.fbx",
+      "bytes": 619041
+    },
+    {
+      "id": "turn-90-left",
+      "label": "Turn 90 Left",
+      "category": "Movement",
+      "file": "turn 90 left.fbx",
+      "bytes": 343025
+    },
+    {
+      "id": "turn-90-right",
+      "label": "Turn 90 Right",
+      "category": "Movement",
+      "file": "turn 90 right.fbx",
+      "bytes": 344001
+    },
+    {
+      "id": "turn-left",
+      "label": "Turn Left",
+      "category": "Movement",
+      "file": "turn left.fbx",
+      "bytes": 368257
+    },
+    {
+      "id": "turning-right-45-degrees",
+      "label": "Turning Right 45 Degrees",
+      "category": "Movement",
+      "file": "turning right 45 degrees.fbx",
+      "bytes": 373649
+    },
+    {
+      "id": "walk-backward",
+      "label": "Walk Backward",
+      "category": "Movement",
+      "file": "walk backward.fbx",
+      "bytes": 343025
+    },
+    {
+      "id": "walk-backward-left",
+      "label": "Walk Backward Left",
+      "category": "Movement",
+      "file": "walk backward left.fbx",
+      "bytes": 343025
+    },
+    {
+      "id": "walk-backward-right",
+      "label": "Walk Backward Right",
+      "category": "Movement",
+      "file": "walk backward right.fbx",
+      "bytes": 343025
+    },
+    {
+      "id": "walk-crouching-backward",
+      "label": "Walk Crouching Backward",
+      "category": "Stance",
+      "file": "walk crouching backward.fbx",
+      "bytes": 343201
+    },
+    {
+      "id": "walk-crouching-backward-left",
+      "label": "Walk Crouching Backward Left",
+      "category": "Stance",
+      "file": "walk crouching backward left.fbx",
+      "bytes": 343025
+    },
+    {
+      "id": "walk-crouching-backward-right",
+      "label": "Walk Crouching Backward Right",
+      "category": "Stance",
+      "file": "walk crouching backward right.fbx",
+      "bytes": 343313
+    },
+    {
+      "id": "walk-crouching-forward",
+      "label": "Walk Crouching Forward",
+      "category": "Stance",
+      "file": "walk crouching forward.fbx",
+      "bytes": 343249
+    },
+    {
+      "id": "walk-crouching-forward-left",
+      "label": "Walk Crouching Forward Left",
+      "category": "Stance",
+      "file": "walk crouching forward left.fbx",
+      "bytes": 343313
+    },
+    {
+      "id": "walk-crouching-forward-right",
+      "label": "Walk Crouching Forward Right",
+      "category": "Stance",
+      "file": "walk crouching forward right.fbx",
+      "bytes": 343025
+    },
+    {
+      "id": "walk-crouching-left",
+      "label": "Walk Crouching Left",
+      "category": "Stance",
+      "file": "walk crouching left.fbx",
+      "bytes": 343169
+    },
+    {
+      "id": "walk-crouching-right",
+      "label": "Walk Crouching Right",
+      "category": "Stance",
+      "file": "walk crouching right.fbx",
+      "bytes": 343249
+    },
+    {
+      "id": "walk-forward",
+      "label": "Walk Forward",
+      "category": "Movement",
+      "file": "walk forward.fbx",
+      "bytes": 343537
+    },
+    {
+      "id": "walk-forward-left",
+      "label": "Walk Forward Left",
+      "category": "Movement",
+      "file": "walk forward left.fbx",
+      "bytes": 343025
+    },
+    {
+      "id": "walk-forward-right",
+      "label": "Walk Forward Right",
+      "category": "Movement",
+      "file": "walk forward right.fbx",
+      "bytes": 343025
+    },
+    {
+      "id": "walk-left",
+      "label": "Walk Left",
+      "category": "Movement",
+      "file": "walk left.fbx",
+      "bytes": 343169
+    },
+    {
+      "id": "walk-right",
+      "label": "Walk Right",
+      "category": "Movement",
+      "file": "walk right.fbx",
+      "bytes": 343169
+    },
+    {
+      "id": "walking",
+      "label": "Walking",
+      "category": "Movement",
+      "file": "walking.fbx",
+      "bytes": 371633
+    },
+    {
+      "id": "walking-backwards",
+      "label": "Walking Backwards",
+      "category": "Movement",
+      "file": "walking backwards.fbx",
+      "bytes": 419665
+    }
+  ]
+}
