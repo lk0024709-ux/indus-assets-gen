@@ -28,7 +28,7 @@ jobs:
       - name: Install Blender for the Block 17 web model
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends -y blender
+          sudo apt-get install --no-install-recommends -y blender python3-numpy
       - name: Generate Block 17 model for the web viewer
         run: |
           set +e
