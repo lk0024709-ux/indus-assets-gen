@@ -79,8 +79,12 @@ let browser;
   try {
     await page.waitForFunction(() => document.querySelector('#viewer-status').textContent.includes('Block 17 loaded'), null, { timeout: 60000 });
   } catch (error) {
-    const viewerState = await page.$eval('#house', node => ({ src: node.getAttribute('src'), loaded: node.loaded, hasModel: !!node.model, loading: node.loading, customElementReady: customElements.get('model-viewer') !== undefined }));
-    console.error('Block viewer diagnostics:', await page.locator('#viewer-status').textContent(), viewerState, modelRequests.slice(-6), errors.slice(-8));
+    const diagnostics = await page.$eval('#house', node => ({
+      status: document.querySelector('#viewer-status').textContent,
+      src: node.getAttribute('src'), loaded: node.loaded, hasModel: !!node.model,
+      loading: node.loading, customElementReady: customElements.get('model-viewer') !== undefined
+    }));
+    console.error('BLOCK_DIAG', JSON.stringify({diagnostics, buildingRequests:modelRequests.filter(url => url.includes('/models/buildings/')), errors:errors.slice(-4)}));
     throw error;
   }
   assert.equal(await page.locator('[data-block]').count(), 4);
