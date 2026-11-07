@@ -46,9 +46,24 @@ jobs:
           node-version: '22'
       - name: Install browser test tooling
         run: |
-          npm ci --prefix tools/viewer-tests
+          set +e
+          npm ci --prefix tools/viewer-tests > /tmp/viewer-npm.log 2>&1
+          result=$?
+          cat /tmp/viewer-npm.log
+          if [ "$result" -ne 0 ]; then
+            detail=$(tail -n 8 /tmp/viewer-npm.log | tr '\n' ' ' | cut -c 1-1000)
+            echo "::error title=Browser tooling install::npm ci exit=$result; $detail"
+            exit "$result"
+          fi
           cd tools/viewer-tests
-          npx playwright install --with-deps chromium
+          npx playwright install --with-deps chromium > /tmp/playwright-install.log 2>&1
+          result=$?
+          cat /tmp/playwright-install.log
+          if [ "$result" -ne 0 ]; then
+            detail=$(tail -n 8 /tmp/playwright-install.log | tr '\n' ' ' | cut -c 1-1000)
+            echo "::error title=Browser tooling install::Playwright install exit=$result; $detail"
+            exit "$result"
+          fi
       - name: Test viewer and Idle/Walk playback in Chromium
         run: npm test --prefix tools/viewer-tests
       - name: Stage public viewer files and models
