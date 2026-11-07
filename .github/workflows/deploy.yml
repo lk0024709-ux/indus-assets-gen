@@ -32,15 +32,15 @@ jobs:
       - name: Generate Block 17 model for the web viewer
         run: |
           set +e
+          blender --version
           blender --background --python tools/generate_block17_house.py -- --output "$GITHUB_WORKSPACE/docs/models/buildings/block17_house.glb" > /tmp/block17-blender.log 2>&1
           result=$?
           cat /tmp/block17-blender.log
-          if [ "$result" -ne 0 ]; then
-            detail=$(grep -E 'Error|Exception|Traceback' /tmp/block17-blender.log | tail -n 1 | tr '\n' ' ')
-            echo "::error title=Block 17 generation::$detail"
-            exit "$result"
+          if [ "$result" -ne 0 ] || [ ! -s docs/models/buildings/block17_house.glb ]; then
+            detail=$(tail -n 8 /tmp/block17-blender.log | tr '\n' ' ' | cut -c 1-1000)
+            echo "::error title=Block 17 generation::exit=$result, glb_present=$([ -s docs/models/buildings/block17_house.glb ] && echo yes || echo no); $detail"
+            exit 1
           fi
-          test -s docs/models/buildings/block17_house.glb
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
