@@ -1,0 +1,111 @@
+{
+  "title": "Indus Superhero Character Collection",
+  "source": "Base model /Character and Base model /Texture",
+  "units": "metres",
+  "models": [
+    {
+      "file": "superhero_female_dark.glb",
+      "bytes": 13641904,
+      "meshes": 3,
+      "vertices": 8844,
+      "materials": [
+        "MI_Hair_2",
+        "MI_Eyes",
+        "MI_Superhero_Female"
+      ],
+      "textures": [
+        "T_Hair_2_Normal.png",
+        "T_Hair_2_BaseColor.png",
+        "T_Eye_Normal.png",
+        "T_Eye_Brown.png",
+        "T_Superhero_Female_Normal.png",
+        "T_Superhero_Female_Dark_BaseColor.png",
+        "T_Superhero_Female_Roughness.png"
+      ],
+      "skinned": true,
+      "joints": 65,
+      "animations": [],
+      "basecolor_variant": "dark",
+      "id": "superhero_female_dark",
+      "label": "Female \u00b7 Dark"
+    },
+    {
+      "file": "superhero_female_light.glb",
+      "bytes": 13640036,
+      "meshes": 3,
+      "vertices": 8844,
+      "materials": [
+        "MI_Hair_2",
+        "MI_Eyes",
+        "MI_Superhero_Female"
+      ],
+      "textures": [
+        "T_Hair_2_Normal.png",
+        "T_Hair_2_BaseColor.png",
+        "T_Eye_Normal.png",
+        "T_Eye_Brown.png",
+        "T_Superhero_Female_Normal.png",
+        "T_Superhero_Female_Light_BaseColor.png",
+        "T_Superhero_Female_Roughness.png"
+      ],
+      "skinned": true,
+      "joints": 65,
+      "animations": [],
+      "basecolor_variant": "light",
+      "id": "superhero_female_light",
+      "label": "Female \u00b7 Light"
+    },
+    {
+      "file": "superhero_male_dark.glb",
+      "bytes": 13119140,
+      "meshes": 3,
+      "vertices": 8483,
+      "materials": [
+        "MI_Hair_1",
+        "MI_Eyes",
+        "MI_Superhero_Male"
+      ],
+      "textures": [
+        "T_Hair_1_Normal.png",
+        "T_Hair_1_BaseColor.png",
+        "T_Eye_Normal.png",
+        "T_Eye_Brown.png",
+        "T_Superhero_Male_Normal.png",
+        "T_Superhero_Male_Dark.png",
+        "T_Superhero_Male_Roughness.png"
+      ],
+      "skinned": true,
+      "joints": 65,
+      "animations": [],
+      "basecolor_variant": "dark",
+      "id": "superhero_male_dark",
+      "label": "Male \u00b7 Dark"
+    },
+    {
+      "file": "superhero_male_light.glb",
+      "bytes": 13123932,
+      "meshes": 3,
+      "vertices": 8483,
+      "materials": [
+        "MI_Hair_1",
+        "MI_Eyes",
+        "MI_Superhero_Male"
+      ],
+      "textures": [
+        "T_Hair_1_Normal.png",
+        "T_Hair_1_BaseColor.png",
+        "T_Eye_Normal.png",
+        "T_Eye_Brown.png",
+        "T_Superhero_Male_Normal.png",
+        "T_Superhero_Male_Ligh.png",
+        "T_Superhero_Male_Roughness.png"
+      ],
+      "skinned": true,
+      "joints": 65,
+      "animations": [],
+      "basecolor_variant": "light",
+      "id": "superhero_male_light",
+      "label": "Male \u00b7 Light"
+    }
+  ]
+}
