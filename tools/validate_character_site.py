@@ -37,17 +37,21 @@ class ViewerParser(HTMLParser):
 index_html = (DOCS / 'index.html').read_text()
 parser = ViewerParser()
 parser.feed(index_html)
-assert './block17.html' in index_html, 'character landing page must link to Block 17 viewer'
+assert './block17.html' in index_html, 'character landing page must link to building viewer'
 house_html = (DOCS / 'block17.html').read_text()
-assert 'src="./models/buildings/block17_house.glb"' in house_html
-assert 'href="./models/buildings/block17_house.glb"' in house_html
+block_files = ('Block15_OpenHouse.glb', 'Block16_OpenShop.glb',
+               'Block17_OpenFamilyHouse.glb', 'Block18_OpenCornerHouse.glb')
+assert all(filename in house_html for filename in block_files)
+assert 'src="./models/buildings/Block17_OpenFamilyHouse.glb"' in house_html
+assert 'href="./models/buildings/Block17_OpenFamilyHouse.glb"' in house_html
+assert house_html.count('data-block=') == 4
 assert 'id="reset-view"' in house_html and 'id="rotate"' in house_html
 assert parser.sources == ['./models/characters/body_base_female_midpoly.glb']
 assert parser.assets == 3
 assert parser.animations == ['Idle', 'Walk']
 report = json.loads((DOCS / 'models/characters/body_base_midpoly.validation.json').read_text())
 assert 15000 <= report['triangles'] <= 25000
-print('Site valid: exactly three mid-poly GLBs, three asset selectors, Idle/Walk controls, no stale local links.')
+print('Site valid: character assets and controls pass; Blocks 15–18 viewer is linked with four model entries.')
 
 female = json.loads((DOCS / 'models/characters/body_base_female_midpoly.validation.json').read_text())
 assert female['anatomy_revision'] == 'athletic-sculpt-v2'

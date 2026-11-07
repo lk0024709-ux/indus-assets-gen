@@ -15,8 +15,14 @@ let browser;
     args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   const page = await browser.newPage();
   const errors = [];
+  const modelRequests = [];
   page.on('pageerror', e => errors.push(String(e)));
-  page.on('response', r => { if (r.status() >= 400) errors.push(`${r.status()} ${r.url()}`); });
+  page.on('console', message => { if (message.type() === 'error') errors.push(`console: ${message.text()}`); });
+  page.on('request', request => { if (request.url().endsWith('.glb')) modelRequests.push(`request ${request.url()}`); });
+  page.on('response', r => {
+    if (r.status() >= 400) errors.push(`${r.status()} ${r.url()}`);
+    if (r.url().endsWith('.glb')) modelRequests.push(`response ${r.status()} ${r.url()}`);
+  });
   await page.goto('http://127.0.0.1:8765/');
   await page.waitForFunction(() => document.querySelector('#status').textContent.includes('Athletic Female · T-pose'), null, { timeout: 60000 });
   await page.waitForFunction(() => document.querySelectorAll('#rig-tree [data-bone]').length === 27);
@@ -70,16 +76,43 @@ let browser;
   await page.screenshot({path: process.env.VIEWER_SCREENSHOT || '/tmp/indus-skeleton-viewer.png', fullPage:true});
 
   await page.goto('http://127.0.0.1:8765/block17.html');
-  await page.waitForFunction(() => document.querySelector('#status').textContent.includes('house loaded'), null, { timeout: 60000 });
-  assert.match(await page.locator('.download').getAttribute('href'), /models\/buildings\/block17_house\.glb$/);
+  try {
+    await page.waitForFunction(() => document.querySelector('#viewer-status').textContent.includes('Block 17 loaded'), null, { timeout: 60000 });
+  } catch (error) {
+    const diagnostics = await page.$eval('#house', node => ({
+      status: document.querySelector('#viewer-status').textContent,
+      src: node.getAttribute('src'), loaded: node.loaded, hasModel: !!node.model,
+      loading: node.loading, customElementReady: customElements.get('model-viewer') !== undefined
+    }));
+    console.error('BLOCK_DIAG', JSON.stringify({diagnostics, buildingRequests:modelRequests.filter(url => url.includes('/models/buildings/')), errors:errors.slice(-4)}));
+    throw error;
+  }
+  assert.equal(await page.locator('[data-block]').count(), 4);
+  assert.match(await page.locator('.download').getAttribute('href'), /models\/buildings\/Block17_OpenFamilyHouse\.glb$/);
+  for (const [id, name, file] of [
+    ['15', 'Block 15', 'Block15_OpenHouse.glb'],
+    ['16', 'Block 16', 'Block16_OpenShop.glb'],
+    ['17', 'Block 17', 'Block17_OpenFamilyHouse.glb'],
+    ['18', 'Block 18', 'Block18_OpenCornerHouse.glb'],
+  ]) {
+    await page.click(`[data-block="${id}"]`);
+    try {
+      await page.waitForFunction(label => document.querySelector('#viewer-status').textContent.includes(`${label} loaded`), name, { timeout: 60000 });
+    } catch (error) {
+      const diagnostics = await page.$eval('#house', node => ({src:node.getAttribute('src'),loaded:node.loaded,hasModel:!!node.model}));
+      console.error('BLOCK_SWITCH_DIAG', id, await page.locator('#viewer-status').textContent(), diagnostics, modelRequests.filter(url => url.includes('/models/buildings/')), errors.slice(-4));
+      throw error;
+    }
+    assert.match(await page.locator('.download').getAttribute('href'), new RegExp(`models/buildings/${file}$`));
+  }
   assert.equal(await page.locator('#reset-view').count(), 1);
   await page.locator('#rotate').click();
   assert.equal(await page.locator('#rotate').getAttribute('aria-pressed'), 'true');
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
-  await page.screenshot({path: '/tmp/indus-block17-viewer.png', fullPage:true});
+  await page.screenshot({path: '/tmp/indus-blocks-15-18-viewer.png', fullPage:true});
   assert.deepEqual(errors, []);
-  console.log('PASS: character viewer, Idle/Walk playback, mobile layout, Block 17 web model load and controls, no HTTP/browser errors');
+  console.log('PASS: character viewer, Idle/Walk playback, mobile layout, all four Blocks 15–18 load and switch correctly, no HTTP/browser errors');
 })().catch(e => { console.error(e); process.exitCode = 1; }).finally(async () => {
   if (browser) await browser.close();
   server.kill();

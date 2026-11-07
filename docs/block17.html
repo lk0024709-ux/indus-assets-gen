@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#101722">
-  <title>Block 17 House — Indus Assets</title>
+  <title>Blocks 15–18 — Indus Assets</title>
   <script type="module" src="./vendor/model-viewer.min.js"></script>
   <style>
-    *{box-sizing:border-box}body{margin:0;background:#101722;color:#edf3fa;font:16px/1.6 system-ui,sans-serif}main{max-width:1180px;margin:auto;padding:32px 24px}header{margin-bottom:24px}.eyebrow{color:#75e0c4;text-transform:uppercase;letter-spacing:.18em;font-size:12px}h1{font-size:clamp(30px,5vw,46px);line-height:1.15;margin:8px 0}p{color:#a8b9cd;margin:8px 0}.back{color:#75e0c4;text-decoration:none;font-size:14px}.back:hover{text-decoration:underline}.layout{display:grid;grid-template-columns:300px 1fr;gap:20px}.panel{border:1px solid #2c3b4e;border-radius:16px;background:#172230;padding:22px}h2{font-size:14px;text-transform:uppercase;letter-spacing:.08em;margin:0 0 12px}.facts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}.fact{padding:12px;border-radius:10px;background:#101a26;color:#a8b9cd;font-size:13px}.fact strong{display:block;color:#edf3fa;font-size:17px}.download,.control{display:block;width:100%;font:inherit;text-align:center;text-decoration:none;border:1px solid #4b657e;border-radius:8px;padding:10px 14px;color:#edf3fa;background:#22354a;cursor:pointer}.download{background:#75e0c4;border-color:#75e0c4;color:#102822;font-weight:650}.controls{display:flex;gap:8px;margin-top:12px}.control{width:auto;flex:1}.control:hover,.download:hover{filter:brightness(1.08)}model-viewer{display:block;width:100%;height:min(70vh,680px);min-height:440px;background:radial-gradient(ellipse at center,#33475c,#172230);border-radius:12px}#status{font-size:14px;margin-top:12px;min-height:24px}.note{font-size:13px;margin-top:18px}footer{font-size:13px;color:#a8b9cd;margin-top:20px}@media(max-width:760px){main{padding:20px 12px}.layout{grid-template-columns:1fr}.panel{padding:16px}model-viewer{height:54vh;min-height:360px}}
+    *{box-sizing:border-box}body{margin:0;background:#101722;color:#edf3fa;font:16px/1.6 system-ui,sans-serif}main{max-width:1180px;margin:auto;padding:32px 24px}header{margin-bottom:24px}.eyebrow{color:#75e0c4;text-transform:uppercase;letter-spacing:.18em;font-size:12px}h1{font-size:clamp(30px,5vw,46px);line-height:1.15;margin:8px 0}p{color:#a8b9cd;margin:8px 0}.back{color:#75e0c4;text-decoration:none;font-size:14px}.back:hover{text-decoration:underline}.layout{display:grid;grid-template-columns:300px 1fr;gap:20px}.panel{border:1px solid #2c3b4e;border-radius:16px;background:#172230;padding:22px}h2{font-size:14px;text-transform:uppercase;letter-spacing:.08em;margin:0 0 12px}.selector{display:grid;gap:8px}.block-choice,.download,.control{display:block;width:100%;font:inherit;text-align:left;text-decoration:none;border:1px solid #4b657e;border-radius:8px;padding:10px 14px;color:#edf3fa;background:#22354a;cursor:pointer}.block-choice[aria-pressed="true"]{background:#75e0c4;color:#102822;border-color:#75e0c4}.block-choice small{display:block;opacity:.78;font-size:12px}.facts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}.fact{padding:12px;border-radius:10px;background:#101a26;color:#a8b9cd;font-size:13px}.fact strong{display:block;color:#edf3fa;font-size:16px}.download{background:#75e0c4;border-color:#75e0c4;color:#102822;font-weight:650;text-align:center}.controls{display:flex;gap:8px;margin-top:12px}.control{width:auto;flex:1;text-align:center}.control:hover,.download:hover{filter:brightness(1.08)}model-viewer{display:block;width:100%;height:min(70vh,680px);min-height:440px;background:radial-gradient(ellipse at center,#33475c,#172230);border-radius:12px}#viewer-status{font-size:14px;margin-top:12px;min-height:24px}.note{font-size:13px;margin-top:18px}footer{font-size:13px;color:#a8b9cd;margin-top:20px}@media(max-width:760px){main{padding:20px 12px}.layout{grid-template-columns:1fr}.panel{padding:16px}model-viewer{height:54vh;min-height:360px}}
   </style>
 </head>
 <body>
@@ -15,50 +15,89 @@
   <header>
     <a class="back" href="./">← Back to character models</a>
     <div class="eyebrow" style="margin-top:18px">Indus / Environment assets</div>
-    <h1>Block 17 · Two-storey house</h1>
-    <p>Walk-in battle-royale house with open windows and doors, interior partitions, a gable roof, stairs, and loot spawn markers.</p>
+    <h1>Blocks 15–18 · Open houses</h1>
+    <p>Four walkable, two-storey battle-royale buildings. Choose a block to inspect its openings, interior layout, stairs, roof, and loot markers.</p>
   </header>
   <div class="layout">
     <aside class="panel">
-      <h2>Asset details</h2>
-      <p>A compact 8 × 6 m footprint with two 3.2 m storeys. The GLB includes Godot collision naming on the walls and a smooth stair ramp for CharacterBody3D traversal.</p>
-      <div class="facts">
+      <h2>Choose a block</h2>
+      <div class="selector" role="group" aria-label="Building model selector">
+        <button class="block-choice" data-block="15" type="button" aria-pressed="false">Block 15 <small>Open house · balcony</small></button>
+        <button class="block-choice" data-block="16" type="button" aria-pressed="false">Block 16 <small>Open shop · storefront canopy</small></button>
+        <button class="block-choice" data-block="17" type="button" aria-pressed="true">Block 17 <small>Family house · porch canopy</small></button>
+        <button class="block-choice" data-block="18" type="button" aria-pressed="false">Block 18 <small>Corner house · hip roof</small></button>
+      </div>
+      <h2 style="margin-top:22px">Asset details</h2>
+      <p id="description">Compact family home with a front porch, open windows, separate rooms, and a stairwell.</p>
+      <div class="facts" id="facts">
         <div class="fact"><strong>8 × 6 m</strong>footprint</div>
         <div class="fact"><strong>2 floors</strong>3.2 m each</div>
         <div class="fact"><strong>GLB</strong>Godot-ready</div>
         <div class="fact"><strong>7 markers</strong>loot spawns</div>
       </div>
-      <a class="download" href="./models/buildings/block17_house.glb" download>Download house GLB ↓</a>
-      <p class="note">Drag to orbit · Scroll to zoom · Use the view button to reset the camera. Window openings are intentionally unglazed.</p>
+      <a class="download" id="download" href="./models/buildings/Block17_OpenFamilyHouse.glb" download>Download Block 17 GLB ↓</a>
+      <p class="note">Drag to orbit · Scroll to zoom · Use the controls to reset or auto-rotate. Windows are intentionally unglazed.</p>
     </aside>
-    <section class="panel" aria-label="Interactive Block 17 house preview">
-      <model-viewer id="house" src="./models/buildings/block17_house.glb" alt="Cream two-storey house with brown gable roof, open windows and front porch" camera-controls touch-action="pan-y" camera-orbit="35deg 68deg 17m" camera-target="auto auto auto" field-of-view="30deg" shadow-intensity="1" exposure="1" interaction-prompt="auto"></model-viewer>
+    <section class="panel" aria-label="Interactive building model preview">
+      <model-viewer loading="eager" id="house" src="./models/buildings/Block17_OpenFamilyHouse.glb" alt="Cream two-storey Block 17 house with brown gable roof and open windows" camera-controls touch-action="pan-y" camera-orbit="35deg 68deg 17m" camera-target="auto auto auto" field-of-view="30deg" shadow-intensity="1" exposure="1" interaction-prompt="auto"></model-viewer>
       <div class="controls" role="group" aria-label="Model view controls">
         <button class="control" id="reset-view" type="button">Reset view</button>
         <button class="control" id="rotate" type="button" aria-pressed="false">Auto-rotate</button>
       </div>
-      <p id="status" role="status" aria-live="polite">Loading Block 17 house…</p>
+      <p id="viewer-status" role="status" aria-live="polite">Loading Block 17…</p>
     </section>
   </div>
-  <footer>Generated procedurally with Blender. Place the house at the origin; the ground floor starts at z = 0.</footer>
+  <footer>All four models are generated procedurally with Blender. The GLBs include Godot collision naming and Node3D loot spawn markers.</footer>
 </main>
 <script>
-  const model = document.querySelector('#house');
-  const status = document.querySelector('#status');
-  const rotate = document.querySelector('#rotate');
-  model.addEventListener('load', () => { status.textContent = 'Block 17 house loaded · ready to inspect'; });
-  model.addEventListener('error', () => { status.textContent = 'Unable to load the model. Try reloading the page or download the GLB directly.'; });
+  const models = {
+    '15': {name:'Block 15', file:'Block15_OpenHouse.glb', footprint:'8.5 × 6 m', floors:'2 floors', markers:'5 markers', orbit:'19m', alt:'Pale two-storey open house with dark roof, balcony, windows and porch', description:'Open-plan house with a sheltered front balcony, large openings, interior partitions, and ground/upper-floor loot points.'},
+    '16': {name:'Block 16', file:'Block16_OpenShop.glb', footprint:'9 × 6 m', floors:'2 floors', markers:'5 markers', orbit:'19m', alt:'Two-storey open shop with wide storefront openings and a canopy', description:'Street-facing shop with broad storefront entries, a long canopy, upstairs loft, open side windows, and a clear stair route.'},
+    '17': {name:'Block 17', file:'Block17_OpenFamilyHouse.glb', footprint:'8 × 6 m', floors:'2 floors', markers:'7 markers', orbit:'17m', alt:'Cream two-storey family house with brown gable roof, porch and open windows', description:'Compact family home with a front porch, open windows, separate rooms, and a stairwell.'},
+    '18': {name:'Block 18', file:'Block18_OpenCornerHouse.glb', footprint:'9 × 6 m', floors:'2 floors', markers:'5 markers', orbit:'19m', alt:'Warm-colored two-storey corner house with a grey hip roof and side entrance', description:'Corner house with front and side entrances, a hip roof, a balcony, and an open interior stairwell.'}
+  };
+  const viewer = document.querySelector('#house');
+  const download = document.querySelector('#download');
+  const status = document.querySelector('#viewer-status');
+  let selected = '17';
+  function selectBlock(id) {
+    if (id === selected) return;
+    selected = id;
+    const model = models[id];
+    const src = `./models/buildings/${model.file}`;
+    viewer.src = src;
+    viewer.alt = model.alt;
+    viewer.cameraOrbit = `35deg 68deg ${model.orbit}`;
+    download.href = src;
+    download.textContent = `Download ${model.name} GLB ↓`;
+    document.querySelector('#description').textContent = model.description;
+    document.querySelector('#facts').innerHTML = `<div class="fact"><strong>${model.footprint}</strong>footprint</div><div class="fact"><strong>${model.floors}</strong>3.2 m each</div><div class="fact"><strong>GLB</strong>Godot-ready</div><div class="fact"><strong>${model.markers}</strong>loot spawns</div>`;
+    for (const button of document.querySelectorAll('[data-block]')) {
+      button.setAttribute('aria-pressed', String(button.dataset.block === id));
+    }
+    status.textContent = `Loading ${model.name}…`;
+  }
+  viewer.addEventListener('load', () => {
+    status.textContent = `${models[selected].name} loaded · ready to inspect`;
+  });
+  viewer.addEventListener('error', () => {
+    status.textContent = `Unable to load ${models[selected].name}. Reload the page or download the GLB directly.`;
+  });
+  document.querySelectorAll('[data-block]').forEach(button => {
+    button.addEventListener('click', () => selectBlock(button.dataset.block));
+  });
   document.querySelector('#reset-view').addEventListener('click', () => {
-    model.cameraOrbit = '35deg 68deg 17m';
-    model.cameraTarget = 'auto auto auto';
-    model.jumpCameraToGoal();
+    viewer.cameraOrbit = `35deg 68deg ${models[selected].orbit}`;
+    viewer.cameraTarget = 'auto auto auto';
+    viewer.jumpCameraToGoal();
   });
+  const rotate = document.querySelector('#rotate');
   rotate.addEventListener('click', () => {
-    model.autoRotate = !model.autoRotate;
-    rotate.setAttribute('aria-pressed', String(model.autoRotate));
-    rotate.textContent = model.autoRotate ? 'Stop rotation' : 'Auto-rotate';
+    viewer.autoRotate = !viewer.autoRotate;
+    rotate.setAttribute('aria-pressed', String(viewer.autoRotate));
+    rotate.textContent = viewer.autoRotate ? 'Stop rotation' : 'Auto-rotate';
   });
-  if (model.loaded) status.textContent = 'Block 17 house loaded · ready to inspect';
+  if (viewer.loaded) status.textContent = 'Block 17 loaded · ready to inspect';
 </script>
 </body>
 </html>
