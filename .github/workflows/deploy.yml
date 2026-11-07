@@ -1,4 +1,4 @@
-name: Validate & Deploy Mid-Poly Viewer
+name: Validate & Deploy Indus Asset Viewer
 
 on:
   push:
@@ -25,6 +25,14 @@ jobs:
         run: |
           python tools/validate_character_site.py
           python -m unittest discover -s tools -p 'test_*midpoly.py' -v
+      - name: Install Blender for the Block 17 web model
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y blender
+      - name: Generate Block 17 model for the web viewer
+        run: |
+          blender --background --python tools/generate_block17_house.py -- --output "$GITHUB_WORKSPACE/docs/models/buildings/block17_house.glb"
+          test -s docs/models/buildings/block17_house.glb
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -35,14 +43,15 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Test viewer and Idle/Walk playback in Chromium
         run: npm test --prefix tools/viewer-tests
-      - name: Stage only public runtime files
+      - name: Stage public viewer files and models
         run: |
-          mkdir -p _site/models/characters/skeleton _site/vendor
-          cp docs/index.html docs/viewer.js docs/rig-viewer.js _site/
+          mkdir -p _site/models/characters/skeleton _site/models/buildings _site/vendor
+          cp docs/index.html docs/block17.html docs/viewer.js docs/rig-viewer.js _site/
           cp docs/vendor/model-viewer.min.js docs/vendor/model-viewer.LICENSE _site/vendor/
           cp docs/models/characters/body_base_midpoly.glb _site/models/characters/
           cp docs/models/characters/body_base_female_midpoly.glb _site/models/characters/
           cp docs/models/characters/skeleton_base_midpoly.glb _site/models/characters/
+          cp docs/models/buildings/block17_house.glb _site/models/buildings/
       - uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/main'
         with:

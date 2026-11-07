@@ -68,8 +68,18 @@ let browser;
   await page.locator('#character').scrollIntoViewIfNeeded();
   await page.waitForTimeout(500);
   await page.screenshot({path: process.env.VIEWER_SCREENSHOT || '/tmp/indus-skeleton-viewer.png', fullPage:true});
+
+  await page.goto('http://127.0.0.1:8765/block17.html');
+  await page.waitForFunction(() => document.querySelector('#status').textContent.includes('house loaded'), null, { timeout: 60000 });
+  assert.match(await page.locator('.download').getAttribute('href'), /models\/buildings\/block17_house\.glb$/);
+  assert.equal(await page.locator('#reset-view').count(), 1);
+  await page.locator('#rotate').click();
+  assert.equal(await page.locator('#rotate').getAttribute('aria-pressed'), 'true');
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+  await page.screenshot({path: '/tmp/indus-block17-viewer.png', fullPage:true});
   assert.deepEqual(errors, []);
-  console.log('PASS: female T-pose, exact hierarchy, pivot toggle, all asset switching; model loading, Idle/Walk playback, looping, pause/resume, mobile layout, HTTP/browser errors');
+  console.log('PASS: character viewer, Idle/Walk playback, mobile layout, Block 17 web model load and controls, no HTTP/browser errors');
 })().catch(e => { console.error(e); process.exitCode = 1; }).finally(async () => {
   if (browser) await browser.close();
   server.kill();
