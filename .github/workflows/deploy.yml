@@ -31,7 +31,15 @@ jobs:
           sudo apt-get install --no-install-recommends -y blender
       - name: Generate Block 17 model for the web viewer
         run: |
-          blender --background --python tools/generate_block17_house.py -- --output "$GITHUB_WORKSPACE/docs/models/buildings/block17_house.glb"
+          set +e
+          blender --background --python tools/generate_block17_house.py -- --output "$GITHUB_WORKSPACE/docs/models/buildings/block17_house.glb" > /tmp/block17-blender.log 2>&1
+          result=$?
+          cat /tmp/block17-blender.log
+          if [ "$result" -ne 0 ]; then
+            detail=$(grep -E 'Error|Exception|Traceback' /tmp/block17-blender.log | tail -n 1 | tr '\n' ' ')
+            echo "::error title=Block 17 generation::$detail"
+            exit "$result"
+          fi
           test -s docs/models/buildings/block17_house.glb
       - uses: actions/setup-node@v4
         with:
