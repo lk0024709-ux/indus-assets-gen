@@ -15,9 +15,9 @@ The GLBs are under `procedural_asset_app/frontend/assets/characters/`. Each is s
 
 ## Motion library and web playback
 
-`Base model /Motion/` contains **74 FBX motion clips** on a Mixamo 65-bone rig. The Character Studio loads each FBX on demand, maps Mixamo joints to the superhero skeleton, converts bone-space and centimeter units, and plays it on the selected male or female model. The first idle motion starts automatically; the selector exposes all 74 clips with play/pause, stop, speed, and timeline controls.
+`Base model /Motion/` contains **74 FBX motion clips** on a Mixamo 65-bone rig. The Character Studio loads each FBX on demand, maps Mixamo joints to the superhero skeleton, converts bone-space and centimeter units, and plays it on the selected male or female model. The first idle motion starts automatically; every clip has its own clickable button, arranged in scrollable Movement, Stance, Combat, and Special groups. Play/pause, stop, speed, and timeline controls remain available.
 
-The motion selector and retargeter are in `procedural_asset_app/frontend/characters.html` and `character-viewer.js`; `motion-retarget.js` contains the skeleton mapping. The compact motion list is generated as `assets/motion-manifest.json`. GitHub Pages staging copies the FBXs into `assets/motions/` without duplicating those source files in the repository.
+The motion button library and retargeter are in `procedural_asset_app/frontend/characters.html` and `character-viewer.js`; `motion-retarget.js` contains the skeleton mapping. The compact motion list is generated as `assets/motion-manifest.json`. GitHub Pages staging copies the FBXs into `assets/motions/` without duplicating those source files in the repository.
 
 ## Preview locally
 

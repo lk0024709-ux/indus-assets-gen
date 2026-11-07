@@ -76,10 +76,14 @@
         <section class="motion-player panel" aria-label="Character motion player">
           <div class="motion-heading"><div><p class="eyebrow">ANIMATION LIBRARY</p><strong>Play a source motion</strong></div><span id="motionCount" class="motion-count">Loading 74 clips…</span></div>
           <div class="motion-controls">
-            <select id="motionSelect" aria-label="Select a character motion" disabled><option>Loading motions…</option></select>
             <button id="motionPlay" class="motion-action primary" type="button" disabled>▶ <span>Play</span></button>
             <button id="motionStop" class="motion-action" type="button" disabled>■ <span>Stop</span></button>
+            <label class="motion-speed-label" for="motionSpeed">Speed</label>
             <select id="motionSpeed" class="motion-speed" aria-label="Playback speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
+          </div>
+          <p id="motionLibraryHelp" class="motion-library-help">Choose any motion to play it immediately. Use Tab and Enter to browse and activate motions.</p>
+          <div id="motionLibrary" class="motion-library" role="region" aria-label="Available motions" aria-describedby="motionLibraryHelp" aria-busy="true">
+            <p class="motion-library-loading">Loading motion buttons…</p>
           </div>
           <div class="motion-progress"><input id="motionSeek" type="range" min="0" max="1000" value="0" aria-label="Motion timeline" disabled><span id="motionTime">0:00 / 0:00</span></div>
           <p id="motionStatus" class="motion-status" role="status">The source character rig is ready. Loading the FBX motion library…</p>
