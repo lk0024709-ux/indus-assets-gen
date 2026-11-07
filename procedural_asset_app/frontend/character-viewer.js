@@ -253,7 +253,6 @@ function setSelected(id) {
     });
     captureBindPose();
     $('motionPlay').disabled = !motions.length;
-    $('motionSelect').disabled = !motions.length;
     $('downloadModel').disabled = false;
     $('loading').classList.add('done');
     if (selectedMotionId) playMotion(selectedMotionId);
@@ -274,32 +273,81 @@ function resetCamera() {
   controls.update();
 }
 
+function updateMotionSelection() {
+  document.querySelectorAll('.motion-choice').forEach(button => {
+    const selected = button.dataset.motionId === selectedMotionId;
+    button.setAttribute('aria-pressed', String(selected));
+    button.classList.toggle('selected', selected);
+  });
+}
+
 function populateMotionLibrary() {
-  const select = $('motionSelect');
-  select.replaceChildren();
+  const library = $('motionLibrary');
+  library.replaceChildren();
+  library.setAttribute('aria-busy', 'false');
   if (!motions.length) {
-    select.add(new Option('No source motions found', ''));
+    const empty = document.createElement('p');
+    empty.className = 'motion-library-loading';
+    empty.textContent = 'No source motions found.';
+    library.append(empty);
     $('motionCount').textContent = 'Motion library unavailable';
     $('motionStatus').textContent = 'The source FBX motion manifest could not be loaded.';
     $('motionStatus').classList.add('error');
-    select.disabled = true;
     $('motionPlay').disabled = true;
     return;
   }
-  for (const category of ['Movement', 'Stance', 'Combat', 'Special']) {
-    const group = document.createElement('optgroup');
-    group.label = category;
-    for (const motion of motions.filter(item => item.category === category)) {
-      group.append(new Option(motion.label, motion.id));
-    }
-    if (group.children.length) select.append(group);
-  }
+
   const idle = motions.find(motion => motion.file.toLowerCase() === 'idle.fbx') || motions[0];
   selectedMotionId = idle.id;
-  select.value = idle.id;
+  const preferredCategories = ['Movement', 'Stance', 'Combat', 'Special'];
+  const categories = [
+    ...preferredCategories.filter(category => motions.some(motion => motion.category === category)),
+    ...new Set(motions.map(motion => motion.category).filter(category => !preferredCategories.includes(category)))
+  ];
+  for (const category of categories) {
+    const categoryMotions = motions.filter(motion => motion.category === category);
+    const section = document.createElement('section');
+    section.className = 'motion-category';
+    const heading = document.createElement('h3');
+    heading.className = 'motion-category-heading';
+    heading.id = `motion-category-${category.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+    const title = document.createElement('span');
+    title.className = 'motion-category-title';
+    title.textContent = category;
+    const count = document.createElement('span');
+    count.className = 'motion-category-count';
+    count.textContent = `${categoryMotions.length} motions`;
+    heading.append(title, count);
+    const buttonGroup = document.createElement('div');
+    buttonGroup.className = 'motion-button-grid';
+    buttonGroup.setAttribute('role', 'group');
+    buttonGroup.setAttribute('aria-labelledby', heading.id);
+
+    for (const motion of categoryMotions) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'motion-choice';
+      button.dataset.motionId = motion.id;
+      button.setAttribute('aria-pressed', String(motion.id === selectedMotionId));
+      button.setAttribute('aria-label', `Play ${motion.label}`);
+      button.title = motion.label;
+      const label = document.createElement('span');
+      label.className = 'motion-choice-label';
+      label.textContent = motion.label;
+      const icon = document.createElement('span');
+      icon.className = 'motion-choice-icon';
+      icon.setAttribute('aria-hidden', 'true');
+      icon.textContent = '▶';
+      button.append(label, icon);
+      buttonGroup.append(button);
+    }
+    section.append(heading, buttonGroup);
+    library.append(section);
+  }
   $('motionCount').textContent = `${motions.length} source clips · 65-joint rig`;
-  $('motionStatus').textContent = 'Select a motion to load and play it on the current character. The idle clip starts automatically.';
-  select.disabled = false;
+  $('motionStatus').textContent = 'Choose a motion button to play it. Idle starts automatically on the selected character.';
+  $('motionStatus').classList.remove('error');
+  updateMotionSelection();
 }
 
 function motionLoops(record) {
@@ -335,7 +383,13 @@ async function getRetargetedMotion(record, targetModel, targetBindPose, targetMo
 
 async function playMotion(id) {
   const record = motionById.get(id);
-  if (!record || !activeModel || !mixer) return;
+  if (!record) return;
+  selectedMotionId = id;
+  updateMotionSelection();
+  if (!activeModel || !mixer) {
+    $('motionStatus').textContent = `${record.label} selected · it will play when the character finishes loading.`;
+    return;
+  }
   const request = ++motionRequest;
   const targetModel = activeModel;
   const targetBindPose = bindPose;
@@ -391,9 +445,10 @@ populateMotionLibrary();
 document.querySelectorAll('.hero-option').forEach(button => {
   button.addEventListener('click', () => setSelected(button.dataset.model));
 });
-$('motionSelect').addEventListener('change', event => {
-  selectedMotionId = event.currentTarget.value;
-  if (activeModel) playMotion(selectedMotionId);
+$('motionLibrary').addEventListener('click', event => {
+  const button = event.target.closest('button[data-motion-id]');
+  if (!button || !event.currentTarget.contains(button)) return;
+  playMotion(button.dataset.motionId);
 });
 $('motionPlay').addEventListener('click', () => {
   if (!activeModel) return;

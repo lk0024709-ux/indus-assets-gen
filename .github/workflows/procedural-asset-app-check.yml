@@ -19,6 +19,8 @@ jobs:
           python-version: '3.11'
       - name: Python syntax check
         run: python -m compileall -q procedural_asset_app/backend
+      - name: Test Character Studio motion buttons
+        run: python -m unittest discover -s tools -p 'test_character_motion_ui.py' -v
       - name: Validate static assets and recipe coverage
         run: |
           python - <<'PY'
