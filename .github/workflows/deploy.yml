@@ -1,4 +1,4 @@
-name: Validate & Deploy Indus Asset Viewer
+name: Validate & Deploy 3D Asset Viewer
 
 on:
   push:
@@ -15,81 +15,75 @@ concurrency:
 
 jobs:
   validate:
-    # Keep Playwright 1.56 supported; ubuntu-latest currently resolves to Ubuntu 26.
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Validate published asset allowlist and GLB
-        run: |
-          python tools/validate_character_site.py
-          python -m unittest discover -s tools -p 'test_*midpoly.py' -v
-      - name: Install Blender for Blocks 15–18 web models
-        run: |
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends -y blender python3-numpy
-      - name: Generate Blocks 15–18 for the web viewer
-        run: |
-          set +e
-          blender --version
-          blender --background --python tools/generate_blocks_15_18.py -- --output-dir "$GITHUB_WORKSPACE/docs/models/buildings" > /tmp/blocks-15-18-blender.log 2>&1
-          result=$?
-          cat /tmp/blocks-15-18-blender.log
-          expected=(Block15_OpenHouse Block16_OpenShop Block17_OpenFamilyHouse Block18_OpenCornerHouse)
-          missing=()
-          for name in "${expected[@]}"; do
-            [ -s "docs/models/buildings/${name}.glb" ] || missing+=("${name}.glb")
-          done
-          if [ "$result" -ne 0 ] || [ "${#missing[@]}" -ne 0 ]; then
-            detail=$(tail -n 8 /tmp/blocks-15-18-blender.log | tr '\n' ' ' | cut -c 1-1000)
-            echo "::error title=Blocks 15–18 generation::exit=$result, missing=${missing[*]:-none}; $detail"
-            exit 1
-          fi
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install browser test tooling
+
+      - name: Rebuild embedded superhero GLBs
+        run: python tools/build_superhero_characters.py
+
+      - name: Test character packaging and source texture variants
+        run: python -m unittest discover -s tools -p 'test_*.py' -v
+
+      - name: Check backend Python syntax
+        run: python -m compileall -q procedural_asset_app/backend
+
+      - name: Check viewer JavaScript syntax
         run: |
-          set +e
-          npm ci --prefix tools/viewer-tests > /tmp/viewer-npm.log 2>&1
-          result=$?
-          cat /tmp/viewer-npm.log
-          if [ "$result" -ne 0 ]; then
-            detail=$(tail -n 8 /tmp/viewer-npm.log | tr '\n' ' ' | cut -c 1-1000)
-            echo "::error title=Browser tooling install::npm ci exit=$result; $detail"
-            exit "$result"
-          fi
-          cd tools/viewer-tests
-          npx playwright install --with-deps chromium > /tmp/playwright-install.log 2>&1
-          result=$?
-          cat /tmp/playwright-install.log
-          if [ "$result" -ne 0 ]; then
-            detail=$(tail -n 8 /tmp/playwright-install.log | tr '\n' ' ' | cut -c 1-1000)
-            echo "::error title=Browser tooling install::Playwright install exit=$result; $detail"
-            exit "$result"
-          fi
-      - name: Test viewer and Idle/Walk playback in Chromium
+          node --check procedural_asset_app/frontend/character-viewer.js
+          python - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+
+          class InlineScripts(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.active = False
+                  self.parts = []
+
+              def handle_starttag(self, tag, attrs):
+                  if tag == "script" and "src" not in dict(attrs):
+                      self.active = True
+
+              def handle_endtag(self, tag):
+                  if tag == "script":
+                      self.active = False
+
+              def handle_data(self, data):
+                  if self.active:
+                      self.parts.append(data)
+
+          parser = InlineScripts()
+          parser.feed(Path("procedural_asset_app/frontend/asset-viewer.html").read_text(encoding="utf-8"))
+          Path("/tmp/asset-viewer-inline.js").write_text("\n".join(parser.parts), encoding="utf-8")
+          if not parser.parts:
+              raise SystemExit("No inline viewer script found")
+          PY
+          node --check /tmp/asset-viewer-inline.js
+
+      - name: Stage static viewer site
         run: |
-          set +e
-          npm test --prefix tools/viewer-tests > /tmp/viewer-test.log 2>&1
-          result=$?
-          cat /tmp/viewer-test.log
-          if [ "$result" -ne 0 ]; then
-            detail=$(tail -n 12 /tmp/viewer-test.log | tr '\n' ' ' | cut -c 1-1200)
-            echo "::error title=Viewer browser test::exit=$result; $detail"
-            exit "$result"
-          fi
-      - name: Stage public viewer files and models
-        run: |
-          mkdir -p _site/models/characters/skeleton _site/models/buildings _site/vendor
-          cp docs/index.html docs/block17.html docs/viewer.js docs/rig-viewer.js _site/
-          cp docs/vendor/model-viewer.min.js docs/vendor/model-viewer.LICENSE _site/vendor/
-          cp docs/models/characters/body_base_midpoly.glb _site/models/characters/
-          cp docs/models/characters/body_base_female_midpoly.glb _site/models/characters/
-          cp docs/models/characters/skeleton_base_midpoly.glb _site/models/characters/
-          cp docs/models/buildings/Block{15_OpenHouse,16_OpenShop,17_OpenFamilyHouse,18_OpenCornerHouse}.glb _site/models/buildings/
+          mkdir -p _site/assets
+          cp procedural_asset_app/frontend/asset-viewer.html _site/index.html
+          cp procedural_asset_app/frontend/asset-viewer.html _site/asset-viewer.html
+          cp procedural_asset_app/frontend/asset-viewer-source.md _site/
+          cp procedural_asset_app/frontend/characters.html \
+             procedural_asset_app/frontend/character-viewer.css \
+             procedural_asset_app/frontend/character-viewer.js _site/
+          cp -R procedural_asset_app/frontend/assets/characters _site/assets/
+          test -s _site/index.html
+          test -s _site/characters.html
+          test -s _site/assets/characters/superhero_female_dark.glb
+          test -s _site/assets/characters/superhero_female_light.glb
+          test -s _site/assets/characters/superhero_male_dark.glb
+          test -s _site/assets/characters/superhero_male_light.glb
+
       - uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/main'
         with:

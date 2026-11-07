@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b0e14">
+  <meta name="description" content="Explore the rigged, texture-rich Indus superhero character models.">
+  <title>Character Studio · Indus Asset Generator</title>
+  <link rel="stylesheet" href="./character-viewer.css">
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/"}}</script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Back to Indus Asset Generator">
+      <span class="brand-mark">◈</span>
+      <span><span class="eyebrow">INDUS TOOLKIT</span><strong>Character Studio</strong></span>
+    </a>
+    <div class="topbar-right"><span class="online-dot"></span><span>ASSET PREVIEW</span><a class="back-link" href="./asset-viewer.html">3D Viewer ↗</a><a class="back-link generator-link" href="./">← Generator</a></div>
+  </header>
+
+  <main>
+    <section class="intro">
+      <div class="intro-copy">
+        <p class="eyebrow">HEROES · READY FOR THE ARENA</p>
+        <h1>Built from the<br><span>source assets.</span></h1>
+        <p class="intro-text">Explore the repository’s original superhero rigs, now packed with their PBR maps for a clean, portable 3D preview.</p>
+      </div>
+      <div class="intro-badges" aria-label="Model features">
+        <span>RIGGED SKELETON</span><span>EMBEDDED PBR</span><span>GLB EXPORT</span>
+      </div>
+    </section>
+
+    <section class="studio" aria-label="3D character studio">
+      <aside class="roster panel">
+        <div class="section-title"><div><p class="eyebrow">CHARACTER SELECT</p><h2>Choose your hero</h2></div><span class="count">04</span></div>
+        <div class="roster-list" id="roster" role="list" aria-label="Available characters">
+          <button class="hero-option active" type="button" data-model="superhero_female_dark" aria-pressed="true">
+            <span class="option-avatar avatar-violet">F</span><span class="option-copy"><strong>Female · Dark</strong><small>Original dark BaseColor</small></span><span class="option-arrow">↗</span>
+          </button>
+          <button class="hero-option" type="button" data-model="superhero_female_light" aria-pressed="false">
+            <span class="option-avatar avatar-amber">F</span><span class="option-copy"><strong>Female · Light</strong><small>Alternate source BaseColor</small></span><span class="option-arrow">↗</span>
+          </button>
+          <button class="hero-option" type="button" data-model="superhero_male_dark" aria-pressed="false">
+            <span class="option-avatar avatar-cyan">M</span><span class="option-copy"><strong>Male · Dark</strong><small>Original dark BaseColor</small></span><span class="option-arrow">↗</span>
+          </button>
+          <button class="hero-option" type="button" data-model="superhero_male_light" aria-pressed="false">
+            <span class="option-avatar avatar-amber">M</span><span class="option-copy"><strong>Male · Light</strong><small>Alternate source BaseColor</small></span><span class="option-arrow">↗</span>
+          </button>
+        </div>
+        <div class="divider"></div>
+        <div class="model-details">
+          <p class="eyebrow">SELECTED MODEL</p>
+          <h3 id="selectedName">Female · Dark</h3>
+          <p id="selectedDescription" class="detail-copy">Full-body superhero character with the original dark skin BaseColor, eye and hair maps, and the source rig.</p>
+        </div>
+        <div class="spec-grid">
+          <div class="spec"><span>VERTICES</span><strong id="vertexCount">8,844</strong></div>
+          <div class="spec"><span>JOINTS</span><strong id="jointCount">65</strong></div>
+          <div class="spec"><span>MAPS</span><strong id="mapCount">7</strong></div>
+          <div class="spec"><span>FORMAT</span><strong>GLB 2.0</strong></div>
+        </div>
+        <button class="download-button" id="downloadModel" type="button">↓ <span>Download character GLB</span></button>
+        <p class="small-note">Textures are embedded. Model keeps its original skin and skeleton; no animation clip was included in the source.</p>
+      </aside>
+
+      <div class="preview-column">
+        <div class="viewport panel" id="viewport-wrap">
+          <div class="viewport-top"><div><span class="live-indicator"></span><span id="viewportLabel">FEMALE · DARK</span></div><div class="view-actions"><button id="toggleTurntable" class="view-button active" type="button" aria-pressed="true" title="Toggle auto-rotate">↻ <span>TURN</span></button><button id="resetView" class="view-button" type="button" title="Reset camera">⟲</button><button id="fullscreen" class="view-button" type="button" title="Toggle full screen">⛶</button></div></div>
+          <div id="viewport" aria-label="Interactive 3D model preview">
+            <div class="loading" id="loading"><span class="spinner"></span><span>Loading character…</span></div>
+            <div class="error-banner hidden" id="errorBanner" role="alert">Could not load this character model. Please refresh the page and try again.</div>
+            <div class="scene-tag">INTERACTIVE 3D · DRAG TO ORBIT · SCROLL TO ZOOM</div>
+          </div>
+          <div class="viewport-bottom"><span><i class="pulse"></i> SOURCE MODEL · TEXTURES PACKED</span><span id="modelFile">superhero_female_dark.glb</span></div>
+        </div>
+        <div class="quality-row">
+          <article class="quality-card panel"><span class="quality-icon violet">✦</span><div><strong>Source-authentic</strong><p>Original full-body mesh and bind pose retained.</p></div></article>
+          <article class="quality-card panel"><span class="quality-icon green">◉</span><div><strong>Texture-complete</strong><p>Hair, eyes, normal, color and roughness maps embedded.</p></div></article>
+          <article class="quality-card panel"><span class="quality-icon blue">⬡</span><div><strong>Portable GLB</strong><p>Single-file glTF 2.0, ready to inspect or import.</p></div></article>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer><span>INDUS CHARACTER STUDIO</span><span>Made with the repository’s Base model /Character and Base model /Texture assets</span></footer>
+  <script type="module" src="./character-viewer.js"></script>
+</body>
+</html>
