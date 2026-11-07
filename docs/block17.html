@@ -78,10 +78,7 @@
     status.textContent = `Loading ${model.name}…`;
   }
   viewer.addEventListener('load', () => {
-    const model = models[selected];
-    if (viewer.getAttribute('src') === `./models/buildings/${model.file}`) {
-      status.textContent = `${model.name} loaded · ready to inspect`;
-    }
+    status.textContent = `${models[selected].name} loaded · ready to inspect`;
   });
   viewer.addEventListener('error', () => {
     status.textContent = `Unable to load ${models[selected].name}. Reload the page or download the GLB directly.`;
