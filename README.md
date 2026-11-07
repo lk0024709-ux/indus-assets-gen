@@ -5,7 +5,7 @@
 
 # 🎨 Indus : Battle Royale — 3D Asset Generator
 
-> **3D character web viewers:** use the [general Asset Viewer](procedural_asset_app/frontend/asset-viewer.html) for the built-in characters and local GLB/GLTF/FBX/OBJ files, or the [Character Studio guide](CHARACTER_STUDIO.md) for the focused model gallery.
+> **3D character web viewers:** use the [general Asset Viewer](procedural_asset_app/frontend/asset-viewer.html) for local GLB/GLTF/FBX/OBJ files, or the [Character Studio](procedural_asset_app/frontend/characters.html) to play all 74 supplied motions on the textured superhero rigs. See the [Character Studio guide](CHARACTER_STUDIO.md).
 
 Production asset pipeline for **Indus : Battle Royale**. Procedural models are generated with **Blender Python (`bpy`)**; supplied character models are preserved and packed as textured `.glb` files. Published assets are designed for use in Godot, Unity, and browser-based viewers.
 

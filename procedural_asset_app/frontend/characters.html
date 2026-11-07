@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#0b0e14">
-  <meta name="description" content="Explore the rigged, texture-rich Indus superhero character models.">
+  <meta name="description" content="Explore and animate the rigged, texture-rich Indus superhero characters with 74 supplied motion clips.">
   <title>Character Studio · Indus Asset Generator</title>
   <link rel="stylesheet" href="./character-viewer.css">
   <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/"}}</script>
@@ -23,10 +23,10 @@
       <div class="intro-copy">
         <p class="eyebrow">HEROES · READY FOR THE ARENA</p>
         <h1>Built from the<br><span>source assets.</span></h1>
-        <p class="intro-text">Explore the repository’s original superhero rigs, now packed with their PBR maps for a clean, portable 3D preview.</p>
+        <p class="intro-text">Explore the repository’s original superhero rigs with embedded PBR maps, then play any of the 74 supplied Mixamo motions retargeted to the character skeleton.</p>
       </div>
       <div class="intro-badges" aria-label="Model features">
-        <span>RIGGED SKELETON</span><span>EMBEDDED PBR</span><span>GLB EXPORT</span>
+        <span>65-JOINT RIG</span><span>74 MOTIONS</span><span>EMBEDDED PBR</span><span>GLB EXPORT</span>
       </div>
     </section>
 
@@ -60,7 +60,7 @@
           <div class="spec"><span>FORMAT</span><strong>GLB 2.0</strong></div>
         </div>
         <button class="download-button" id="downloadModel" type="button">↓ <span>Download character GLB</span></button>
-        <p class="small-note">Textures are embedded. Model keeps its original skin and skeleton; no animation clip was included in the source.</p>
+        <p class="small-note">The source model already has a 65-joint skeleton, so no replacement rig was needed. PBR textures are embedded; the supplied motions are retargeted at playback.</p>
       </aside>
 
       <div class="preview-column">
@@ -73,6 +73,17 @@
           </div>
           <div class="viewport-bottom"><span><i class="pulse"></i> SOURCE MODEL · TEXTURES PACKED</span><span id="modelFile">superhero_female_dark.glb</span></div>
         </div>
+        <section class="motion-player panel" aria-label="Character motion player">
+          <div class="motion-heading"><div><p class="eyebrow">ANIMATION LIBRARY</p><strong>Play a source motion</strong></div><span id="motionCount" class="motion-count">Loading 74 clips…</span></div>
+          <div class="motion-controls">
+            <select id="motionSelect" aria-label="Select a character motion" disabled><option>Loading motions…</option></select>
+            <button id="motionPlay" class="motion-action primary" type="button" disabled>▶ <span>Play</span></button>
+            <button id="motionStop" class="motion-action" type="button" disabled>■ <span>Stop</span></button>
+            <select id="motionSpeed" class="motion-speed" aria-label="Playback speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
+          </div>
+          <div class="motion-progress"><input id="motionSeek" type="range" min="0" max="1000" value="0" aria-label="Motion timeline" disabled><span id="motionTime">0:00 / 0:00</span></div>
+          <p id="motionStatus" class="motion-status" role="status">The source character rig is ready. Loading the FBX motion library…</p>
+        </section>
         <div class="quality-row">
           <article class="quality-card panel"><span class="quality-icon violet">✦</span><div><strong>Source-authentic</strong><p>Original full-body mesh and bind pose retained.</p></div></article>
           <article class="quality-card panel"><span class="quality-icon green">◉</span><div><strong>Texture-complete</strong><p>Hair, eyes, normal, color and roughness maps embedded.</p></div></article>

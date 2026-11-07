@@ -14,6 +14,7 @@ from registry import RECIPES, public_recipes, validate_params
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "outputs"
 FRONTEND = ROOT / "frontend"
+MOTION_SOURCE = ROOT.parent / "Base model " / "Motion"
 OUT.mkdir(parents=True, exist_ok=True)
 BLENDER = os.environ.get("BLENDER_BIN", shutil.which("blender") or "blender")
 app = FastAPI(title="Procedural 3D Asset Generator", version="1.0.0")
@@ -65,4 +66,5 @@ def generate(req: GenerateRequest):
     return {"url":f"/outputs/{filename}","cached":False,"hash":digest,"params":params}
 
 app.mount("/outputs",StaticFiles(directory=OUT),name="outputs")
+app.mount("/assets/motions",StaticFiles(directory=MOTION_SOURCE),name="source-motions")
 app.mount("/",StaticFiles(directory=FRONTEND,html=True),name="frontend")
