@@ -62,6 +62,7 @@ class CharacterMotionUITests(unittest.TestCase):
         self.assertIn("@media(max-width:360px)", self.css)
         self.assertIn(".motion-choice:focus-visible", self.css)
         self.assertIn(".motion-choice[aria-pressed=\"true\"]", self.css)
+        self.assertNotIn(".motion-category-heading{position:sticky", self.css)
 
 
 if __name__ == "__main__":

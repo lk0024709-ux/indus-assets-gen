@@ -17,7 +17,7 @@ The GLBs are under `procedural_asset_app/frontend/assets/characters/`. Each is s
 
 `Base model /Motion/` contains **74 FBX motion clips** on a Mixamo 65-bone rig. The Character Studio loads each FBX on demand, maps Mixamo joints to the superhero skeleton, converts bone-space and centimeter units, and plays it on the selected male or female model. The first idle motion starts automatically; every clip has its own clickable button, arranged in scrollable Movement, Stance, Combat, and Special groups. Play/pause, stop, speed, and timeline controls remain available.
 
-The motion button library and retargeter are in `procedural_asset_app/frontend/characters.html` and `character-viewer.js`; `motion-retarget.js` contains the skeleton mapping. The compact motion list is generated as `assets/motion-manifest.json`. GitHub Pages staging copies the FBXs into `assets/motions/` without duplicating those source files in the repository.
+The motion button library and retargeter are in `procedural_asset_app/frontend/characters.html` and `character-viewer.js`; `motion-retarget.js` contains the skeleton mapping. Rotation deltas are converted between each source/target bone's rest-local frame, while translation deltas use the parent-frame basis and preserve the FBX root trajectory at centimeter-to-meter scale. The compact motion list is generated as `assets/motion-manifest.json`. GitHub Pages staging copies the FBXs into `assets/motions/` without duplicating those source files in the repository.
 
 ## Preview locally
 
@@ -41,4 +41,4 @@ npm install --prefix /tmp/three-validation --no-save --no-package-lock three@0.1
 THREE_PACKAGE=/tmp/three-validation/node_modules/three node tools/validate_motion_retarget.mjs
 ```
 
-The test suite checks the embedded GLBs and confirms that the manifest covers every source FBX. The Node validation parses and retargets all 74 clips, checks finite animated keys, and samples mixer playback against the target rig.
+The test suite checks the embedded GLBs, verifies the motion button UI, and confirms that the manifest covers every source FBX. The Node validation parses and retargets all 74 clips, checks finite animated keys, samples AnimationMixer playback across the four motion categories, and compares Run Right root travel and pelvis-relative foot positions against the unmodified source FBX.

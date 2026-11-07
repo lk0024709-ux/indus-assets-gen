@@ -6,7 +6,7 @@ const packageRoot = process.env.THREE_PACKAGE;
 if (!packageRoot) throw new Error('Set THREE_PACKAGE to an installed Three.js package directory.');
 const THREE = await import(pathToFileURL(path.join(packageRoot, 'build/three.module.js')).href);
 const { FBXLoader } = await import(pathToFileURL(path.join(packageRoot, 'examples/jsm/loaders/FBXLoader.js')).href);
-const { retargetMixamoClip } = await import('../procedural_asset_app/frontend/motion-retarget.js');
+const { normalizedBoneName, retargetMixamoClip } = await import('../procedural_asset_app/frontend/motion-retarget.js');
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const characterFile = path.join(root, 'Base model ', 'Character', 'Superhero_Female_FullBody.gltf');
@@ -42,9 +42,32 @@ function toArrayBuffer(buffer) {
   return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
 }
 
+function findBone(root, normalizedName) {
+  let result = null;
+  root.traverse(node => {
+    if (node.isBone && normalizedBoneName(node.name) === normalizedName) result = node;
+  });
+  return result;
+}
+
+function restoreTargetBindPose() {
+  for (const [bone, pose] of bindPose) {
+    bone.position.copy(pose.position);
+    bone.quaternion.copy(pose.quaternion);
+    bone.scale.copy(pose.scale);
+  }
+  targetRoot.updateMatrixWorld(true);
+}
+
 const files = fs.readdirSync(motionDir).filter(file => file.toLowerCase().endsWith('.fbx')).sort();
+const representativeFiles = new Set([
+  'idle.fbx', 'running.fbx', 'run right.fbx', 'dive roll.fbx',
+  'crouch walking.fbx', 'firing rifle.fbx', 'death crouching headshot front.fbx'
+]);
 let totalTracks = 0;
 let footerFixed = 0;
+const playbackSamplesValidated = new Set();
+let maxRunRightFootError = 0;
 for (const file of files) {
   const bytes = fs.readFileSync(path.join(motionDir, file));
   const loader = new FBXLoader();
@@ -73,7 +96,7 @@ for (const file of files) {
       }
     }
     if (!hasMotion) throw new Error('all retargeted keys are static');
-    if (['idle.fbx', 'running.fbx', 'dive roll.fbx'].includes(file.toLowerCase())) {
+    if (representativeFiles.has(file.toLowerCase())) {
       const mixer = new THREE.AnimationMixer(targetRoot);
       const action = mixer.clipAction(retargeted);
       action.play();
@@ -92,6 +115,57 @@ for (const file of files) {
       targetRoot.updateMatrixWorld(true);
       mixer.uncacheRoot(targetRoot);
       if (!changedPose) throw new Error('AnimationMixer playback did not move the target skeleton.');
+
+      if (file.toLowerCase() === 'run right.fbx') {
+        const sourceHipsTrack = clip.tracks.find(track => track.name.toLowerCase().endsWith('hips.position'));
+        const targetHipsTrack = retargeted.tracks.find(track => track.name === 'pelvis.position');
+        if (!sourceHipsTrack || !targetHipsTrack || sourceHipsTrack.values.length < 6 || targetHipsTrack.values.length < 6) {
+          throw new Error('Root-motion tracks are missing from the source or retargeted Run Right clip.');
+        }
+        const pointAt = (values, index) => new THREE.Vector3(values[index * 3], values[index * 3 + 1], values[index * 3 + 2]);
+        const sourceTravel = pointAt(sourceHipsTrack.values, sourceHipsTrack.values.length / 3 - 1)
+          .sub(pointAt(sourceHipsTrack.values, 0)).multiplyScalar(0.01).length();
+        const targetTravel = pointAt(targetHipsTrack.values, targetHipsTrack.values.length / 3 - 1)
+          .sub(pointAt(targetHipsTrack.values, 0)).length();
+        if (Math.abs(sourceTravel - targetTravel) > 0.02) {
+          throw new Error(`Run Right root travel changed during retargeting (${sourceTravel.toFixed(3)}m source vs ${targetTravel.toFixed(3)}m target).`);
+        }
+
+        const sourceHips = findBone(source, 'hips');
+        const sourceFeet = [findBone(source, 'leftfoot'), findBone(source, 'rightfoot')];
+        const targetHips = findBone(targetRoot, 'pelvis');
+        const targetFeet = [findBone(targetRoot, 'footl'), findBone(targetRoot, 'footr')];
+        if (!sourceHips || !targetHips || sourceFeet.some(bone => !bone) || targetFeet.some(bone => !bone)) {
+          throw new Error('Could not find pelvis/foot bones for root-relative pose fidelity check.');
+        }
+        const sourceMixer = new THREE.AnimationMixer(source);
+        sourceMixer.clipAction(clip).play();
+        const targetMixer = new THREE.AnimationMixer(targetRoot);
+        targetMixer.clipAction(retargeted).play();
+        for (const time of [0, 0.1, 0.2, 0.4]) {
+          sourceMixer.setTime(time);
+          targetMixer.setTime(time);
+          source.updateMatrixWorld(true);
+          targetRoot.updateMatrixWorld(true);
+          const sourceHipY = sourceHips.getWorldPosition(new THREE.Vector3()).y;
+          const targetHipY = targetHips.getWorldPosition(new THREE.Vector3()).y;
+          for (let side = 0; side < 2; side++) {
+            const sourceFootOffset = (sourceFeet[side].getWorldPosition(new THREE.Vector3()).y - sourceHipY) * 0.01;
+            const targetFootOffset = targetFeet[side].getWorldPosition(new THREE.Vector3()).y - targetHipY;
+            const error = Math.abs(sourceFootOffset - targetFootOffset);
+            maxRunRightFootError = Math.max(maxRunRightFootError, error);
+            if (error > 0.18) {
+              throw new Error(`Run Right ${side ? 'right' : 'left'} foot deviates ${error.toFixed(3)}m from source-relative motion at ${time.toFixed(2)}s.`);
+            }
+          }
+        }
+        sourceMixer.stopAllAction();
+        targetMixer.stopAllAction();
+        sourceMixer.uncacheRoot(source);
+        targetMixer.uncacheRoot(targetRoot);
+        restoreTargetBindPose();
+      }
+      playbackSamplesValidated.add(file.toLowerCase());
     }
     totalTracks += retargeted.tracks.length;
     source.traverse(node => {
@@ -103,7 +177,14 @@ for (const file of files) {
     process.exitCode = 1;
   }
 }
+const missingSamples = [...representativeFiles].filter(file => !playbackSamplesValidated.has(file));
+if (missingSamples.length) {
+  console.error(`Representative AnimationMixer samples were not validated: ${missingSamples.join(', ')}.`);
+  process.exitCode = 1;
+}
 console.log(`Retargeted ${files.length} FBX clips; ${totalTracks} bone tracks total; ${footerFixed} footer-padding files normalized at load.`);
+console.log(`AnimationMixer samples validated across four categories: ${[...playbackSamplesValidated].join(', ')}.`);
+console.log(`Run Right root travel preserved; max pelvis-relative foot offset error ${maxRunRightFootError.toFixed(3)}m (limit 0.180m).`);
 if (files.length !== 74) {
   console.error(`Expected 74 source FBX clips, found ${files.length}.`);
   process.exitCode = 1;
