@@ -96,7 +96,13 @@ let browser;
     ['18', 'Block 18', 'Block18_OpenCornerHouse.glb'],
   ]) {
     await page.click(`[data-block="${id}"]`);
-    await page.waitForFunction(label => document.querySelector('#viewer-status').textContent.includes(`${label} loaded`), name, { timeout: 60000 });
+    try {
+      await page.waitForFunction(label => document.querySelector('#viewer-status').textContent.includes(`${label} loaded`), name, { timeout: 60000 });
+    } catch (error) {
+      const diagnostics = await page.$eval('#house', node => ({src:node.getAttribute('src'),loaded:node.loaded,hasModel:!!node.model}));
+      console.error('BLOCK_SWITCH_DIAG', id, await page.locator('#viewer-status').textContent(), diagnostics, modelRequests.filter(url => url.includes('/models/buildings/')), errors.slice(-4));
+      throw error;
+    }
     assert.match(await page.locator('.download').getAttribute('href'), new RegExp(`models/buildings/${file}$`));
   }
   assert.equal(await page.locator('#reset-view').count(), 1);
