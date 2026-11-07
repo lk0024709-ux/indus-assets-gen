@@ -1,4 +1,4 @@
-> **Current Pages catalog:** `body_base_midpoly.glb`, `body_base_female_midpoly.glb`, and the anatomical `skeleton_base_midpoly.glb` are published. Legacy
+> **Current Pages catalog:** `body_base_midpoly.glb`, `body_base_female_midpoly.glb`, and the anatomical `skeleton_base_midpoly.glb` are published. The web build also generates and serves the **Block 17 two-storey house** at [the house viewer](https://lk0024709-ux.github.io/indus-assets-gen/block17.html). Legacy
 > character, building, terrain, vehicle, and OBJ assets have been removed from
 > `docs/models/`. Older pipeline sections below are historical documentation,
 > not the current hosted catalog. See [the mid-poly catalog](docs/CHARACTER_CATALOG.md).

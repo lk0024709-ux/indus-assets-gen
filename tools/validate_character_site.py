@@ -34,8 +34,14 @@ class ViewerParser(HTMLParser):
             self.animations.append(a['data-animation'])
 
 
+index_html = (DOCS / 'index.html').read_text()
 parser = ViewerParser()
-parser.feed((DOCS / 'index.html').read_text())
+parser.feed(index_html)
+assert './block17.html' in index_html, 'character landing page must link to Block 17 viewer'
+house_html = (DOCS / 'block17.html').read_text()
+assert 'src="./models/buildings/block17_house.glb"' in house_html
+assert 'href="./models/buildings/block17_house.glb"' in house_html
+assert 'id="reset-view"' in house_html and 'id="rotate"' in house_html
 assert parser.sources == ['./models/characters/body_base_female_midpoly.glb']
 assert parser.assets == 3
 assert parser.animations == ['Idle', 'Walk']
