@@ -71,7 +71,16 @@ jobs:
             exit "$result"
           fi
       - name: Test viewer and Idle/Walk playback in Chromium
-        run: npm test --prefix tools/viewer-tests
+        run: |
+          set +e
+          npm test --prefix tools/viewer-tests > /tmp/viewer-test.log 2>&1
+          result=$?
+          cat /tmp/viewer-test.log
+          if [ "$result" -ne 0 ]; then
+            detail=$(tail -n 12 /tmp/viewer-test.log | tr '\n' ' ' | cut -c 1-1200)
+            echo "::error title=Viewer browser test::exit=$result; $detail"
+            exit "$result"
+          fi
       - name: Stage public viewer files and models
         run: |
           mkdir -p _site/models/characters/skeleton _site/models/buildings _site/vendor
