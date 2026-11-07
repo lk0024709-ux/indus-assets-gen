@@ -71,10 +71,10 @@ let browser;
 
   await page.goto('http://127.0.0.1:8765/block17.html');
   try {
-    await page.waitForFunction(() => document.querySelector('#status').textContent.includes('Block 17 loaded'), null, { timeout: 60000 });
+    await page.waitForFunction(() => document.querySelector('#viewer-status').textContent.includes('Block 17 loaded'), null, { timeout: 60000 });
   } catch (error) {
     const viewerState = await page.$eval('#house', node => ({ src: node.getAttribute('src'), loaded: node.loaded, hasModel: !!node.model }));
-    console.error('Block viewer diagnostics:', await page.locator('#status').textContent(), viewerState, errors);
+    console.error('Block viewer diagnostics:', await page.locator('#viewer-status').textContent(), viewerState, errors);
     throw error;
   }
   assert.equal(await page.locator('[data-block]').count(), 4);
@@ -86,7 +86,7 @@ let browser;
     ['18', 'Block 18', 'Block18_OpenCornerHouse.glb'],
   ]) {
     await page.click(`[data-block="${id}"]`);
-    await page.waitForFunction(label => document.querySelector('#status').textContent.includes(`${label} loaded`), name, { timeout: 60000 });
+    await page.waitForFunction(label => document.querySelector('#viewer-status').textContent.includes(`${label} loaded`), name, { timeout: 60000 });
     assert.match(await page.locator('.download').getAttribute('href'), new RegExp(`models/buildings/${file}$`));
   }
   assert.equal(await page.locator('#reset-view').count(), 1);

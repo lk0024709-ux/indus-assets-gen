@@ -7,7 +7,7 @@
   <title>Blocks 15–18 — Indus Assets</title>
   <script type="module" src="./vendor/model-viewer.min.js"></script>
   <style>
-    *{box-sizing:border-box}body{margin:0;background:#101722;color:#edf3fa;font:16px/1.6 system-ui,sans-serif}main{max-width:1180px;margin:auto;padding:32px 24px}header{margin-bottom:24px}.eyebrow{color:#75e0c4;text-transform:uppercase;letter-spacing:.18em;font-size:12px}h1{font-size:clamp(30px,5vw,46px);line-height:1.15;margin:8px 0}p{color:#a8b9cd;margin:8px 0}.back{color:#75e0c4;text-decoration:none;font-size:14px}.back:hover{text-decoration:underline}.layout{display:grid;grid-template-columns:300px 1fr;gap:20px}.panel{border:1px solid #2c3b4e;border-radius:16px;background:#172230;padding:22px}h2{font-size:14px;text-transform:uppercase;letter-spacing:.08em;margin:0 0 12px}.selector{display:grid;gap:8px}.block-choice,.download,.control{display:block;width:100%;font:inherit;text-align:left;text-decoration:none;border:1px solid #4b657e;border-radius:8px;padding:10px 14px;color:#edf3fa;background:#22354a;cursor:pointer}.block-choice[aria-pressed="true"]{background:#75e0c4;color:#102822;border-color:#75e0c4}.block-choice small{display:block;opacity:.78;font-size:12px}.facts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}.fact{padding:12px;border-radius:10px;background:#101a26;color:#a8b9cd;font-size:13px}.fact strong{display:block;color:#edf3fa;font-size:16px}.download{background:#75e0c4;border-color:#75e0c4;color:#102822;font-weight:650;text-align:center}.controls{display:flex;gap:8px;margin-top:12px}.control{width:auto;flex:1;text-align:center}.control:hover,.download:hover{filter:brightness(1.08)}model-viewer{display:block;width:100%;height:min(70vh,680px);min-height:440px;background:radial-gradient(ellipse at center,#33475c,#172230);border-radius:12px}#status{font-size:14px;margin-top:12px;min-height:24px}.note{font-size:13px;margin-top:18px}footer{font-size:13px;color:#a8b9cd;margin-top:20px}@media(max-width:760px){main{padding:20px 12px}.layout{grid-template-columns:1fr}.panel{padding:16px}model-viewer{height:54vh;min-height:360px}}
+    *{box-sizing:border-box}body{margin:0;background:#101722;color:#edf3fa;font:16px/1.6 system-ui,sans-serif}main{max-width:1180px;margin:auto;padding:32px 24px}header{margin-bottom:24px}.eyebrow{color:#75e0c4;text-transform:uppercase;letter-spacing:.18em;font-size:12px}h1{font-size:clamp(30px,5vw,46px);line-height:1.15;margin:8px 0}p{color:#a8b9cd;margin:8px 0}.back{color:#75e0c4;text-decoration:none;font-size:14px}.back:hover{text-decoration:underline}.layout{display:grid;grid-template-columns:300px 1fr;gap:20px}.panel{border:1px solid #2c3b4e;border-radius:16px;background:#172230;padding:22px}h2{font-size:14px;text-transform:uppercase;letter-spacing:.08em;margin:0 0 12px}.selector{display:grid;gap:8px}.block-choice,.download,.control{display:block;width:100%;font:inherit;text-align:left;text-decoration:none;border:1px solid #4b657e;border-radius:8px;padding:10px 14px;color:#edf3fa;background:#22354a;cursor:pointer}.block-choice[aria-pressed="true"]{background:#75e0c4;color:#102822;border-color:#75e0c4}.block-choice small{display:block;opacity:.78;font-size:12px}.facts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}.fact{padding:12px;border-radius:10px;background:#101a26;color:#a8b9cd;font-size:13px}.fact strong{display:block;color:#edf3fa;font-size:16px}.download{background:#75e0c4;border-color:#75e0c4;color:#102822;font-weight:650;text-align:center}.controls{display:flex;gap:8px;margin-top:12px}.control{width:auto;flex:1;text-align:center}.control:hover,.download:hover{filter:brightness(1.08)}model-viewer{display:block;width:100%;height:min(70vh,680px);min-height:440px;background:radial-gradient(ellipse at center,#33475c,#172230);border-radius:12px}#viewer-status{font-size:14px;margin-top:12px;min-height:24px}.note{font-size:13px;margin-top:18px}footer{font-size:13px;color:#a8b9cd;margin-top:20px}@media(max-width:760px){main{padding:20px 12px}.layout{grid-template-columns:1fr}.panel{padding:16px}model-viewer{height:54vh;min-height:360px}}
   </style>
 </head>
 <body>
@@ -44,7 +44,7 @@
         <button class="control" id="reset-view" type="button">Reset view</button>
         <button class="control" id="rotate" type="button" aria-pressed="false">Auto-rotate</button>
       </div>
-      <p id="status" role="status" aria-live="polite">Loading Block 17…</p>
+      <p id="viewer-status" role="status" aria-live="polite">Loading Block 17…</p>
     </section>
   </div>
   <footer>All four models are generated procedurally with Blender. The GLBs include Godot collision naming and Node3D loot spawn markers.</footer>
@@ -58,7 +58,7 @@
   };
   const viewer = document.querySelector('#house');
   const download = document.querySelector('#download');
-  const status = document.querySelector('#status');
+  const status = document.querySelector('#viewer-status');
   let selected = '17';
   function selectBlock(id) {
     if (id === selected) return;
