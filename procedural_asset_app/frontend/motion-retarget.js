@@ -49,12 +49,17 @@ export function retargetMixamoClip(THREE, sourceRoot, targetRoot, bindPose, sour
     // Basis maps source-parent local axes into the target-parent local frame.
     const sourceParentQ = worldQuaternion(THREE, sourceBone.parent);
     const targetParentQ = worldQuaternion(THREE, targetBone.parent);
-    const basis = targetParentQ.clone().invert().multiply(sourceParentQ);
-    const inverseBasis = basis.clone().invert();
+    // Convert parent-frame vectors/translations, and separately map each bone's
+    // rest-local axes. Omitting the rest-local conversion applies FBX deltas in
+    // the target's different bind frame, which can twist limbs and lift the feet.
+    const parentBasis = targetParentQ.clone().invert().multiply(sourceParentQ);
+    const sourceRestQ = sourceBone.quaternion.clone().normalize();
+    const targetRestQ = targetRest.quaternion.clone().normalize();
+    const boneBasis = targetRestQ.clone().invert().multiply(parentBasis).multiply(sourceRestQ).normalize();
+    const inverseBoneBasis = boneBasis.clone().invert();
 
     if (property === 'quaternion') {
-      const inverseSourceRest = sourceBone.quaternion.clone().normalize().invert();
-      const targetRestQ = targetRest.quaternion.clone().normalize();
+      const inverseSourceRest = sourceRestQ.clone().invert();
       const values = new Float32Array(sourceTrack.values.length);
       let previous = null;
       for (let i = 0; i < sourceTrack.values.length; i += 4) {
@@ -62,7 +67,7 @@ export function retargetMixamoClip(THREE, sourceRoot, targetRoot, bindPose, sour
           sourceTrack.values[i], sourceTrack.values[i + 1], sourceTrack.values[i + 2], sourceTrack.values[i + 3]
         ).normalize();
         const delta = inverseSourceRest.clone().multiply(animated);
-        const converted = targetRestQ.clone().multiply(basis).multiply(delta).multiply(inverseBasis).normalize();
+        const converted = targetRestQ.clone().multiply(boneBasis).multiply(delta).multiply(inverseBoneBasis).normalize();
         if (previous && previous.dot(converted) < 0) converted.set(-converted.x, -converted.y, -converted.z, -converted.w);
         values.set(converted.toArray(), i);
         previous = converted;
@@ -78,7 +83,7 @@ export function retargetMixamoClip(THREE, sourceRoot, targetRoot, bindPose, sour
           sourceTrack.values[i] - sourceRestPosition.x,
           sourceTrack.values[i + 1] - sourceRestPosition.y,
           sourceTrack.values[i + 2] - sourceRestPosition.z
-        ).applyQuaternion(basis).multiplyScalar(0.01);
+        ).applyQuaternion(parentBasis).multiplyScalar(0.01);
         values[i] = targetRest.position.x + delta.x;
         values[i + 1] = targetRest.position.y + delta.y;
         values[i + 2] = targetRest.position.z + delta.z;
