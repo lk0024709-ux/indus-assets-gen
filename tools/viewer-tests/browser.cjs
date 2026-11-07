@@ -15,8 +15,14 @@ let browser;
     args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   const page = await browser.newPage();
   const errors = [];
+  const modelRequests = [];
   page.on('pageerror', e => errors.push(String(e)));
-  page.on('response', r => { if (r.status() >= 400) errors.push(`${r.status()} ${r.url()}`); });
+  page.on('console', message => { if (message.type() === 'error') errors.push(`console: ${message.text()}`); });
+  page.on('request', request => { if (request.url().endsWith('.glb')) modelRequests.push(`request ${request.url()}`); });
+  page.on('response', r => {
+    if (r.status() >= 400) errors.push(`${r.status()} ${r.url()}`);
+    if (r.url().endsWith('.glb')) modelRequests.push(`response ${r.status()} ${r.url()}`);
+  });
   await page.goto('http://127.0.0.1:8765/');
   await page.waitForFunction(() => document.querySelector('#status').textContent.includes('Athletic Female · T-pose'), null, { timeout: 60000 });
   await page.waitForFunction(() => document.querySelectorAll('#rig-tree [data-bone]').length === 27);
@@ -73,8 +79,8 @@ let browser;
   try {
     await page.waitForFunction(() => document.querySelector('#viewer-status').textContent.includes('Block 17 loaded'), null, { timeout: 60000 });
   } catch (error) {
-    const viewerState = await page.$eval('#house', node => ({ src: node.getAttribute('src'), loaded: node.loaded, hasModel: !!node.model }));
-    console.error('Block viewer diagnostics:', await page.locator('#viewer-status').textContent(), viewerState, errors);
+    const viewerState = await page.$eval('#house', node => ({ src: node.getAttribute('src'), loaded: node.loaded, hasModel: !!node.model, loading: node.loading, customElementReady: customElements.get('model-viewer') !== undefined }));
+    console.error('Block viewer diagnostics:', await page.locator('#viewer-status').textContent(), viewerState, modelRequests.slice(-6), errors.slice(-8));
     throw error;
   }
   assert.equal(await page.locator('[data-block]').count(), 4);
