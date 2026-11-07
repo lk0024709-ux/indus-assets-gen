@@ -1,4 +1,4 @@
-> **Current Pages catalog:** `body_base_midpoly.glb`, `body_base_female_midpoly.glb`, and the anatomical `skeleton_base_midpoly.glb` are published. The web build also generates and serves the **Block 17 two-storey house** at [the house viewer](https://lk0024709-ux.github.io/indus-assets-gen/block17.html). Legacy
+> **Current Pages catalog:** `body_base_midpoly.glb`, `body_base_female_midpoly.glb`, and the anatomical `skeleton_base_midpoly.glb` are published. The web build also generates and serves **Blocks 15–18**, four walkable two-storey buildings, at [the building viewer](https://lk0024709-ux.github.io/indus-assets-gen/block17.html). Legacy
 > character, building, terrain, vehicle, and OBJ assets have been removed from
 > `docs/models/`. Older pipeline sections below are historical documentation,
 > not the current hosted catalog. See [the mid-poly catalog](docs/CHARACTER_CATALOG.md).
@@ -62,6 +62,7 @@ tools/
   generate_mahal_rooms.py      # 4 walk-in rooms + assemble_mahal() -> rajasthani_mahal_mega.glb
   generate_building_modules.py # 15 m modular kit (walls, partitions, slabs, roofs, stairs, furniture)
   assemble_buildings.py        # 11 building recipes -> one joined mesh each
+  generate_blocks_15_18.py    # four open two-storey buildings -> individual Godot-ready GLBs
   generate_plane_cargo_elite.py# Elite Cargo Dropship (Vehicles category)
 
 docs/                          # GitHub Pages site (viewer + models)
