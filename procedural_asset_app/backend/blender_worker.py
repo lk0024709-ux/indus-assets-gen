@@ -1,9 +1,16 @@
 import json, sys
 import bpy
-from recipes import chair, table, lamp, rock, barrel
+from recipes import battle_royale_outfit, chair, table, lamp, rock, barrel
 from recipes.base import clear_scene
 
-MODULES = {"chair":chair,"table":table,"lamp":lamp,"rock":rock,"barrel":barrel}
+MODULES = {
+    "battle_royale_outfit": battle_royale_outfit,
+    "chair": chair,
+    "table": table,
+    "lamp": lamp,
+    "rock": rock,
+    "barrel": barrel,
+}
 
 def main():
     args=sys.argv[sys.argv.index("--")+1:] if "--" in sys.argv else []

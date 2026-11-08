@@ -1,7 +1,12 @@
 import random
 from .base import finish, smooth_mesh
-import bpy
-from mathutils import Vector
+
+try:
+    import bpy
+    from mathutils import Vector
+except ImportError:  # pragma: no cover - outside Blender
+    bpy = None
+    Vector = None
 
 NAME = "Rock"
 DESCRIPTION = "A seeded, irregular low-poly boulder with controllable surface variation."

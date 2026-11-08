@@ -25,21 +25,23 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Rebuild embedded superhero GLBs and motion manifest
+      - name: Rebuild embedded superhero GLBs, Battle Royale outfits, and motion manifest
         run: |
           python tools/build_superhero_characters.py
+          python tools/build_battle_royale_outfits.py
           python tools/build_motion_manifest.py
 
-      - name: Test character packaging, motion manifest, and source texture variants
+      - name: Test character packaging, outfits, motion manifest, and source texture variants
         run: python -m unittest discover -s tools -p 'test_*.py' -v
 
       - name: Check backend Python syntax
-        run: python -m compileall -q procedural_asset_app/backend
+        run: python -m compileall -q procedural_asset_app/backend tools
 
       - name: Check viewer JavaScript syntax
         run: |
           node --check procedural_asset_app/frontend/character-viewer.js
           node --check procedural_asset_app/frontend/motion-retarget.js
+          node --check procedural_asset_app/frontend/glb-combine.js
           python - <<'PY'
           from html.parser import HTMLParser
           from pathlib import Path
@@ -84,8 +86,10 @@ jobs:
           cp procedural_asset_app/frontend/characters.html \
              procedural_asset_app/frontend/character-viewer.css \
              procedural_asset_app/frontend/character-viewer.js \
+             procedural_asset_app/frontend/glb-combine.js \
              procedural_asset_app/frontend/motion-retarget.js _site/
           cp -R procedural_asset_app/frontend/assets/characters _site/assets/
+          cp -R procedural_asset_app/frontend/assets/outfits _site/assets/
           cp procedural_asset_app/frontend/assets/motion-manifest.json _site/assets/
           cp "Base model /Motion/"*.fbx _site/assets/motions/
           test "$(find _site/assets/motions -maxdepth 1 -name '*.fbx' | wc -l)" -eq 74
@@ -95,6 +99,9 @@ jobs:
           test -s _site/assets/characters/superhero_female_light.glb
           test -s _site/assets/characters/superhero_male_dark.glb
           test -s _site/assets/characters/superhero_male_light.glb
+          test -s _site/assets/outfits/outfit_br_female.glb
+          test -s _site/assets/outfits/outfit_br_male.glb
+          test -s _site/assets/outfits/outfit_battle_royale.glb
 
       - uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/main'

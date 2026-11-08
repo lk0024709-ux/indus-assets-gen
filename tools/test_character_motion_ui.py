@@ -39,7 +39,10 @@ class CharacterMotionUITests(unittest.TestCase):
         self.assertEqual({motion["category"] for motion in motions}, {"Movement", "Stance", "Combat", "Special"})
 
     def test_player_has_library_and_keeps_transport_controls(self):
-        for element_id in ("motionLibrary", "motionPlay", "motionStop", "motionSpeed", "motionSeek", "motionStatus"):
+        for element_id in (
+            "motionLibrary", "motionPlay", "motionStop", "motionSpeed", "motionSeek", "motionStatus",
+            "outfitModes", "outfitGroups", "outfitPieceCount", "downloadModel", "downloadOutfit",
+        ):
             self.assertIn(element_id, self.page.ids)
         self.assertNotIn("motionSelect", self.page.select_ids)
         self.assertIn('aria-describedby="motionLibraryHelp"', self.html)

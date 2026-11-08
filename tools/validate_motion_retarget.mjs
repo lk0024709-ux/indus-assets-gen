@@ -6,7 +6,9 @@ const packageRoot = process.env.THREE_PACKAGE;
 if (!packageRoot) throw new Error('Set THREE_PACKAGE to an installed Three.js package directory.');
 const THREE = await import(pathToFileURL(path.join(packageRoot, 'build/three.module.js')).href);
 const { FBXLoader } = await import(pathToFileURL(path.join(packageRoot, 'examples/jsm/loaders/FBXLoader.js')).href);
+const { GLTFLoader } = await import(pathToFileURL(path.join(packageRoot, 'examples/jsm/loaders/GLTFLoader.js')).href);
 const { normalizedBoneName, retargetMixamoClip } = await import('../procedural_asset_app/frontend/motion-retarget.js');
+const { combineCharacterAndOutfitGlb, parseGlbChunks } = await import('../procedural_asset_app/frontend/glb-combine.js');
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const characterFile = path.join(root, 'Base model ', 'Character', 'Superhero_Female_FullBody.gltf');
@@ -189,3 +191,41 @@ if (files.length !== 74) {
   console.error(`Expected 74 source FBX clips, found ${files.length}.`);
   process.exitCode = 1;
 }
+
+// Validate fitted Battle Royale outfits + client-side GLB combiner against retargeted motion
+for (const outfitName of ['outfit_br_female.glb', 'outfit_br_male.glb']) {
+  const outfitBytes = fs.readFileSync(path.join(root, 'procedural_asset_app/frontend/assets/outfits', outfitName));
+  const parsedOutfit = await new Promise((resolve, reject) => {
+    new GLTFLoader().parse(toArrayBuffer(outfitBytes), '', resolve, reject);
+  });
+  parsedOutfit.scene.updateMatrixWorld(true);
+  const outfitBind = new Map();
+  parsedOutfit.scene.traverse(node => {
+    if (node.isBone) outfitBind.set(node, {
+      position: node.position.clone(), quaternion: node.quaternion.clone(), scale: node.scale.clone()
+    });
+  });
+  const runFbx = new FBXLoader().parse(toArrayBuffer(fs.readFileSync(path.join(motionDir, 'Running.fbx'))), '');
+  const runClip = retargetMixamoClip(THREE, runFbx, parsedOutfit.scene, outfitBind, runFbx.animations[0]);
+  const outfitMixer = new THREE.AnimationMixer(parsedOutfit.scene);
+  outfitMixer.clipAction(runClip).play();
+  outfitMixer.update(0.25);
+  parsedOutfit.scene.updateMatrixWorld(true);
+  for (const piece of ['Tee', 'Cargo_Pants', 'Boots', 'Holster', 'KneePad_R', 'Tee_ChestStar']) {
+    const sm = parsedOutfit.scene.getObjectByName(piece);
+    if (!sm?.isSkinnedMesh) throw new Error(`${outfitName}: missing SkinnedMesh ${piece}`);
+    const restPos = new THREE.Vector3().fromBufferAttribute(sm.geometry.attributes.position, 0);
+    const animPos = sm.applyBoneTransform(0, restPos.clone());
+    if (!Number.isFinite(animPos.x) || animPos.distanceTo(restPos) < 1e-4) {
+      throw new Error(`${outfitName}: ${piece} failed skeletal deformation check`);
+    }
+  }
+}
+const heroBytes = fs.readFileSync(path.join(root, 'procedural_asset_app/frontend/assets/characters/superhero_female_dark.glb'));
+const fitBytes = fs.readFileSync(path.join(root, 'procedural_asset_app/frontend/assets/outfits/outfit_br_female.glb'));
+const mergedGlb = combineCharacterAndOutfitGlb(heroBytes, fitBytes);
+const { gltf: mergedJson } = parseGlbChunks(mergedGlb);
+if (mergedJson.meshes.length !== 23 || mergedJson.skins[0].joints.length !== 65) {
+  throw new Error(`Combined GLB mismatch: meshes=${mergedJson.meshes.length}`);
+}
+console.log('Validated Battle Royale fitted outfit GLBs (female + male) and client-side GLB combiner.');

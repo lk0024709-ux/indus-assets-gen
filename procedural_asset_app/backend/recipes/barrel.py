@@ -1,7 +1,12 @@
 import math
 from .base import finish
-import bpy
-import bmesh
+
+try:
+    import bmesh
+    import bpy
+except ImportError:  # pragma: no cover - outside Blender
+    bmesh = None
+    bpy = None
 
 NAME = "Barrel"
 DESCRIPTION = "A faceted wooden barrel with adjustable bulge, stave count and hoops."

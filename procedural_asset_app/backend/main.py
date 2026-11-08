@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
@@ -12,6 +13,10 @@ from pydantic import BaseModel, Field
 from registry import RECIPES, public_recipes, validate_params
 
 ROOT = Path(__file__).resolve().parents[1]
+TOOLS_DIR = ROOT.parent / "tools"
+if str(TOOLS_DIR) not in sys.path:
+    sys.path.insert(0, str(TOOLS_DIR))
+from build_battle_royale_outfits import build_standalone_outfit_glb, srgb_hex_to_linear
 OUT = ROOT / "outputs"
 FRONTEND = ROOT / "frontend"
 MOTION_SOURCE = ROOT.parent / "Base model " / "Motion"
@@ -46,6 +51,22 @@ def generate(req: GenerateRequest):
     if target.exists() and target.stat().st_size > 0:
         return {"url":f"/outputs/{filename}","cached":True,"hash":digest,"params":params}
     if not shutil.which(BLENDER) and not Path(BLENDER).exists():
+        if req.recipe == "battle_royale_outfit":
+            temp_target = OUT / (filename + ".tmp")
+            build_standalone_outfit_glb(
+                temp_target,
+                height=params["height"],
+                palette_overrides={
+                    "tee": srgb_hex_to_linear(params["tee_color"]),
+                    "pants": srgb_hex_to_linear(params["pants_color"]),
+                    "black": srgb_hex_to_linear(params["gear_color"]),
+                },
+                include_holster=params["include_holster"],
+                include_pouches=params["include_pouches"],
+                include_boots=params["include_boots"],
+            )
+            temp_target.replace(target)
+            return {"url":f"/outputs/{filename}","cached":False,"hash":digest,"params":params}
         raise HTTPException(status_code=503,detail="Blender executable not found. Install Blender 4.x or set BLENDER_BIN.")
     with tempfile.TemporaryDirectory(prefix="assetgen-") as tmp:
         param_file=Path(tmp)/"params.json"
