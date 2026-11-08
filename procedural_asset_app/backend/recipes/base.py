@@ -1,6 +1,11 @@
-import bpy
-import bmesh
 import math
+
+try:
+    import bmesh
+    import bpy
+except ImportError:  # pragma: no cover - outside Blender
+    bmesh = None
+    bpy = None
 
 def clear_scene():
     bpy.ops.object.select_all(action="SELECT")

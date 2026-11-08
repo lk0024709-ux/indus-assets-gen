@@ -29,23 +29,28 @@ jobs:
           root = Path("procedural_asset_app")
           required = [
               "backend/main.py", "backend/registry.py", "backend/blender_worker.py",
+              "backend/recipes/battle_royale_outfit.py",
               "backend/recipes/chair.py", "backend/recipes/table.py",
               "backend/recipes/lamp.py", "backend/recipes/rock.py",
               "backend/recipes/barrel.py", "frontend/index.html",
               "frontend/app.js", "frontend/style.css", "frontend/asset-viewer.html",
               "frontend/asset-viewer-source.md", "frontend/characters.html",
               "frontend/character-viewer.css", "frontend/character-viewer.js",
-              "frontend/motion-retarget.js", "frontend/assets/motion-manifest.json",
+              "frontend/glb-combine.js", "frontend/motion-retarget.js",
+              "frontend/assets/outfits/outfits.json",
+              "frontend/assets/motion-manifest.json",
               "README.md", "run.sh"
           ]
           missing = [p for p in required if not (root / p).is_file()]
           if missing:
               raise SystemExit("Missing required files: " + ", ".join(missing))
           text = (root / "backend/registry.py").read_text()
-          for recipe in ("chair", "table", "lamp", "rock", "barrel"):
+          for recipe in ("battle_royale_outfit", "chair", "table", "lamp", "rock", "barrel"):
               assert recipe in text, f"Recipe not registered: {recipe}"
           assert "timeout=60" in (root / "backend/main.py").read_text()
           motions = json.loads((root / "frontend/assets/motion-manifest.json").read_text())
           assert motions["count"] == len(motions["motions"]) == 74
-          print("Required app files, five recipes, and 74 motion entries verified.")
+          outfits = json.loads((root / "frontend/assets/outfits/outfits.json").read_text())
+          assert len(outfits["outfits"]) == 3
+          print("Required app files, six recipes, three outfit GLBs, and 74 motion entries verified.")
           PY

@@ -111,6 +111,7 @@ let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('sh
 
 const ext=n=>n.split('.').pop().toLowerCase();
 const assetUrl=file=>new URL('./assets/characters/'+encodeURIComponent(file),document.baseURI).href;
+const outfitUrl=file=>new URL('./assets/outfits/'+encodeURIComponent(file),document.baseURI).href;
 const readBuf=f=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>no(new Error('Could not read file'));r.readAsArrayBuffer(f)});
 async function parseFile(f){
   const e=ext(f.name),b=await readBuf(f);
@@ -220,15 +221,35 @@ async function openModel(f){
   catch(e){toast(e.message||'Could not open this file')}
 }
 
+async function parseGlbUrl(url){
+  const response=await fetch(url);
+  if(!response.ok)throw new Error('Could not fetch '+url);
+  const data=await response.arrayBuffer();
+  return new Promise((ok,no)=>new THREE.GLTFLoader().parse(data,'',g=>ok({obj:g.scene,anims:g.animations||[]}),e=>no(new Error(e.message||'Invalid GLB'))));
+}
+
 async function openBuiltin(record){
   if(!record)return;
   $('#libLoad').disabled=true;
   try{
     toast('Loading '+record.label+'...');
-    const response=await fetch(assetUrl(record.file));
-    if(!response.ok)throw new Error('Could not fetch '+record.file);
-    const data=await response.arrayBuffer();
-    const parsed=await new Promise((ok,no)=>new THREE.GLTFLoader().parse(data,'',g=>ok({obj:g.scene,anims:g.animations||[]}),e=>no(new Error(e.message||'Invalid GLB'))));
+    const parsed=await parseGlbUrl(record.url);
+    if(record.outfitUrl){
+      const outParsed=await parseGlbUrl(record.outfitUrl);
+      let bodyMesh=null,bestCount=0;
+      parsed.obj.traverse(n=>{if(n.isSkinnedMesh&&n.skeleton&&n.geometry.attributes.position.count>bestCount){bestCount=n.geometry.attributes.position.count;bodyMesh=n}});
+      if(bodyMesh&&bodyMesh.parent){
+        const grp=new THREE.Group();grp.name='Outfit_BR_Fit';
+        outParsed.obj.traverse(n=>{
+          if(!n.isSkinnedMesh)return;
+          const m=n.material.clone();m.skinning=true;
+          const sm=new THREE.SkinnedMesh(n.geometry.clone(),m);
+          sm.name=n.name;sm.frustumCulled=false;sm.bind(bodyMesh.skeleton,bodyMesh.bindMatrix);
+          grp.add(sm);
+        });
+        bodyMesh.parent.add(grp);
+      }
+    }
     setModel(parsed.obj,parsed.anims,record.label);
     toast('Loaded '+record.label);
   }catch(e){toast(e.message||'Could not load this character')}
@@ -241,12 +262,27 @@ async function loadLibrary(){
     const response=await fetch(assetUrl('characters.json'));
     if(!response.ok)throw new Error('Character library unavailable');
     const manifest=await response.json();
-    manifest.models.forEach(record=>{
-      const option=document.createElement('option');
-      option.value=record.id;option.textContent=record.label;select.appendChild(option);
-    });
-    const initial=manifest.models.find(record=>record.id==='superhero_female_dark')||manifest.models[0];
-    if(initial){select.value=initial.id;$('#libLoad').onclick=()=>openBuiltin(manifest.models.find(record=>record.id===select.value));await openBuiltin(initial)}
+    const outRes=await fetch(outfitUrl('outfits.json')).catch(()=>null);
+    const outManifest=outRes&&outRes.ok?await outRes.json():{outfits:[]};
+    const entries=new Map();
+    const addGroup=(title,items)=>{
+      if(!items.length)return;
+      const og=document.createElement('optgroup');og.label=title;
+      items.forEach(it=>{entries.set(it.id,it);const o=document.createElement('option');o.value=it.id;o.textContent=it.label;og.appendChild(o)});
+      select.appendChild(og);
+    };
+    if(outManifest.outfits&&outManifest.outfits.length){
+      addGroup('Battle Royale Heroes',manifest.models.map(m=>({
+        id:m.id+'_br',label:m.label+' · Battle Royale',url:assetUrl(m.file),
+        outfitUrl:outfitUrl(m.id.indexOf('female')>=0?'outfit_br_female.glb':'outfit_br_male.glb')
+      })));
+    }
+    addGroup('Base Superhero Rigs',manifest.models.map(m=>({id:m.id,label:m.label,url:assetUrl(m.file)})));
+    if(outManifest.outfits&&outManifest.outfits.length){
+      addGroup('Battle Royale Outfits',outManifest.outfits.map(o=>({id:o.id,label:o.label,url:outfitUrl(o.file)})));
+    }
+    const initial=entries.get('superhero_female_dark_br')||entries.get('superhero_female_dark')||entries.values().next().value;
+    if(initial){select.value=initial.id;$('#libLoad').onclick=()=>openBuiltin(entries.get(select.value));await openBuiltin(initial)}
   }catch(e){$('#libLoad').disabled=true;toast('Built-in heroes unavailable. Use Open or drop a model file.')}
 }
 

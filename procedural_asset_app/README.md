@@ -4,6 +4,7 @@ A browser-based procedural modeling workspace. FastAPI validates recipe paramete
 
 ## Included recipes
 
+- **Battle Royale Outfit:** 1.50–2.10 m character height scaling, customizable olive tee, cargo pants, and tactical gear colors, optional thigh holster, belt pouches + brass ammo, and combat boots (works both with Blender and via pure-Python GLB fallback).
 - **Chair:** seat width/depth/height, backrest height, 3/4 leg layout, material color.
 - **Table:** dimensions, rectangular/round top, straight/tapered legs, color.
 - **Lamp:** base radius, stem height, shade size/type, radial detail, color.

@@ -1,6 +1,7 @@
-from recipes import chair, table, lamp, rock, barrel
+from recipes import battle_royale_outfit, chair, table, lamp, rock, barrel
 
 RECIPES = {
+    "battle_royale_outfit": battle_royale_outfit,
     "chair": chair,
     "table": table,
     "lamp": lamp,

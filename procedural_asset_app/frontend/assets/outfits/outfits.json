@@ -1,0 +1,596 @@
+{
+  "title": "Indus Battle Royale Character Outfits",
+  "source_scripts": [
+    "tools/outfit_fit_character.py",
+    "tools/outfit_battle_royale.py"
+  ],
+  "units": "metres",
+  "groups": [
+    {
+      "id": "tee",
+      "label": "Tee + Star"
+    },
+    {
+      "id": "pants",
+      "label": "Cargo Pants"
+    },
+    {
+      "id": "gear",
+      "label": "Belt + Holster"
+    },
+    {
+      "id": "boots",
+      "label": "Combat Boots"
+    }
+  ],
+  "outfits": [
+    {
+      "file": "outfit_br_female.glb",
+      "bytes": 1750676,
+      "pieces": 20,
+      "vertices": 37116,
+      "triangles": 12372,
+      "skinned": true,
+      "joints": 65,
+      "height_m": 1.7751,
+      "materials": [
+        "Outfit_BR_Fit_M_tee",
+        "Outfit_BR_Fit_M_pants",
+        "Outfit_BR_Fit_M_boot",
+        "Outfit_BR_Fit_M_black",
+        "Outfit_BR_Fit_M_brass",
+        "Outfit_BR_Fit_M_steel",
+        "Outfit_BR_Fit_M_kneepad",
+        "Outfit_BR_Fit_M_gold"
+      ],
+      "piece_details": [
+        {
+          "name": "Tee",
+          "group": "tee",
+          "material": "tee",
+          "triangles": 4644,
+          "vertices": 13932
+        },
+        {
+          "name": "Cargo_Pants",
+          "group": "pants",
+          "material": "pants",
+          "triangles": 3880,
+          "vertices": 11640
+        },
+        {
+          "name": "Boots",
+          "group": "boots",
+          "material": "boot",
+          "triangles": 3488,
+          "vertices": 10464
+        },
+        {
+          "name": "Belt",
+          "group": "gear",
+          "material": "black",
+          "triangles": 60,
+          "vertices": 180
+        },
+        {
+          "name": "Belt_Buckle",
+          "group": "gear",
+          "material": "black",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Pouch_R",
+          "group": "gear",
+          "material": "black",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Pouch_L",
+          "group": "gear",
+          "material": "black",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Bullet_0",
+          "group": "gear",
+          "material": "brass",
+          "triangles": 20,
+          "vertices": 60
+        },
+        {
+          "name": "Bullet_1",
+          "group": "gear",
+          "material": "brass",
+          "triangles": 20,
+          "vertices": 60
+        },
+        {
+          "name": "Bullet_2",
+          "group": "gear",
+          "material": "brass",
+          "triangles": 20,
+          "vertices": 60
+        },
+        {
+          "name": "Carabiner",
+          "group": "gear",
+          "material": "steel",
+          "triangles": 64,
+          "vertices": 192
+        },
+        {
+          "name": "KneePad_R",
+          "group": "pants",
+          "material": "kneepad",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Holster",
+          "group": "gear",
+          "material": "black",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Holster_Strap_0",
+          "group": "gear",
+          "material": "black",
+          "triangles": 28,
+          "vertices": 84
+        },
+        {
+          "name": "Holster_Strap_1",
+          "group": "gear",
+          "material": "black",
+          "triangles": 28,
+          "vertices": 84
+        },
+        {
+          "name": "KneePad_L",
+          "group": "pants",
+          "material": "kneepad",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Cargo_Pocket",
+          "group": "pants",
+          "material": "pants",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Cargo_Flap",
+          "group": "pants",
+          "material": "pants",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Tee_ChestPatch",
+          "group": "tee",
+          "material": "black",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Tee_ChestStar",
+          "group": "tee",
+          "material": "gold",
+          "triangles": 12,
+          "vertices": 36
+        }
+      ],
+      "id": "outfit_br_female",
+      "label": "Battle Royale Outfit \u00b7 Female Fit",
+      "target": "female",
+      "description": "20-piece tactical tee, cargo pants, belt, pouches, holster, knee pads, and combat boots fitted & skinned to the 65-joint female superhero rig."
+    },
+    {
+      "file": "outfit_br_male.glb",
+      "bytes": 1692828,
+      "pieces": 20,
+      "vertices": 35856,
+      "triangles": 11952,
+      "skinned": true,
+      "joints": 65,
+      "height_m": 1.8196,
+      "materials": [
+        "Outfit_BR_Fit_M_tee",
+        "Outfit_BR_Fit_M_pants",
+        "Outfit_BR_Fit_M_boot",
+        "Outfit_BR_Fit_M_black",
+        "Outfit_BR_Fit_M_brass",
+        "Outfit_BR_Fit_M_steel",
+        "Outfit_BR_Fit_M_kneepad",
+        "Outfit_BR_Fit_M_gold"
+      ],
+      "piece_details": [
+        {
+          "name": "Tee",
+          "group": "tee",
+          "material": "tee",
+          "triangles": 4108,
+          "vertices": 12324
+        },
+        {
+          "name": "Cargo_Pants",
+          "group": "pants",
+          "material": "pants",
+          "triangles": 3988,
+          "vertices": 11964
+        },
+        {
+          "name": "Boots",
+          "group": "boots",
+          "material": "boot",
+          "triangles": 3496,
+          "vertices": 10488
+        },
+        {
+          "name": "Belt",
+          "group": "gear",
+          "material": "black",
+          "triangles": 60,
+          "vertices": 180
+        },
+        {
+          "name": "Belt_Buckle",
+          "group": "gear",
+          "material": "black",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Pouch_R",
+          "group": "gear",
+          "material": "black",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Pouch_L",
+          "group": "gear",
+          "material": "black",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Bullet_0",
+          "group": "gear",
+          "material": "brass",
+          "triangles": 20,
+          "vertices": 60
+        },
+        {
+          "name": "Bullet_1",
+          "group": "gear",
+          "material": "brass",
+          "triangles": 20,
+          "vertices": 60
+        },
+        {
+          "name": "Bullet_2",
+          "group": "gear",
+          "material": "brass",
+          "triangles": 20,
+          "vertices": 60
+        },
+        {
+          "name": "Carabiner",
+          "group": "gear",
+          "material": "steel",
+          "triangles": 64,
+          "vertices": 192
+        },
+        {
+          "name": "KneePad_R",
+          "group": "pants",
+          "material": "kneepad",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Holster",
+          "group": "gear",
+          "material": "black",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Holster_Strap_0",
+          "group": "gear",
+          "material": "black",
+          "triangles": 28,
+          "vertices": 84
+        },
+        {
+          "name": "Holster_Strap_1",
+          "group": "gear",
+          "material": "black",
+          "triangles": 28,
+          "vertices": 84
+        },
+        {
+          "name": "KneePad_L",
+          "group": "pants",
+          "material": "kneepad",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Cargo_Pocket",
+          "group": "pants",
+          "material": "pants",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Cargo_Flap",
+          "group": "pants",
+          "material": "pants",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Tee_ChestPatch",
+          "group": "tee",
+          "material": "black",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Tee_ChestStar",
+          "group": "tee",
+          "material": "gold",
+          "triangles": 12,
+          "vertices": 36
+        }
+      ],
+      "id": "outfit_br_male",
+      "label": "Battle Royale Outfit \u00b7 Male Fit",
+      "target": "male",
+      "description": "20-piece tactical tee, cargo pants, belt, pouches, holster, knee pads, and combat boots fitted & skinned to the 65-joint male superhero rig."
+    },
+    {
+      "file": "outfit_battle_royale.glb",
+      "bytes": 74380,
+      "pieces": 30,
+      "vertices": 1932,
+      "triangles": 644,
+      "skinned": false,
+      "joints": 0,
+      "height_m": 1.75,
+      "materials": [
+        "Outfit_BR_M_tee",
+        "Outfit_BR_M_black",
+        "Outfit_BR_M_gold",
+        "Outfit_BR_M_pants",
+        "Outfit_BR_M_kneepad",
+        "Outfit_BR_M_brass",
+        "Outfit_BR_M_steel",
+        "Outfit_BR_M_boot"
+      ],
+      "piece_details": [
+        {
+          "name": "Tee_Body",
+          "group": "tee",
+          "material": "tee",
+          "triangles": 28,
+          "vertices": 84
+        },
+        {
+          "name": "Tee_Collar",
+          "group": "tee",
+          "material": "tee",
+          "triangles": 28,
+          "vertices": 84
+        },
+        {
+          "name": "Tee_Sleeve_R",
+          "group": "tee",
+          "material": "tee",
+          "triangles": 28,
+          "vertices": 84
+        },
+        {
+          "name": "Tee_Sleeve_L",
+          "group": "tee",
+          "material": "tee",
+          "triangles": 28,
+          "vertices": 84
+        },
+        {
+          "name": "Tee_ChestPatch",
+          "group": "tee",
+          "material": "black",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Tee_ChestStar",
+          "group": "tee",
+          "material": "gold",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Pants_Hips",
+          "group": "pants",
+          "material": "pants",
+          "triangles": 28,
+          "vertices": 84
+        },
+        {
+          "name": "Pants_Leg_R",
+          "group": "pants",
+          "material": "pants",
+          "triangles": 28,
+          "vertices": 84
+        },
+        {
+          "name": "KneePad_R",
+          "group": "pants",
+          "material": "kneepad",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Pants_Leg_L",
+          "group": "pants",
+          "material": "pants",
+          "triangles": 28,
+          "vertices": 84
+        },
+        {
+          "name": "KneePad_L",
+          "group": "pants",
+          "material": "kneepad",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Cargo_Pocket",
+          "group": "pants",
+          "material": "pants",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Cargo_Flap",
+          "group": "pants",
+          "material": "pants",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Holster",
+          "group": "gear",
+          "material": "black",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Holster_Strap_0",
+          "group": "gear",
+          "material": "black",
+          "triangles": 28,
+          "vertices": 84
+        },
+        {
+          "name": "Holster_Strap_1",
+          "group": "gear",
+          "material": "black",
+          "triangles": 28,
+          "vertices": 84
+        },
+        {
+          "name": "Belt",
+          "group": "gear",
+          "material": "black",
+          "triangles": 44,
+          "vertices": 132
+        },
+        {
+          "name": "Belt_Buckle",
+          "group": "gear",
+          "material": "black",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Pouch_R",
+          "group": "gear",
+          "material": "black",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Pouch_L",
+          "group": "gear",
+          "material": "black",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Bullet_0",
+          "group": "gear",
+          "material": "brass",
+          "triangles": 20,
+          "vertices": 60
+        },
+        {
+          "name": "Bullet_1",
+          "group": "gear",
+          "material": "brass",
+          "triangles": 20,
+          "vertices": 60
+        },
+        {
+          "name": "Bullet_2",
+          "group": "gear",
+          "material": "brass",
+          "triangles": 20,
+          "vertices": 60
+        },
+        {
+          "name": "Carabiner",
+          "group": "gear",
+          "material": "steel",
+          "triangles": 64,
+          "vertices": 192
+        },
+        {
+          "name": "Boot_Shaft_R",
+          "group": "boots",
+          "material": "boot",
+          "triangles": 28,
+          "vertices": 84
+        },
+        {
+          "name": "Boot_Foot_R",
+          "group": "boots",
+          "material": "boot",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Boot_Sole_R",
+          "group": "boots",
+          "material": "black",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Boot_Shaft_L",
+          "group": "boots",
+          "material": "boot",
+          "triangles": 28,
+          "vertices": 84
+        },
+        {
+          "name": "Boot_Foot_L",
+          "group": "boots",
+          "material": "boot",
+          "triangles": 12,
+          "vertices": 36
+        },
+        {
+          "name": "Boot_Sole_L",
+          "group": "boots",
+          "material": "black",
+          "triangles": 12,
+          "vertices": 36
+        }
+      ],
+      "id": "outfit_battle_royale",
+      "label": "Battle Royale Outfit \u00b7 Standalone Kit",
+      "target": "standalone",
+      "description": "29-piece low-poly modular Outfit_BR kit (tee, collar, sleeves, cargo pants, belt, pouches, holster, brass bullets, steel carabiner, boots) with no body."
+    }
+  ]
+}
