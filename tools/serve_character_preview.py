@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Serve the Character Studio web preview, Motion FBX folder, and lightweight outfit API."""
+"""Serve the Indus Web Suite (Character Studio, Web Asset Generator, 3D Inspector) and Motion FBX library."""
 from __future__ import annotations
 
 import argparse
@@ -44,10 +44,11 @@ class PreviewHandler(SimpleHTTPRequestHandler):
         req_path = unquote(urlsplit(self.path).path)
         if req_path == "/api/health":
             blender_bin = os.environ.get("BLENDER_BIN", shutil.which("blender") or "")
+            has_blender = bool(blender_bin and (shutil.which(blender_bin) or Path(blender_bin).exists()))
             self._send_json(200, {
                 "status": "ok",
-                "blender_configured": bool(blender_bin and Path(blender_bin).exists()) or True,
-                "blender_path": blender_bin or "python-outfit-builder",
+                "blender_configured": has_blender,
+                "blender_path": blender_bin or "web-glb-builder",
                 "recipes": len(RECIPES),
             })
             return
@@ -70,7 +71,7 @@ class PreviewHandler(SimpleHTTPRequestHandler):
             self._send_json(422, {"detail": str(exc)})
             return
         if recipe != "battle_royale_outfit":
-            self._send_json(503, {"detail": "Install Blender 4.x to generate non-outfit Blender recipes."})
+            self._send_json(503, {"detail": "Install Blender 4.x to generate server-side non-outfit recipes, or use the browser Web GLB Builder."})
             return
         OUTPUTS.mkdir(parents=True, exist_ok=True)
         payload = json.dumps({"recipe": recipe, "params": params}, sort_keys=True, separators=(",", ":"))
@@ -95,8 +96,10 @@ class PreviewHandler(SimpleHTTPRequestHandler):
 
     def translate_path(self, path: str) -> str:
         request_path = unquote(urlsplit(path).path)
-        if request_path == "/":
+        if request_path in ("/", "/index.html"):
             return str((FRONTEND / self.default_page).resolve())
+        if request_path == "/generator.html":
+            return str((FRONTEND / "index.html").resolve())
         motion_prefix = "/assets/motions/"
         if request_path.startswith(motion_prefix):
             relative = Path(request_path[len(motion_prefix):])
@@ -122,7 +125,7 @@ def main() -> None:
     args = parser.parse_args()
     PreviewHandler.default_page = args.default_page
     server = ThreadingHTTPServer((args.host, args.port), PreviewHandler)
-    print(f"Character Studio serving on http://{args.host}:{args.port} (default: {args.default_page})", flush=True)
+    print(f"Indus Web Suite serving on http://{args.host}:{args.port} (default: {args.default_page})", flush=True)
     server.serve_forever()
 
 

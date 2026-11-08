@@ -1,4 +1,4 @@
-name: Validate & Deploy 3D Asset Viewer
+name: Validate & Deploy Indus Web Suite
 
 on:
   push:
@@ -31,17 +31,19 @@ jobs:
           python tools/build_battle_royale_outfits.py
           python tools/build_motion_manifest.py
 
-      - name: Test character packaging, outfits, motion manifest, and source texture variants
+      - name: Test character packaging, outfits, motion manifest, and web UI
         run: python -m unittest discover -s tools -p 'test_*.py' -v
 
       - name: Check backend Python syntax
         run: python -m compileall -q procedural_asset_app/backend tools
 
-      - name: Check viewer JavaScript syntax
+      - name: Check frontend JavaScript syntax
         run: |
           node --check procedural_asset_app/frontend/character-viewer.js
           node --check procedural_asset_app/frontend/motion-retarget.js
           node --check procedural_asset_app/frontend/glb-combine.js
+          node --check procedural_asset_app/frontend/app.js
+          node --check procedural_asset_app/frontend/web-recipes.js
           python - <<'PY'
           from html.parser import HTMLParser
           from pathlib import Path
@@ -53,7 +55,8 @@ jobs:
                   self.parts = []
 
               def handle_starttag(self, tag, attrs):
-                  if tag == "script" and "src" not in dict(attrs):
+                  attrs_dict = dict(attrs)
+                  if tag == "script" and "src" not in attrs_dict and attrs_dict.get("type") != "importmap":
                       self.active = True
 
               def handle_endtag(self, tag):
@@ -66,28 +69,32 @@ jobs:
 
           parser = InlineScripts()
           parser.feed(Path("procedural_asset_app/frontend/asset-viewer.html").read_text(encoding="utf-8"))
-          Path("/tmp/asset-viewer-inline.js").write_text("\n".join(parser.parts), encoding="utf-8")
+          Path("/tmp/asset-viewer-inline.mjs").write_text("\n".join(parser.parts), encoding="utf-8")
           if not parser.parts:
               raise SystemExit("No inline viewer script found")
           PY
-          node --check /tmp/asset-viewer-inline.js
+          node --check /tmp/asset-viewer-inline.mjs
 
-      - name: Validate and retarget all 74 source FBX clips
+      - name: Validate and retarget all 74 source FBX clips, outfit binding, and web GLB recipes
         run: |
           npm install --prefix "$RUNNER_TEMP/three-validation" --no-save --no-package-lock three@0.166.1
           THREE_PACKAGE="$RUNNER_TEMP/three-validation/node_modules/three" node tools/validate_motion_retarget.mjs
 
-      - name: Stage static viewer site
+      - name: Stage static GitHub Pages web suite
         run: |
           mkdir -p _site/assets/motions
-          cp procedural_asset_app/frontend/asset-viewer.html _site/index.html
+          cp procedural_asset_app/frontend/characters.html _site/index.html
+          cp procedural_asset_app/frontend/characters.html _site/characters.html
+          cp procedural_asset_app/frontend/index.html _site/generator.html
           cp procedural_asset_app/frontend/asset-viewer.html _site/asset-viewer.html
           cp procedural_asset_app/frontend/asset-viewer-source.md _site/
-          cp procedural_asset_app/frontend/characters.html \
-             procedural_asset_app/frontend/character-viewer.css \
+          cp procedural_asset_app/frontend/character-viewer.css \
              procedural_asset_app/frontend/character-viewer.js \
              procedural_asset_app/frontend/glb-combine.js \
-             procedural_asset_app/frontend/motion-retarget.js _site/
+             procedural_asset_app/frontend/motion-retarget.js \
+             procedural_asset_app/frontend/app.js \
+             procedural_asset_app/frontend/web-recipes.js \
+             procedural_asset_app/frontend/style.css _site/
           cp -R procedural_asset_app/frontend/assets/characters _site/assets/
           cp -R procedural_asset_app/frontend/assets/outfits _site/assets/
           cp procedural_asset_app/frontend/assets/motion-manifest.json _site/assets/
@@ -95,6 +102,9 @@ jobs:
           test "$(find _site/assets/motions -maxdepth 1 -name '*.fbx' | wc -l)" -eq 74
           test -s _site/index.html
           test -s _site/characters.html
+          test -s _site/generator.html
+          test -s _site/asset-viewer.html
+          test -s _site/web-recipes.js
           test -s _site/assets/characters/superhero_female_dark.glb
           test -s _site/assets/characters/superhero_female_light.glb
           test -s _site/assets/characters/superhero_male_dark.glb

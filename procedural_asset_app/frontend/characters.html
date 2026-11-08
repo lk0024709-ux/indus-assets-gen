@@ -4,30 +4,62 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#0b0e14">
-  <meta name="description" content="Explore, outfit, and animate the rigged Indus superhero characters with fitted Battle Royale tactical gear and 74 supplied motion clips.">
-  <title>Character Studio · Indus Asset Generator</title>
+  <meta name="description" content="Explore, customize, outfit, and animate the rigged Indus superhero characters with fitted Battle Royale tactical gear, live color presets, 74 Mixamo motions, and instant GLB export.">
+  <title>Indus Web Studio · Character &amp; Battle Royale Outfit Toolkit</title>
   <link rel="stylesheet" href="./character-viewer.css">
   <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/"}}</script>
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="./index.html" aria-label="Back to Indus Asset Generator">
+    <a class="brand" href="./index.html" aria-label="Indus Character Studio Home">
       <span class="brand-mark">◈</span>
-      <span><span class="eyebrow">INDUS TOOLKIT</span><strong>Character Studio</strong></span>
+      <span><span class="eyebrow">INDUS WEB SUITE</span><strong>Character &amp; Outfit Studio</strong></span>
     </a>
-    <div class="topbar-right"><span class="online-dot"></span><span>ASSET PREVIEW</span><a class="back-link" href="./asset-viewer.html">3D Viewer ↗</a><a class="back-link generator-link" href="./index.html">← Generator</a></div>
+    <nav class="suite-nav" aria-label="Indus Web Tools">
+      <a class="suite-tab active" href="./characters.html" aria-current="page">✦ Character Studio</a>
+      <a class="suite-tab" href="./generator.html">◈ Asset &amp; Outfit Generator</a>
+      <a class="suite-tab" href="./asset-viewer.html">⬡ 3D File Inspector</a>
+    </nav>
+    <div class="topbar-right"><span class="online-dot"></span><span>LIVE WEB BUILD</span></div>
   </header>
 
   <main>
     <section class="intro">
       <div class="intro-copy">
-        <p class="eyebrow">HEROES · OUTFITTED FOR THE ARENA</p>
-        <h1>Built from the<br><span>source assets.</span></h1>
-        <p class="intro-text">Explore the repository’s original superhero rigs with fitted Battle Royale tactical gear, embedded PBR maps, and 74 Mixamo motions retargeted to the 65-joint skeleton.</p>
+        <p class="eyebrow">HEROES · FITTED BATTLE ROYALE GEAR · WEB GLB STUDIO</p>
+        <h1>Outfitted, animated &amp;<br><span>ready on the web.</span></h1>
+        <p class="intro-text">Equip 65-joint superhero rigs with watertight Battle Royale tactical gear cut from each body mesh, recolor squad loadouts live, preview all 74 Mixamo motions, and export single-file GLBs directly in your browser.</p>
       </div>
       <div class="intro-badges" aria-label="Model features">
-        <span>65-JOINT RIG</span><span>BR TACTICAL OUTFIT</span><span>74 MOTIONS</span><span>EMBEDDED PBR</span><span>GLB EXPORT</span>
+        <span>04 PBR HEROES</span><span>65-JOINT OUTFIT FIT</span><span>LIVE COLOR PRESETS</span><span>74 FBX MOTIONS</span><span>WEB GLB EXPORT</span>
       </div>
+    </section>
+
+    <section class="recent-strip" id="webCapabilities" aria-label="Recent capabilities live on the web">
+      <article class="cap-card panel">
+        <div class="cap-top"><span class="cap-step">NEW · 01</span><span class="cap-tag">65 BONES</span></div>
+        <strong>Fitted Battle Royale Wardrobe</strong>
+        <p>20 watertight pieces (tee, cargo pants, combat boots, belt, pouches, brass ammo &amp; thigh holster) skinned to the hero rig.</p>
+        <button class="cap-action" type="button" data-quick-action="inspect-rig">Inspect Outfit Rig →</button>
+      </article>
+      <article class="cap-card panel">
+        <div class="cap-top"><span class="cap-step">NEW · 02</span><span class="cap-tag">LIVE PBR</span></div>
+        <strong>Squad Loadout Color Customizer</strong>
+        <p>Switch tactical presets (Olive, Desert, Night, Arctic, Crimson) or pick custom colors exported into the GLB.</p>
+        <button class="cap-action" type="button" data-quick-action="preset-night">Try Night Stealth →</button>
+      </article>
+      <article class="cap-card panel">
+        <div class="cap-top"><span class="cap-step">NEW · 03</span><span class="cap-tag">74 CLIPS</span></div>
+        <strong>Full Mixamo Motion Retargeting</strong>
+        <p>Search and play Movement, Stance, Combat, and Special FBX clips across hero + fitted outfit simultaneously.</p>
+        <button class="cap-action" type="button" data-quick-action="motion-combat">Play Rifle Motion →</button>
+      </article>
+      <article class="cap-card panel">
+        <div class="cap-top"><span class="cap-step">NEW · 04</span><span class="cap-tag">NO SERVER</span></div>
+        <strong>Browser GLB Combiner &amp; Generator</strong>
+        <p>Pack combined Character+Outfit GLBs or build custom procedural outfits &amp; props 100% client-side.</p>
+        <a class="cap-action" href="./generator.html">Open Web Generator ↗</a>
+      </article>
     </section>
 
     <section class="studio" aria-label="3D character studio">
@@ -69,6 +101,25 @@
             <button class="outfit-group-pill active" type="button" data-outfit-group="gear" aria-pressed="true">✓ <span>Belt + Holster</span></button>
             <button class="outfit-group-pill active" type="button" data-outfit-group="boots" aria-pressed="true">✓ <span>Combat Boots</span></button>
           </div>
+
+          <div class="colorway-block" aria-label="Outfit colorway customization">
+            <div class="colorway-head">
+              <span class="eyebrow">LOADOUT COLORWAY</span>
+              <span id="activePresetLabel" class="preset-name">Olive Default</span>
+            </div>
+            <div class="preset-row" id="outfitColorPresets" role="group" aria-label="Tactical color presets">
+              <button class="preset-chip active" type="button" data-preset="olive" aria-pressed="true" title="Jungle Olive (Default)"><i style="background:#6E7847"></i>Olive</button>
+              <button class="preset-chip" type="button" data-preset="desert" aria-pressed="false" title="Desert Sand"><i style="background:#C2A878"></i>Desert</button>
+              <button class="preset-chip" type="button" data-preset="night" aria-pressed="false" title="Night Ops Stealth"><i style="background:#262D38"></i>Night</button>
+              <button class="preset-chip" type="button" data-preset="arctic" aria-pressed="false" title="Arctic Recon"><i style="background:#CFD8E3"></i>Arctic</button>
+              <button class="preset-chip" type="button" data-preset="crimson" aria-pressed="false" title="Crimson Elite"><i style="background:#8F2933"></i>Crimson</button>
+            </div>
+            <div class="swatch-grid">
+              <label class="swatch-field" for="colorTee"><span>Tee</span><input id="colorTee" type="color" value="#6E7847" aria-label="Tee color"></label>
+              <label class="swatch-field" for="colorPants"><span>Pants</span><input id="colorPants" type="color" value="#7E6E4B" aria-label="Cargo pants color"></label>
+              <label class="swatch-field" for="colorGear"><span>Gear</span><input id="colorGear" type="color" value="#27272B" aria-label="Tactical gear color"></label>
+            </div>
+          </div>
         </section>
 
         <div class="divider"></div>
@@ -85,7 +136,7 @@
         </div>
         <button class="download-button" id="downloadModel" type="button">↓ <span id="downloadModelLabel">Download character + outfit GLB</span></button>
         <button class="download-secondary" id="downloadOutfit" type="button">↓ <span id="downloadOutfitLabel">Download fitted outfit GLB</span></button>
-        <p class="small-note">Tee, cargo pants, and boots are cut directly from each hero’s body mesh and solidified with exact skin weights; tactical belt, pouches, holster, knee pads, bullets, carabiner, and chest star are skinned to the matching bones.</p>
+        <p class="small-note">Tee, cargo pants, and boots are cut directly from each hero’s body mesh and solidified with exact skin weights; custom colors and layer toggles export directly into the downloaded GLB.</p>
       </aside>
 
       <div class="preview-column">
@@ -103,10 +154,11 @@
           <div class="motion-controls">
             <button id="motionPlay" class="motion-action primary" type="button" disabled>▶ <span>Play</span></button>
             <button id="motionStop" class="motion-action" type="button" disabled>■ <span>Stop</span></button>
+            <input id="motionSearch" class="motion-search" type="search" placeholder="Filter 74 motions (rifle, swim, dive, walk)…" aria-label="Filter motions by name">
             <label class="motion-speed-label" for="motionSpeed">Speed</label>
             <select id="motionSpeed" class="motion-speed" aria-label="Playback speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
           </div>
-          <p id="motionLibraryHelp" class="motion-library-help">Choose any motion to play it immediately. Use Tab and Enter to browse and activate motions.</p>
+          <p id="motionLibraryHelp" class="motion-library-help">Choose any motion to play it immediately on the hero and fitted Battle Royale gear.</p>
           <div id="motionLibrary" class="motion-library" role="region" aria-label="Available motions" aria-describedby="motionLibraryHelp" aria-busy="true">
             <p class="motion-library-loading">Loading motion buttons…</p>
           </div>
@@ -115,13 +167,13 @@
         </section>
         <div class="quality-row">
           <article class="quality-card panel"><span class="quality-icon violet">✦</span><div><strong>Body-fitted &amp; rigged</strong><p>Tee, cargo pants, boots, belt, holster, and pouches deform on the 65-bone rig.</p></div></article>
-          <article class="quality-card panel"><span class="quality-icon green">◉</span><div><strong>Texture-complete</strong><p>Hair, eyes, normal, color and roughness maps embedded alongside linear-RGB tactical materials.</p></div></article>
-          <article class="quality-card panel"><span class="quality-icon blue">⬡</span><div><strong>Portable GLB</strong><p>Download combined character + outfit GLB or modular outfit-only GLB.</p></div></article>
+          <article class="quality-card panel"><span class="quality-icon green">◉</span><div><strong>Texture &amp; color complete</strong><p>7 embedded hero PBR maps plus live-customizable linear-RGB tactical gear.</p></div></article>
+          <article class="quality-card panel"><span class="quality-icon blue">⬡</span><div><strong>100% Web-native GLB</strong><p>Export combined outfitted hero GLBs or generate custom props right in the browser.</p></div></article>
         </div>
       </div>
     </section>
   </main>
-  <footer><span>INDUS CHARACTER STUDIO</span><span>Made with Base model /Character, Base model /Texture, and Battle Royale outfit generators</span></footer>
+  <footer><span>INDUS CHARACTER &amp; OUTFIT WEB STUDIO</span><span>Character Studio · Web Procedural GLB Generator · 3D File &amp; Motion Inspector</span></footer>
   <script type="module" src="./character-viewer.js"></script>
 </body>
 </html>

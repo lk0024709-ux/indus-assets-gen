@@ -8,7 +8,8 @@ const THREE = await import(pathToFileURL(path.join(packageRoot, 'build/three.mod
 const { FBXLoader } = await import(pathToFileURL(path.join(packageRoot, 'examples/jsm/loaders/FBXLoader.js')).href);
 const { GLTFLoader } = await import(pathToFileURL(path.join(packageRoot, 'examples/jsm/loaders/GLTFLoader.js')).href);
 const { normalizedBoneName, retargetMixamoClip } = await import('../procedural_asset_app/frontend/motion-retarget.js');
-const { combineCharacterAndOutfitGlb, parseGlbChunks } = await import('../procedural_asset_app/frontend/glb-combine.js');
+const { combineCharacterAndOutfitGlb, parseGlbChunks, recolorOutfitGlb } = await import('../procedural_asset_app/frontend/glb-combine.js');
+const { WEB_RECIPES, generateRecipeGlbInBrowser } = await import('../procedural_asset_app/frontend/web-recipes.js');
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const characterFile = path.join(root, 'Base model ', 'Character', 'Superhero_Female_FullBody.gltf');
@@ -223,9 +224,25 @@ for (const outfitName of ['outfit_br_female.glb', 'outfit_br_male.glb']) {
 }
 const heroBytes = fs.readFileSync(path.join(root, 'procedural_asset_app/frontend/assets/characters/superhero_female_dark.glb'));
 const fitBytes = fs.readFileSync(path.join(root, 'procedural_asset_app/frontend/assets/outfits/outfit_br_female.glb'));
-const mergedGlb = combineCharacterAndOutfitGlb(heroBytes, fitBytes);
+const mergedGlb = combineCharacterAndOutfitGlb(heroBytes, fitBytes, null, { tee: '#262D38', pants: '#1C2029', gear: '#12141A' });
 const { gltf: mergedJson } = parseGlbChunks(mergedGlb);
 if (mergedJson.meshes.length !== 23 || mergedJson.skins[0].joints.length !== 65) {
   throw new Error(`Combined GLB mismatch: meshes=${mergedJson.meshes.length}`);
 }
-console.log('Validated Battle Royale fitted outfit GLBs (female + male) and client-side GLB combiner.');
+const recoloredFit = recolorOutfitGlb(fitBytes, { tee: '#8F2933', pants: '#2B2B33', gear: '#18181D' });
+const { gltf: recoloredJson } = parseGlbChunks(recoloredFit);
+const teeMat = recoloredJson.materials.find(m => m.name.endsWith('_tee'));
+if (!teeMat || teeMat.pbrMetallicRoughness.baseColorFactor[0] <= teeMat.pbrMetallicRoughness.baseColorFactor[1]) {
+  throw new Error('Crimson tee colorway override was not applied to outfit GLB.');
+}
+for (const recipe of WEB_RECIPES) {
+  const { glb } = generateRecipeGlbInBrowser(recipe.id, {});
+  const parsedWeb = await new Promise((resolve, reject) => {
+    new GLTFLoader().parse(toArrayBuffer(glb), '', resolve, reject);
+  });
+  const bounds = new THREE.Box3().setFromObject(parsedWeb.scene).getSize(new THREE.Vector3());
+  if (bounds.x <= 0.1 || bounds.y <= 0.1 || bounds.z <= 0.1) {
+    throw new Error(`Browser web recipe ${recipe.id} produced invalid bounds`);
+  }
+}
+console.log('Validated Battle Royale fitted outfit GLBs, color-customized GLB combiner, and all 6 browser Web GLB recipes.');

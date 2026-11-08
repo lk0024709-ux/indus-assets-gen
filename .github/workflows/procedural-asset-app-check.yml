@@ -19,7 +19,7 @@ jobs:
           python-version: '3.11'
       - name: Python syntax check
         run: python -m compileall -q procedural_asset_app/backend
-      - name: Test Character Studio motion buttons
+      - name: Test Character Studio motion and web UI
         run: python -m unittest discover -s tools -p 'test_character_motion_ui.py' -v
       - name: Validate static assets and recipe coverage
         run: |
@@ -33,10 +33,11 @@ jobs:
               "backend/recipes/chair.py", "backend/recipes/table.py",
               "backend/recipes/lamp.py", "backend/recipes/rock.py",
               "backend/recipes/barrel.py", "frontend/index.html",
-              "frontend/app.js", "frontend/style.css", "frontend/asset-viewer.html",
-              "frontend/asset-viewer-source.md", "frontend/characters.html",
-              "frontend/character-viewer.css", "frontend/character-viewer.js",
-              "frontend/glb-combine.js", "frontend/motion-retarget.js",
+              "frontend/app.js", "frontend/web-recipes.js", "frontend/style.css",
+              "frontend/asset-viewer.html", "frontend/asset-viewer-source.md",
+              "frontend/characters.html", "frontend/character-viewer.css",
+              "frontend/character-viewer.js", "frontend/glb-combine.js",
+              "frontend/motion-retarget.js",
               "frontend/assets/outfits/outfits.json",
               "frontend/assets/motion-manifest.json",
               "README.md", "run.sh"
@@ -45,12 +46,14 @@ jobs:
           if missing:
               raise SystemExit("Missing required files: " + ", ".join(missing))
           text = (root / "backend/registry.py").read_text()
+          web_recipes_text = (root / "frontend/web-recipes.js").read_text()
           for recipe in ("battle_royale_outfit", "chair", "table", "lamp", "rock", "barrel"):
-              assert recipe in text, f"Recipe not registered: {recipe}"
+              assert recipe in text, f"Recipe not registered in backend: {recipe}"
+              assert recipe in web_recipes_text, f"Recipe not registered in web-recipes.js: {recipe}"
           assert "timeout=60" in (root / "backend/main.py").read_text()
           motions = json.loads((root / "frontend/assets/motion-manifest.json").read_text())
           assert motions["count"] == len(motions["motions"]) == 74
           outfits = json.loads((root / "frontend/assets/outfits/outfits.json").read_text())
           assert len(outfits["outfits"]) == 3
-          print("Required app files, six recipes, three outfit GLBs, and 74 motion entries verified.")
+          print("Required app files, six recipes (backend + web), three outfit GLBs, and 74 motion entries verified.")
           PY

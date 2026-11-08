@@ -6,6 +6,71 @@ function align4Len(len) {
   return (4 - (len % 4)) % 4;
 }
 
+function srgbHexToLinearFactor(hex) {
+  if (typeof hex !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(hex)) return null;
+  const toLin = c => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  return [
+    Number(toLin(parseInt(hex.slice(1, 3), 16) / 255).toFixed(6)),
+    Number(toLin(parseInt(hex.slice(3, 5), 16) / 255).toFixed(6)),
+    Number(toLin(parseInt(hex.slice(5, 7), 16) / 255).toFixed(6)),
+    1.0,
+  ];
+}
+
+function applyMaterialColorOverrides(materials, materialColors) {
+  if (!materialColors) return;
+  const tee = srgbHexToLinearFactor(materialColors.tee);
+  const pants = srgbHexToLinearFactor(materialColors.pants);
+  const gear = srgbHexToLinearFactor(materialColors.gear);
+  for (const mat of materials || []) {
+    const name = (mat.name || '').toLowerCase();
+    mat.pbrMetallicRoughness = mat.pbrMetallicRoughness || {};
+    if (tee && name.endsWith('_tee')) {
+      mat.pbrMetallicRoughness.baseColorFactor = tee;
+    } else if (pants && name.endsWith('_pants')) {
+      mat.pbrMetallicRoughness.baseColorFactor = pants;
+    } else if (pants && name.endsWith('_kneepad')) {
+      mat.pbrMetallicRoughness.baseColorFactor = [
+        Number((pants[0] * 0.52).toFixed(6)),
+        Number((pants[1] * 0.56).toFixed(6)),
+        Number((pants[2] * 0.52).toFixed(6)),
+        1.0,
+      ];
+    } else if (gear && name.endsWith('_black')) {
+      mat.pbrMetallicRoughness.baseColorFactor = gear;
+    }
+  }
+}
+
+function packGlbChunks(gltf, rawBinBytes) {
+  const binPad = align4Len(rawBinBytes.byteLength);
+  const binChunkLen = rawBinBytes.byteLength + binPad;
+  const paddedBin = new Uint8Array(binChunkLen);
+  paddedBin.set(rawBinBytes, 0);
+
+  gltf.buffers[0].byteLength = rawBinBytes.byteLength;
+  const jsonBytes = new TextEncoder().encode(JSON.stringify(gltf));
+  const jsonPad = align4Len(jsonBytes.byteLength);
+  const jsonChunkLen = jsonBytes.byteLength + jsonPad;
+  const totalBytes = 12 + 8 + jsonChunkLen + 8 + binChunkLen;
+
+  const out = new Uint8Array(totalBytes);
+  const outView = new DataView(out.buffer);
+  outView.setUint32(0, GLB_MAGIC, true);
+  outView.setUint32(4, 2, true);
+  outView.setUint32(8, totalBytes, true);
+  outView.setUint32(12, jsonChunkLen, true);
+  outView.setUint32(16, JSON_CHUNK, true);
+  out.set(jsonBytes, 20);
+  if (jsonPad) out.fill(0x20, 20 + jsonBytes.byteLength, 20 + jsonChunkLen);
+
+  const binChunkHeader = 20 + jsonChunkLen;
+  outView.setUint32(binChunkHeader, binChunkLen, true);
+  outView.setUint32(binChunkHeader + 4, BIN_CHUNK, true);
+  out.set(paddedBin, binChunkHeader + 8);
+  return out;
+}
+
 export function parseGlbChunks(arrayBuffer) {
   const bytes = arrayBuffer instanceof Uint8Array
     ? arrayBuffer
@@ -38,10 +103,24 @@ export function parseGlbChunks(arrayBuffer) {
 }
 
 /**
+ * Apply custom tactical color overrides to a standalone or fitted outfit GLB.
+ */
+export function recolorOutfitGlb(outfitBuffer, materialColors = null) {
+  const { gltf, bin } = parseGlbChunks(outfitBuffer);
+  applyMaterialColorOverrides(gltf.materials, materialColors);
+  return packGlbChunks(gltf, bin);
+}
+
+/**
  * Merge a packed 65-joint superhero character GLB with its fitted Battle Royale outfit GLB
  * onto the shared `skin[0]` without re-encoding any embedded PBR PNG maps.
  */
-export function combineCharacterAndOutfitGlb(characterBuffer, outfitBuffer, includedGroups = null) {
+export function combineCharacterAndOutfitGlb(
+  characterBuffer,
+  outfitBuffer,
+  includedGroups = null,
+  materialColors = null,
+) {
   const { gltf: charGltf, bin: charBin } = parseGlbChunks(characterBuffer);
   const { gltf: outGltf, bin: outBin } = parseGlbChunks(outfitBuffer);
 
@@ -54,8 +133,7 @@ export function combineCharacterAndOutfitGlb(characterBuffer, outfitBuffer, incl
   const charPad = align4Len(charBin.byteLength);
   const binOffset = charBin.byteLength + charPad;
   const rawCombinedLen = binOffset + outBin.byteLength;
-  const binPad = align4Len(rawCombinedLen);
-  const combinedBin = new Uint8Array(rawCombinedLen + binPad);
+  const combinedBin = new Uint8Array(rawCombinedLen);
   combinedBin.set(charBin, 0);
   combinedBin.set(outBin, binOffset);
 
@@ -76,11 +154,11 @@ export function combineCharacterAndOutfitGlb(characterBuffer, outfitBuffer, incl
     });
   }
 
+  const clonedOutfitMaterials = (outGltf.materials || []).map(m => structuredClone(m));
+  applyMaterialColorOverrides(clonedOutfitMaterials, materialColors);
   const matOffset = (charGltf.materials || []).length;
   charGltf.materials = charGltf.materials || [];
-  for (const mat of outGltf.materials || []) {
-    charGltf.materials.push(structuredClone(mat));
-  }
+  charGltf.materials.push(...clonedOutfitMaterials);
 
   const sceneIdx = charGltf.scene ?? 0;
   const armatureIdx = charGltf.scenes[sceneIdx].nodes[0];
@@ -114,32 +192,11 @@ export function combineCharacterAndOutfitGlb(characterBuffer, outfitBuffer, incl
     charGltf.nodes[armatureIdx].children.push(nodeIdx);
   }
 
-  charGltf.buffers[0].byteLength = rawCombinedLen;
   charGltf.asset = {
     ...(charGltf.asset || {}),
     version: '2.0',
     generator: 'Indus Character Studio GLB Combiner (source PBR + 65-joint Battle Royale outfit)',
   };
 
-  const jsonBytes = new TextEncoder().encode(JSON.stringify(charGltf));
-  const jsonPad = align4Len(jsonBytes.byteLength);
-  const jsonChunkLen = jsonBytes.byteLength + jsonPad;
-  const binChunkLen = combinedBin.byteLength;
-  const totalBytes = 12 + 8 + jsonChunkLen + 8 + binChunkLen;
-
-  const out = new Uint8Array(totalBytes);
-  const outView = new DataView(out.buffer);
-  outView.setUint32(0, GLB_MAGIC, true);
-  outView.setUint32(4, 2, true);
-  outView.setUint32(8, totalBytes, true);
-  outView.setUint32(12, jsonChunkLen, true);
-  outView.setUint32(16, JSON_CHUNK, true);
-  out.set(jsonBytes, 20);
-  if (jsonPad) out.fill(0x20, 20 + jsonBytes.byteLength, 20 + jsonChunkLen);
-
-  const binChunkHeader = 20 + jsonChunkLen;
-  outView.setUint32(binChunkHeader, binChunkLen, true);
-  outView.setUint32(binChunkHeader + 4, BIN_CHUNK, true);
-  out.set(combinedBin, binChunkHeader + 8);
-  return out;
+  return packGlbChunks(charGltf, combinedBin);
 }

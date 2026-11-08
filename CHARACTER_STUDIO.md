@@ -1,60 +1,47 @@
-# Superhero Character Studio
+# Indus Character & Outfit Web Studio
 
-The repository's models in `Base model /Character/` are packed into portable, textured GLBs with the source maps from `Base model /Texture/`, and paired with fitted **Battle Royale tactical outfits** built directly onto their **65-joint skeletons**.
+The **Indus Web Suite** ships three integrated, static-host-ready 3D web tools deployed to GitHub Pages (`https://lk0024709-ux.github.io/indus-assets-gen/`):
 
-## Character variants
+1. **Character & Battle Royale Outfit Studio** (`/` and `/characters.html`)
+2. **Browser Procedural 3D Asset & Outfit Generator** (`/generator.html`)
+3. **3D File & Motion Inspector** (`/asset-viewer.html`)
 
-| Preview name | GLB | Base-color map | Vertices | Rig |
-|---|---|---|---:|---:|
-| Female · Dark | `superhero_female_dark.glb` | Original female dark map | 8,844 | 65 joints |
-| Female · Light | `superhero_female_light.glb` | Alternate female light map | 8,844 | 65 joints |
-| Male · Dark | `superhero_male_dark.glb` | Original male dark map | 8,483 | 65 joints |
-| Male · Light | `superhero_male_light.glb` | Supplied alternate map (`T_Superhero_Male_Ligh.png`) | 8,483 | 65 joints |
+---
 
-The character GLBs are under `procedural_asset_app/frontend/assets/characters/`. Each is self-contained: geometry, skeleton, materials, and seven embedded PNG maps.
+## Recent Capabilities Live on Web
 
-## Battle Royale tactical outfits
+### 1. Fitted 65-Joint Battle Royale Tactical Wardrobe (`Outfit_BR_Fit`)
+- **20 watertight `SkinnedMesh` pieces** per gender (`outfit_br_female.glb` and `outfit_br_male.glb`), generated directly from `Base model /Character/Superhero_Female_FullBody.gltf` and `Superhero_Male_FullBody.gltf` (`tools/build_battle_royale_outfits.py`, mirroring the Blender script `tools/outfit_fit_character.py`):
+  - **Body-cut garments** (`Tee`, `Cargo_Pants`, `Boots`): cut from the hero body mesh, extruded outward along smoothed vertex normals into closed 2-manifold shells (`boundary_edges == 0`), inheriting exact 4-bone `JOINTS_0` / `WEIGHTS_0` skinning.
+  - **Rigid-skinned tactical gear**: `Belt`, `Belt_Buckle`, `Pouch_R`, `Pouch_L`, `Bullet_0..2`, `Carabiner`, `KneePad_R/L`, `Holster`, `Holster_Strap_0..1`, `Cargo_Pocket`, `Cargo_Flap`, `Tee_ChestPatch`, and `Tee_ChestStar`.
+- **4 Wardrobe Modes**:
+  - `Equipped` — Hero + fitted 20-piece Battle Royale outfit animating together on the shared 65-bone skeleton.
+  - `Suit Only` — Base superhero suit with 7 embedded PBR maps.
+  - `Outfit Rig` — Rigged 20-piece outfit animating on the 65-bone skeleton without the body mesh.
+  - `Kit (Static)` — Standalone 30-piece modular `Outfit_BR` kit (`outfit_battle_royale.glb`).
+- **4 Modular Layer Toggles**: `Tee + Star`, `Cargo Pants`, `Belt + Holster`, and `Combat Boots`.
 
-| Outfit asset | GLB | Pieces | Rig | Source logic |
-|---|---|---:|---|---|
-| Female · Battle Royale Fit | `outfit_br_female.glb` | 20 | 65 joints | `tools/outfit_fit_character.py` |
-| Male · Battle Royale Fit | `outfit_br_male.glb` | 20 | 65 joints | `tools/outfit_fit_character.py` |
-| Standalone `Outfit_BR` Kit | `outfit_battle_royale.glb` | 30 | Static modular kit | `tools/outfit_battle_royale.py` |
+### 2. Live Squad Loadout Color Customizer
+- **5 Tactical Presets**: `Olive` (Default), `Desert`, `Night`, `Arctic`, and `Crimson`.
+- **3 Live Color Swatches**: Custom `Tee`, `Pants`, and `Gear` pickers that recolor PBR materials in real time in the 3D viewport **and** write linear-RGB `baseColorFactor` overrides into exported `.glb` files (`glb-combine.js`).
 
-* **Fitted rigged garments (`outfit_br_female.glb`, `outfit_br_male.glb`):** `Tee`, `Cargo_Pants`, and `Boots` are cut out of each hero's body mesh by bone region and normalized height, offset outward from the skin, and solidified into closed 2-manifold shells while retaining exact 4-bone skin weights. `Belt`, `Belt_Buckle`, `Pouch_R`, `Pouch_L`, `Bullet_0..2`, `Carabiner`, `KneePad_R/L`, `Holster`, `Holster_Strap_0..1`, `Cargo_Pocket`, `Cargo_Flap`, `Tee_ChestPatch`, and `Tee_ChestStar` are measured from the body cross-sections and skinned to `pelvis`, `spine_03`, `thigh_r/l`, and `calf_r/l`.
-* **Wardrobe modes & layer toggles:** Character Studio supports **Equipped**, **Suit Only**, **Outfit Rig** (65-joint outfit without body), and **Kit (Static)** (`Outfit_BR`), plus live modular toggles for **Tee + Star**, **Cargo Pants**, **Belt + Holster**, and **Combat Boots**.
-* **Single-file GLB combiner (`glb-combine.js` & `pack_character_with_outfit`):** Downloading an equipped hero packs the character's untouched PBR textures, 65-joint skin, and active skinned outfit pieces into one portable `.glb` (`superhero_female_dark_battle_royale.glb`, etc.).
+### 3. 74 Retargeted Mixamo Motions + Instant Search
+- All 74 FBX clips in `Base model /Motion/` are grouped into `Movement`, `Stance`, `Combat`, and `Special`, with instant search filtering (`#motionSearch`), playback speed (`0.5×`–`2×`), timeline scrubbing, and world-delta retargeting onto the 65-joint rig (`motion-retarget.js`).
 
-## Motion library and web playback
+### 4. Browser-Native GLB Combiner & Procedural Asset Generator
+- **Single-file Outfitted Character GLB Export** (`glb-combine.js`): Merges any hero GLB + active outfit layers + custom tactical colors into one self-contained `.glb` without re-encoding the 7 embedded PBR PNG textures.
+- **Zero-Server Procedural GLB Builder** (`web-recipes.js` + `/generator.html`): Generates downloadable binary glTF 2.0 `.glb` files directly in the browser for all 6 recipes (`Battle Royale Outfit`, `Chair`, `Table`, `Lamp`, `Rock`, `Barrel`) on static GitHub Pages, while automatically using FastAPI + Blender when run locally with a backend.
 
-`Base model /Motion/` contains **74 FBX motion clips** on a Mixamo 65-bone rig. The Character Studio loads each FBX on demand, maps Mixamo joints to the superhero skeleton, converts bone-space and centimeter units, and plays it on both the character body and the fitted Battle Royale outfit simultaneously. The first idle motion starts automatically; every clip has its own clickable button, arranged in scrollable Movement, Stance, Combat, and Special groups.
+---
 
-## Preview locally
-
-Use the repository preview server, which serves the frontend and maps the motion URL back to the original `Base model /Motion/` folder:
-
-```bash
-python tools/serve_character_preview.py --host 0.0.0.0 --port 8000
-```
-
-Open `/characters.html` (or `/asset-viewer.html`).
-
-## Rebuild and validate
-
-From the repository root:
+## Rebuilding Assets & Running Locally
 
 ```bash
-python tools/build_superhero_characters.py
-python tools/build_battle_royale_outfits.py
-python tools/build_motion_manifest.py
-python -m unittest discover -s tools -p 'test_*.py' -v
-npm install --prefix /tmp/three-validation --no-save --no-package-lock three@0.166.1
-THREE_PACKAGE=/tmp/three-validation/node_modules/three node tools/validate_motion_retarget.mjs
-```
+# Rebuild character GLBs, fitted/standalone Battle Royale outfit GLBs, and motion manifest
+python3 tools/build_superhero_characters.py
+python3 tools/build_battle_royale_outfits.py
+python3 tools/build_motion_manifest.py
 
-If Blender 3.2+ / 4.x is installed locally, you can also run the standalone Blender scripts directly:
-
-```bash
-blender -b -P tools/outfit_battle_royale.py -- --export outfit_br.glb
-blender -b -P tools/outfit_fit_character.py -- --char "Base model /Character/Superhero_Female_FullBody.gltf" --export outfit_br_female_blender.glb
+# Serve the complete Web Suite locally on http://localhost:8000
+python3 tools/serve_character_preview.py --port 8000
 ```
