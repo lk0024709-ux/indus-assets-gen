@@ -48,9 +48,9 @@ Example request:
 
 Outputs are saved under `outputs/`. They are served at `/outputs/<filename>.glb`. Cache keys are based on the normalized recipe ID and validated parameters. Set `BLENDER_BIN=/path/to/blender` if Blender is not on PATH.
 
-## GitHub Actions and hosting
+## GitHub Pages & static web mode
 
-GitHub Actions can run syntax checks and build/test automation, but it does not keep a persistent FastAPI + Blender server running after a workflow ends. GitHub Pages can host static files only; it cannot execute Blender or the FastAPI generation endpoint. For live procedural generation, deploy this folder to a persistent Python host/container that has Blender installed. If only the static frontend is published, generation requires a separately hosted backend and its API URL must be configured.
+When deployed to static GitHub Pages (`generator.html` alongside `characters.html` and `asset-viewer.html`), `frontend/app.js` automatically detects that no Blender backend is reachable and switches to **`frontend/web-recipes.js`** — an in-browser binary glTF 2.0 (`.glb`) procedural mesh builder that generates and downloads all 6 recipes (`Battle Royale Outfit`, `Chair`, `Table`, `Lamp`, `Rock`, and `Barrel`) 100% client-side. When run locally with FastAPI + Blender (`./run.sh`), `app.js` uses `/api/generate` first.
 
 ## Godot 4
 

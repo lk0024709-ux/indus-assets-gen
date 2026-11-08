@@ -8,6 +8,7 @@ import tempfile
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from registry import RECIPES, public_recipes, validate_params
@@ -85,6 +86,10 @@ def generate(req: GenerateRequest):
         shutil.copyfile(temp_glb,temp_target)
         temp_target.replace(target)
     return {"url":f"/outputs/{filename}","cached":False,"hash":digest,"params":params}
+
+@app.get("/generator.html")
+def generator_page():
+    return FileResponse(FRONTEND / "index.html")
 
 app.mount("/outputs",StaticFiles(directory=OUT),name="outputs")
 app.mount("/assets/motions",StaticFiles(directory=MOTION_SOURCE),name="source-motions")

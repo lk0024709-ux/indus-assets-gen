@@ -41,11 +41,15 @@ class CharacterMotionUITests(unittest.TestCase):
     def test_player_has_library_and_keeps_transport_controls(self):
         for element_id in (
             "motionLibrary", "motionPlay", "motionStop", "motionSpeed", "motionSeek", "motionStatus",
-            "outfitModes", "outfitGroups", "outfitPieceCount", "downloadModel", "downloadOutfit",
+            "motionSearch", "outfitModes", "outfitGroups", "outfitPieceCount",
+            "outfitColorPresets", "colorTee", "colorPants", "colorGear", "webCapabilities",
+            "downloadModel", "downloadOutfit",
         ):
             self.assertIn(element_id, self.page.ids)
         self.assertNotIn("motionSelect", self.page.select_ids)
         self.assertIn('aria-describedby="motionLibraryHelp"', self.html)
+        for nav_href in ("./characters.html", "./generator.html", "./asset-viewer.html"):
+            self.assertIn(f'href="{nav_href}"', self.html)
 
     def test_motion_buttons_are_generated_grouped_and_play_on_activation(self):
         for marker in (

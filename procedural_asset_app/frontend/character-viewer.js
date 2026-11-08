@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { retargetMixamoClip } from './motion-retarget.js';
-import { combineCharacterAndOutfitGlb } from './glb-combine.js';
+import { combineCharacterAndOutfitGlb, recolorOutfitGlb } from './glb-combine.js';
 
 const $ = id => document.getElementById(id);
 const modelDescriptions = {
@@ -23,6 +23,14 @@ const pieceGroupByMeshName = {
   Holster: 'gear', Holster_Strap_0: 'gear', Holster_Strap_1: 'gear',
   Boots: 'boots', Boot_Shaft_R: 'boots', Boot_Shaft_L: 'boots',
   Boot_Foot_R: 'boots', Boot_Foot_L: 'boots', Boot_Sole_R: 'boots', Boot_Sole_L: 'boots'
+};
+
+const COLOR_PRESETS = {
+  olive: { label: 'Olive Default', tee: '#6E7847', pants: '#7E6E4B', gear: '#27272B' },
+  desert: { label: 'Desert Ops', tee: '#C2A878', pants: '#8C7352', gear: '#3B3228' },
+  night: { label: 'Night Stealth', tee: '#262D38', pants: '#1C2029', gear: '#12141A' },
+  arctic: { label: 'Arctic Recon', tee: '#CFD8E3', pants: '#8F9EAD', gear: '#2E3742' },
+  crimson: { label: 'Crimson Elite', tee: '#8F2933', pants: '#2B2B33', gear: '#18181D' },
 };
 
 const assetUrl = filename => new URL(`./assets/characters/${encodeURIComponent(filename)}`, document.baseURI).href;
@@ -50,6 +58,8 @@ let mixer = null, activeAction = null, bindPose = null, selectedMotionId = '';
 let motionRequest = 0, loadToken = 0;
 let outfitMode = 'equipped'; // 'equipped' | 'none' | 'outfit-only' | 'standalone'
 const enabledGroups = new Set(['tee', 'pants', 'gear', 'boots']);
+let activePreset = 'olive';
+const outfitColors = { ...COLOR_PRESETS.olive };
 
 const motionCache = new Map();
 const outfitBufferCache = new Map();
@@ -67,6 +77,48 @@ function outfitIdForHero(heroId) {
 
 function getMeshPieceGroup(node) {
   return node.userData?.pieceGroup || pieceGroupByMeshName[node.name] || 'gear';
+}
+
+function isDefaultPalette() {
+  return (
+    outfitColors.tee.toUpperCase() === COLOR_PRESETS.olive.tee &&
+    outfitColors.pants.toUpperCase() === COLOR_PRESETS.olive.pants &&
+    outfitColors.gear.toUpperCase() === COLOR_PRESETS.olive.gear
+  );
+}
+
+function applyColorsToObject(root) {
+  if (!root) return;
+  const teeCol = new THREE.Color(outfitColors.tee);
+  const pantsCol = new THREE.Color(outfitColors.pants);
+  const kneeCol = pantsCol.clone().multiplyScalar(0.55);
+  const gearCol = new THREE.Color(outfitColors.gear);
+
+  root.traverse(node => {
+    if (!node.isMesh) return;
+    for (const mat of (Array.isArray(node.material) ? node.material : [node.material])) {
+      if (!mat?.color) continue;
+      const name = (mat.name || '').toLowerCase();
+      if (name.endsWith('_tee')) mat.color.copy(teeCol);
+      else if (name.endsWith('_pants')) mat.color.copy(pantsCol);
+      else if (name.endsWith('_kneepad')) mat.color.copy(kneeCol);
+      else if (name.endsWith('_black')) mat.color.copy(gearCol);
+      mat.needsUpdate = true;
+    }
+  });
+}
+
+function refreshOutfitColors() {
+  applyColorsToObject(attachedOutfitGroup);
+  applyColorsToObject(standaloneOutfitModel);
+  document.querySelectorAll('.preset-chip').forEach(btn => {
+    const selected = btn.dataset.preset === activePreset;
+    btn.classList.toggle('active', selected);
+    btn.setAttribute('aria-pressed', String(selected));
+  });
+  if ($('activePresetLabel')) {
+    $('activePresetLabel').textContent = COLOR_PRESETS[activePreset]?.label || 'Custom Loadout';
+  }
 }
 
 async function fetchOutfitBuffer(outfitId) {
@@ -303,6 +355,7 @@ async function attachFittedOutfitToHero(heroModel, heroId, currentToken) {
     skinnedClone.bind(primarySkinnedMesh.skeleton, primarySkinnedMesh.bindMatrix);
     group.add(skinnedClone);
   });
+  applyColorsToObject(group);
   primarySkinnedMesh.parent.add(group);
   return group;
 }
@@ -324,6 +377,7 @@ async function ensureStandaloneOutfitLoaded() {
     node.receiveShadow = true;
     node.userData.pieceGroup = getMeshPieceGroup(node);
   });
+  applyColorsToObject(rootClone);
   frameCharacter(rootClone);
   standaloneOutfitModel = rootClone;
   scene.add(standaloneOutfitModel);
@@ -360,6 +414,12 @@ function updateSpecsAndLabels() {
     pill.disabled = groupControlsDisabled;
     pill.classList.toggle('active', active);
     pill.setAttribute('aria-pressed', String(active));
+  });
+  document.querySelectorAll('.preset-chip').forEach(chip => {
+    chip.disabled = groupControlsDisabled;
+  });
+  ['colorTee', 'colorPants', 'colorGear'].forEach(id => {
+    if ($(id)) $(id).disabled = groupControlsDisabled;
   });
   document.querySelectorAll('.outfit-mode').forEach(btn => {
     const selected = btn.dataset.outfitMode === outfitMode;
@@ -562,6 +622,32 @@ function updateMotionSelection() {
   });
 }
 
+function filterMotionButtons(queryText) {
+  const q = (queryText || '').trim().toLowerCase();
+  let visibleTotal = 0;
+  document.querySelectorAll('.motion-category').forEach(section => {
+    const buttons = [...section.querySelectorAll('.motion-choice')];
+    let catVisible = 0;
+    for (const btn of buttons) {
+      const label = (btn.title || btn.textContent || '').toLowerCase();
+      const show = !q || label.includes(q);
+      btn.classList.toggle('hidden', !show);
+      if (show) {
+        catVisible++;
+        visibleTotal++;
+      }
+    }
+    section.classList.toggle('hidden', catVisible === 0);
+    const countSpan = section.querySelector('.motion-category-count');
+    if (countSpan) countSpan.textContent = `${catVisible} motion${catVisible === 1 ? '' : 's'}`;
+  });
+  if ($('motionCount') && motions.length) {
+    $('motionCount').textContent = q
+      ? `${visibleTotal} / ${motions.length} clips matching “${queryText.trim()}”`
+      : `${motions.length} source clips · 65-joint rig`;
+  }
+}
+
 function populateMotionLibrary() {
   const library = $('motionLibrary');
   library.replaceChildren();
@@ -648,8 +734,6 @@ async function getRetargetedMotion(record, targetModel, targetBindPose, targetMo
     try {
       source = fbxLoader.parse(buffer, '');
     } catch (firstError) {
-      // Two source FBX 7.7 files have one surplus footer-padding byte that trips
-      // Three.js's footer-size heuristic; dropping that byte leaves their motion intact.
       source = fbxLoader.parse(buffer.slice(0, -1), '');
     }
     if (!source.animations?.length) throw new Error(`${record.file} contains no animation clip.`);
@@ -736,16 +820,28 @@ function triggerFileDownload(href, filename, revokeAfter = false) {
   if (revokeAfter) setTimeout(() => URL.revokeObjectURL(href), 5000);
 }
 
+async function exportOutfitWithColors(outfitId, filename) {
+  if (isDefaultPalette()) {
+    triggerFileDownload(outfitUrl(filename), filename);
+    return;
+  }
+  const buf = await fetchOutfitBuffer(outfitId);
+  const recolored = recolorOutfitGlb(buf, outfitColors);
+  const url = URL.createObjectURL(new Blob([recolored], { type: 'model/gltf-binary' }));
+  const suffix = activePreset !== 'olive' ? `_${activePreset}` : '_custom';
+  triggerFileDownload(url, filename.replace(/\.glb$/i, `${suffix}.glb`), true);
+}
+
 async function handlePrimaryDownload() {
   const record = models.get(activeId);
   if (!record) return;
   if (outfitMode === 'standalone') {
-    triggerFileDownload(outfitUrl('outfit_battle_royale.glb'), 'outfit_battle_royale.glb');
+    await exportOutfitWithColors('outfit_battle_royale', 'outfit_battle_royale.glb');
     return;
   }
   if (outfitMode === 'outfit-only') {
-    const outFile = `${outfitIdForHero(activeId)}.glb`;
-    triggerFileDownload(outfitUrl(outFile), outFile);
+    const outId = outfitIdForHero(activeId);
+    await exportOutfitWithColors(outId, `${outId}.glb`);
     return;
   }
   if (outfitMode === 'none' || enabledGroups.size === 0) {
@@ -753,7 +849,6 @@ async function handlePrimaryDownload() {
     return;
   }
 
-  // Equipped mode: pack character + active Battle Royale outfit pieces into a single self-contained GLB
   const button = $('downloadModel');
   const prevText = $('downloadModelLabel').textContent;
   button.disabled = true;
@@ -763,10 +858,16 @@ async function handlePrimaryDownload() {
       fetchCharacterBuffer(activeId),
       fetchOutfitBuffer(outfitIdForHero(activeId)),
     ]);
-    const combined = combineCharacterAndOutfitGlb(charBuf, outBuf, enabledGroups);
+    const combined = combineCharacterAndOutfitGlb(
+      charBuf,
+      outBuf,
+      enabledGroups,
+      isDefaultPalette() ? null : outfitColors
+    );
     const blob = new Blob([combined], { type: 'model/gltf-binary' });
     const url = URL.createObjectURL(blob);
-    triggerFileDownload(url, `${activeId}_battle_royale.glb`, true);
+    const presetTag = isDefaultPalette() ? 'battle_royale' : `br_${activePreset}`;
+    triggerFileDownload(url, `${activeId}_${presetTag}.glb`, true);
   } catch (error) {
     console.error('Combined GLB export failed:', error);
     triggerFileDownload(assetUrl(record.file), record.file);
@@ -777,13 +878,26 @@ async function handlePrimaryDownload() {
   }
 }
 
-function handleOutfitOnlyDownload() {
+async function handleOutfitOnlyDownload() {
   if (outfitMode === 'outfit-only') {
-    triggerFileDownload(outfitUrl('outfit_battle_royale.glb'), 'outfit_battle_royale.glb');
+    await exportOutfitWithColors('outfit_battle_royale', 'outfit_battle_royale.glb');
     return;
   }
-  const outFile = `${outfitIdForHero(activeId || 'superhero_female_dark')}.glb`;
-  triggerFileDownload(outfitUrl(outFile), outFile);
+  const outId = outfitIdForHero(activeId || 'superhero_female_dark');
+  await exportOutfitWithColors(outId, `${outId}.glb`);
+}
+
+function applyPreset(presetKey) {
+  const preset = COLOR_PRESETS[presetKey];
+  if (!preset) return;
+  activePreset = presetKey;
+  outfitColors.tee = preset.tee;
+  outfitColors.pants = preset.pants;
+  outfitColors.gear = preset.gear;
+  if ($('colorTee')) $('colorTee').value = preset.tee;
+  if ($('colorPants')) $('colorPants').value = preset.pants;
+  if ($('colorGear')) $('colorGear').value = preset.gear;
+  refreshOutfitColors();
 }
 
 populateMotionLibrary();
@@ -807,6 +921,48 @@ $('outfitGroups').addEventListener('click', async event => {
   if (enabledGroups.has(grp)) enabledGroups.delete(grp);
   else enabledGroups.add(grp);
   await syncOutfitVisibility();
+});
+$('outfitColorPresets')?.addEventListener('click', async event => {
+  const chip = event.target.closest('button[data-preset]');
+  if (!chip || chip.disabled) return;
+  if (outfitMode === 'none') {
+    outfitMode = 'equipped';
+    await syncOutfitVisibility();
+  }
+  applyPreset(chip.dataset.preset);
+});
+for (const [inputId, key] of [['colorTee', 'tee'], ['colorPants', 'pants'], ['colorGear', 'gear']]) {
+  $(inputId)?.addEventListener('input', event => {
+    outfitColors[key] = event.currentTarget.value;
+    activePreset = 'custom';
+    refreshOutfitColors();
+  });
+}
+$('webCapabilities')?.addEventListener('click', async event => {
+  const trigger = event.target.closest('button[data-quick-action]');
+  if (!trigger) return;
+  const action = trigger.dataset.quickAction;
+  if (action === 'inspect-rig') {
+    outfitMode = 'outfit-only';
+    await syncOutfitVisibility();
+    $('viewport-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } else if (action === 'preset-night') {
+    outfitMode = 'equipped';
+    await syncOutfitVisibility();
+    applyPreset(activePreset === 'night' ? 'desert' : 'night');
+    $('viewport-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } else if (action === 'motion-combat') {
+    outfitMode = 'equipped';
+    await syncOutfitVisibility();
+    const combatClip = motions.find(m => /rifle run/i.test(m.label))
+      || motions.find(m => m.category === 'Combat')
+      || motions[0];
+    if (combatClip) playMotion(combatClip.id);
+    $('viewport-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+});
+$('motionSearch')?.addEventListener('input', event => {
+  filterMotionButtons(event.currentTarget.value);
 });
 $('motionLibrary').addEventListener('click', event => {
   const button = event.target.closest('button[data-motion-id]');

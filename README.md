@@ -1,11 +1,11 @@
-> **Current Pages catalog:** `body_base_midpoly.glb`, `body_base_female_midpoly.glb`, and the anatomical `skeleton_base_midpoly.glb` are published. The web build also generates and serves **Blocks 15–18**, four walkable two-storey buildings, at [the building viewer](https://lk0024709-ux.github.io/indus-assets-gen/block17.html). Legacy
-> character, building, terrain, vehicle, and OBJ assets have been removed from
-> `docs/models/`. Older pipeline sections below are historical documentation,
-> not the current hosted catalog. See [the mid-poly catalog](docs/CHARACTER_CATALOG.md).
+> **Live Indus Web Suite (GitHub Pages):**
+> - **[Character & Outfit Studio (`/` & `/characters.html`)](https://lk0024709-ux.github.io/indus-assets-gen/)** — 4 textured 65-joint superhero rigs, fitted 20-piece Battle Royale tactical gear (`Outfit_BR_Fit`), live squad colorway presets & custom swatches, 74 searchable retargeted Mixamo motions, and single-file Character+Outfit GLB export.
+> - **[Web Procedural Asset & Outfit Generator (`/generator.html`)](https://lk0024709-ux.github.io/indus-assets-gen/generator.html)** — 100% browser-native glTF 2.0 `.glb` builder for `Battle Royale Outfit`, `Chair`, `Table`, `Lamp`, `Rock`, and `Barrel` (works directly on static GitHub Pages or with a local FastAPI + Blender backend).
+> - **[3D File & Motion Inspector (`/asset-viewer.html`)](https://lk0024709-ux.github.io/indus-assets-gen/asset-viewer.html)** — Drag-and-drop `.glb/.gltf/.fbx/.obj` inspector with built-in outfitted heroes, all 74 repository FBX motions, wireframe, and skeleton bone visualizer.
 
-# 🎨 Indus : Battle Royale — 3D Asset Generator
+# 🎨 Indus : Battle Royale — 3D Asset & Character Web Studio
 
-> **3D character web viewers:** use the [general Asset Viewer](procedural_asset_app/frontend/asset-viewer.html) for local GLB/GLTF/FBX/OBJ files, or the [Character Studio](procedural_asset_app/frontend/characters.html) to play all 74 supplied motions on the textured superhero rigs. See the [Character Studio guide](CHARACTER_STUDIO.md).
+> **Guide & architecture:** See [`CHARACTER_STUDIO.md`](CHARACTER_STUDIO.md) and [`procedural_asset_app/README.md`](procedural_asset_app/README.md) for full details on the 65-joint fitted Battle Royale outfits, motion retargeting, and browser/Blender procedural generators.
 
 Production asset pipeline for **Indus : Battle Royale**. Procedural models are generated with **Blender Python (`bpy`)**; supplied character models are preserved and packed as textured `.glb` files. Published assets are designed for use in Godot, Unity, and browser-based viewers.
 
